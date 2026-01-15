@@ -1,0 +1,53 @@
+// src/data/constants.ts
+
+// Device list
+export const DEVICES = [{ id: "PRG01", name: "Pengerang" }];
+
+// Measurement parameters
+export const PARAMETERS = [
+  { key: "so2", label: "SO₂", unit: "ppm" },
+  { key: "h2s", label: "H₂S", unit: "ppm" },
+  { key: "no2", label: "NO₂", unit: "ppm" },
+  { key: "btex", label: "BTEX", unit: "ppb" },
+  { key: "solar", label: "Solar Radiation", unit: "W/m²" },
+  { key: "temperature", label: "Temperature", unit: "°C" },
+  { key: "humidity", label: "Humidity", unit: "%" },
+  { key: "pressure", label: "Pressure", unit: "hPa" },
+  { key: "rain", label: "Rain", unit: "mm/h" },
+  { key: "windSpeed", label: "Wind Speed", unit: "m/s" },
+  { key: "windDirection", label: "Wind Direction", unit: "°" },
+];
+
+// Wind directions (16-point compass)
+export const WIND_DIRS = [
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+] as const;
+
+// Windrose bin keys (m/s or concentration bands)
+export const WINDROSE_BIN_KEYS = [
+  "0-1",
+  "1-2",
+  "2-3",
+  "3-4",
+  "4-5",
+  "5-6",
+  "6-7",
+  "7+",
+] as const;
+
+export type BinKey = (typeof WINDROSE_BIN_KEYS)[number];

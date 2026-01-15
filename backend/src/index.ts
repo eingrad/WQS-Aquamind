@@ -1,0 +1,115 @@
+import express, { Application, Request, Response } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import dotenv from "dotenv";
+import authRoutes from "./routes/auth.routes";
+import userRoutes from "./routes/user.routes";
+import deviceRoutes from "./routes/device.routes";
+import telemetryRoutes from "./routes/telemetry.routes";
+import liveDataRoutes from "./routes/liveData.routes";
+import maintenanceRoutes from "./routes/maintenance.routes";
+import validationRoutes from "./routes/validation.routes";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import { requestLogger } from "./middleware/requestLogger";
+import logger from "./config/logger";
+
+dotenv.config();
+
+const app: Application = express();
+const PORT = process.env.PORT || 5000;
+
+// Middleware
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    credentials: true,
+  })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Request logging
+app.use(requestLogger);
+
+// Health check endpoint
+app.get("/health", (req: Request, res: Response) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// API routes
+const API_PREFIX = process.env.API_PREFIX || "/api";
+
+// Mount auth routes
+app.use(`${API_PREFIX}/auth`, authRoutes);
+
+// Mount user routes
+app.use(`${API_PREFIX}/users`, userRoutes);
+
+// Mount device routes
+app.use(`${API_PREFIX}/devices`, deviceRoutes);
+
+// Mount telemetry routes
+app.use(`${API_PREFIX}/sensors`, telemetryRoutes);
+
+// Mount live data routes (10s polling)
+app.use(`${API_PREFIX}/live`, liveDataRoutes);
+
+// Mount validation routes (for QA/QC validation table)
+app.use(`${API_PREFIX}/validation`, validationRoutes);
+
+// Mount maintenance routes
+app.use(API_PREFIX, maintenanceRoutes);
+
+app.get(API_PREFIX, (req: Request, res: Response) => {
+  res.json({
+    message: "PETRONAS Monitoring System API",
+    version: "1.0.0",
+  });
+});
+
+// 404 handler - must be after all routes
+app.use(notFoundHandler);
+
+// Error handlers (must be last)
+app.use(errorHandler);
+
+// Start server
+const server = app.listen(PORT, async () => {
+  logger.info(`🚀 Server running on port ${PORT}`);
+  logger.info(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
+  logger.info(`🌐 API URL: http://localhost:${PORT}${API_PREFIX}`);
+
+  // Start aggregation worker (for 5-second data processing)
+  try {
+    const { startWorker } = await import(
+      "./services/telemetry/worker/aggregation.worker"
+    );
+    startWorker();
+    logger.info("✅ Aggregation worker started");
+  } catch (error) {
+    logger.warn("⚠️  Aggregation worker not started:", error);
+    logger.warn("   System will continue without 5-second data processing");
+  }
+});
+
+// Graceful shutdown
+process.on("SIGTERM", async () => {
+  logger.info("SIGTERM signal received: closing HTTP server");
+
+  // Stop worker
+  try {
+    const { stopWorker } = await import(
+      "./services/telemetry/worker/aggregation.worker"
+    );
+    stopWorker();
+  } catch (error) {
+    // Worker may not be running
+  }
+
+  server.close(() => {
+    logger.info("HTTP server closed");
+  });
+});
+
+export default app;

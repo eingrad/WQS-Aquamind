@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Environmental Monitoring Report</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: #1f2937;
+        margin: 0;
+        padding: 2rem;
+        background-color: #ffffff;
+      }
+
+      .header {
+        border-bottom: 3px solid #0f766e;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #0f766e;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        color: #6b7280;
+      }
+
+      .section {
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        border-left: 4px solid #0f766e;
+        padding-left: 0.75rem;
+        margin-bottom: 1rem;
+      }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      .table thead {
+        background-color: #f1f5f9;
+        color: #111827;
+      }
+
+      .table th,
+      .table td {
+        border: 1px solid #e5e7eb;
+        padding: 0.6rem 1rem;
+        text-align: left;
+      }
+
+      .summary {
+        background-color: #f9fafb;
+        padding: 1rem;
+        border-left: 4px solid #0f766e;
+        margin-top: 1rem;
+      }
+
+      .footer {
+        font-size: 0.75rem;
+        color: #6b7280;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1rem;
+        text-align: center;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="title">Environmental Monitoring Report</div>
+      <div class="subtitle">
+        Generated for <strong><%= deviceId %></strong> | Period: <%= dateRange
+        %>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Report Metadata</div>
+      <p><strong>Generated On:</strong> <%= generatedOn %></p>
+      <p><strong>Location:</strong> <%= location %></p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Sensor Data</div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <% parameters.forEach(param => { %>
+            <th><%= param.label %> (<%= param.unit %>)</th>
+            <% }) %>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach(row => { %>
+          <tr>
+            <td><%= row.date %></td>
+            <td><%= row.time %></td>
+            <% parameters.forEach(param => { %>
+            <td><%= row[param.key] %></td>
+            <% }) %>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Summary</div>
+      <div class="summary">
+        <p><strong>Max Temperature:</strong> <%= summary.maxTemp %> °C</p>
+        <p><strong>Min Wind Speed:</strong> <%= summary.minWind %> m/s</p>
+        <p><strong>SO₂ Average:</strong> <%= summary.avgSO2 %> ppm</p>
+        <!-- Add more summary metrics as needed -->
+      </div>
+    </div>
+
+    <div class="footer">
+      This report was generated automatically by the PETRONAS Monitoring System
+      Dashboard.
+    </div>
+  </body>
+</html>

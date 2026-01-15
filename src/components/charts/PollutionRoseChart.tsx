@@ -1,0 +1,141 @@
+import Plot from "react-plotly.js";
+import type { Layout, PlotData } from "plotly.js";
+
+const DIRECTIONS = [
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+];
+
+const CONCENTRATION_COLORS = [
+  "#22d3ee", // Low
+  "#10b981", // Medium
+  "#eab308", // High
+  "#f97316", // Very High
+  "#ef4444", // Hazardous
+];
+
+/**
+ * Convert backend data to Plotly format
+ * Backend: { "N": { "0-10": 5, "10-20": 8, ... }, ...}
+ * Plotly needs: Array of traces, one per concentration bin
+ */
+function convertBackendToPollutionRose(backendData: any): Partial<PlotData>[] {
+  if (!backendData) return [];
+
+  // Get all unique bins from first direction
+  const firstDir = DIRECTIONS[0];
+  const bins = Object.keys(backendData[firstDir] || {});
+
+  // Create one trace per bin
+  return bins.map((bin, index) => ({
+    type: "barpolar",
+    r: DIRECTIONS.map((dir) => Number(backendData[dir]?.[bin]) || 0),
+    theta: DIRECTIONS,
+    name: bin,
+    marker: {
+      color: CONCENTRATION_COLORS[index % CONCENTRATION_COLORS.length],
+    },
+  }));
+}
+
+interface PollutionRoseChartProps {
+  data?: any | null;
+  loading?: boolean;
+}
+
+export default function PollutionRoseChart({
+  data,
+  loading = false,
+}: PollutionRoseChartProps = {}) {
+  if (loading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-gray-400">Loading pollution data...</div>
+      </div>
+    );
+  }
+
+  // Convert backend data or use dummy data
+  const traces = data?.directions
+    ? convertBackendToPollutionRose(data.directions)
+    : generateDummyTraces();
+
+  const layout: Partial<Layout> = {
+    barmode: "stack",
+    polar: {
+      bgcolor: "#0f1a1a",
+      angularaxis: {
+        direction: "clockwise",
+        rotation: 90,
+        tickfont: { color: "#cbd5e1", size: 12 },
+      },
+      radialaxis: {
+        ticksuffix: "",
+        showline: true,
+        gridcolor: "#1e293b",
+        tickfont: { color: "#ffffff" },
+      },
+    },
+    showlegend: true,
+    paper_bgcolor: "#0f1a1a",
+    plot_bgcolor: "#0f1a1a",
+    font: { color: "#f8fafc" },
+    margin: { t: 20, b: 20, l: 20, r: 20 },
+    legend: {
+      orientation: "h",
+      x: 0.5,
+      xanchor: "center",
+      y: -0.2,
+    },
+  };
+
+  return (
+    <Plot
+      data={traces}
+      layout={layout}
+      useResizeHandler
+      style={{ width: "100%", height: "100%" }}
+      config={{ responsive: true, displayModeBar: false }}
+    />
+  );
+}
+
+/**
+ * Generate dummy data for development/fallback
+ */
+function generateDummyTraces(): Partial<PlotData>[] {
+  const dummyData = [
+    { angle: "N", so2: 12 },
+    { angle: "NE", so2: 15 },
+    { angle: "E", so2: 10 },
+    { angle: "SE", so2: 8 },
+    { angle: "S", so2: 14 },
+    { angle: "SW", so2: 11 },
+    { angle: "W", so2: 9 },
+    { angle: "NW", so2: 13 },
+  ];
+
+  return [
+    {
+      type: "barpolar",
+      r: dummyData.map((d) => d.so2),
+      theta: dummyData.map((d) => d.angle),
+      name: "SO₂",
+      marker: { color: "#22d3ee" },
+    },
+  ];
+}

@@ -1,0 +1,69 @@
+/**
+ * Number Formatting Utilities
+ * Consistent decimal formatting for sensor values across the application
+ */
+
+/**
+ * Format a sensor value with specified decimal places
+ * @param value - The numeric value to format
+ * @param decimals - Number of decimal places (default: 2)
+ * @returns Formatted string or '–' for null/undefined values
+ */
+export const formatSensorValue = (
+  value: number | null | undefined,
+  decimals: number = 2
+): string => {
+  if (value === null || value === undefined) {
+    return "–";
+  }
+  return Number(value).toFixed(decimals);
+};
+
+/**
+ * Decimal places configuration for each parameter type
+ */
+const PARAMETER_DECIMALS: Record<string, number> = {
+  // Pollutants (concentrations)
+  so2: 1, // µg/m³
+  h2s: 2, // ppm
+  no2: 2, // ppm
+  btx: 2, // ppb (BTEX)
+
+  // Meteorological
+  solar: 1, // W/m²
+  temperature: 1, // °C
+  humidity: 1, // %
+  pressure: 1, // hPa
+  rain: 2, // mm
+
+  // Wind
+  windSpeed: 2, // m/s
+  windDir: 0, // degrees (no decimals for direction)
+};
+
+/**
+ * Format a pollutant/parameter value with parameter-specific decimal places
+ * @param value - The numeric value to format
+ * @param parameter - The parameter name (e.g., 'so2', 'temperature')
+ * @returns Formatted string with appropriate decimal places
+ */
+export const formatPollutantValue = (
+  value: number | null | undefined,
+  parameter: string
+): string => {
+  const decimals = PARAMETER_DECIMALS[parameter] ?? 2;
+  return formatSensorValue(value, decimals);
+};
+
+/**
+ * Format geographic coordinates
+ * @param value - Coordinate value (latitude or longitude)
+ * @param decimals - Decimal places (default: 4 for precision)
+ * @returns Formatted coordinate string
+ */
+export const formatCoordinate = (
+  value: number,
+  decimals: number = 4
+): string => {
+  return value.toFixed(decimals);
+};

@@ -1,0 +1,273 @@
+import prisma from "../config/database";
+import {
+  hashPassword,
+  comparePassword,
+  validatePasswordStrength,
+} from "../utils/password";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
+
+export interface RegisterInput {
+  email: string;
+  password: string;
+  fullName: string;
+  role: "admin" | "user" | "qa_qc" | "technician";
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  user: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: string;
+  };
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
+}
+
+/**
+ * Register a new user
+ */
+export const register = async (input: RegisterInput): Promise<AuthResponse> => {
+  const { email, password, fullName, role } = input;
+
+  // Validate password strength
+  const passwordValidation = validatePasswordStrength(password);
+  if (!passwordValidation.isValid) {
+    throw new Error(passwordValidation.message);
+  }
+
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (existingUser) {
+    throw new Error("User with this email already exists");
+  }
+
+  // Check if role exists
+  const roleExists = await prisma.role.findUnique({
+    where: { roleId: role },
+  });
+
+  if (!roleExists) {
+    throw new Error(`Invalid role: ${role}`);
+  }
+
+  // Hash password
+  const passwordHash = await hashPassword(password);
+
+  // Create user
+  const user = await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      fullName,
+      isActive: true,
+    },
+  });
+
+  // Assign role
+  await prisma.userRole.create({
+    data: {
+      userId: user.id,
+      roleId: role,
+    },
+  });
+
+  // Generate tokens
+  const tokenPayload = {
+    userId: user.id,
+    email: user.email,
+    role: role,
+  };
+
+  const accessToken = generateAccessToken(tokenPayload);
+  const refreshToken = generateRefreshToken(tokenPayload);
+
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: role,
+    },
+    tokens: {
+      accessToken,
+      refreshToken,
+    },
+  };
+};
+
+/**
+ * Login user
+ */
+export const login = async (input: LoginInput): Promise<AuthResponse> => {
+  const { email, password } = input;
+
+  // Find user
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      userRole: {
+        include: {
+          role: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new Error("Invalid credentials");
+  }
+
+  // Check if user is active
+  if (!user.isActive) {
+    throw new Error("Account is inactive. Please contact administrator.");
+  }
+
+  // Check account lockout
+  if (user.lockUntil && user.lockUntil > new Date()) {
+    const remainingTime = Math.ceil(
+      (user.lockUntil.getTime() - Date.now()) / 1000 / 60
+    );
+    throw new Error(
+      `Account is locked. Try again in ${remainingTime} minutes.`
+    );
+  }
+
+  // Verify password
+  const isPasswordValid = await comparePassword(password, user.passwordHash);
+
+  if (!isPasswordValid) {
+    // Increment login attempts
+    const newAttempts = user.loginAttempts + 1;
+    const updateData: any = {
+      loginAttempts: newAttempts,
+    };
+
+    // Lock account after 5 failed attempts
+    if (newAttempts >= 5) {
+      updateData.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: updateData,
+    });
+
+    throw new Error("Invalid credentials");
+  }
+
+  // Reset login attempts on successful login
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      loginAttempts: 0,
+      lockUntil: null,
+      lastLogin: new Date(),
+    },
+  });
+
+  const role = user.userRole?.roleId || "user";
+
+  // Generate tokens
+  const tokenPayload = {
+    userId: user.id,
+    email: user.email,
+    role: role,
+  };
+
+  const accessToken = generateAccessToken(tokenPayload);
+  const refreshToken = generateRefreshToken(tokenPayload);
+
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: role,
+    },
+    tokens: {
+      accessToken,
+      refreshToken,
+    },
+  };
+};
+
+/**
+ * Refresh access token using refresh token
+ */
+export const refresh = async (
+  userId: string,
+  email: string,
+  role: string
+): Promise<{
+  accessToken: string;
+  refreshToken: string;
+}> => {
+  // Verify user still exists and is active
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user || !user.isActive) {
+    throw new Error("User not found or inactive");
+  }
+
+  // Generate new tokens
+  const tokenPayload = {
+    userId: user.id,
+    email: user.email,
+    role: role,
+  };
+
+  const accessToken = generateAccessToken(tokenPayload);
+  const refreshToken = generateRefreshToken(tokenPayload);
+
+  return {
+    accessToken,
+    refreshToken,
+  };
+};
+
+/**
+ * Get user profile
+ */
+export const getProfile = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      fullName: true,
+      isActive: true,
+      lastLogin: true,
+      createdAt: true,
+      userRole: {
+        select: {
+          roleId: true,
+          role: {
+            select: {
+              roleName: true,
+              description: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return user;
+};
