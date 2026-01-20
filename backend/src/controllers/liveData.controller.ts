@@ -40,8 +40,7 @@ export const getWindRose = async (
     if (!data) {
       res.status(404).json({
         success: false,
-        error:
-          "No live data available. Start the generator script: .\\generate-live-wind-data.ps1",
+        error: "No live data available",
       });
       return;
     }
@@ -83,8 +82,7 @@ export const getPollutionRose = async (
     if (!data) {
       res.status(404).json({
         success: false,
-        error:
-          "No live data available. Start the generator script: .\\generate-live-pollution-data.ps1",
+        error: "No live data available.",
       });
       return;
     }

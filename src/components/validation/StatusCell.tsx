@@ -1,4 +1,4 @@
-import { Check, Flag, Clock } from "lucide-react";
+import { Check, Flag, User } from "lucide-react";
 import type { ValidationStatus } from "../../data/validationData";
 import {
   validationStatusColors,
@@ -6,14 +6,25 @@ import {
   validationStatusTextColors,
 } from "../../data/validationData";
 
+interface HumanValidation {
+  status: string;
+  flaggedBy: {
+    name: string;
+    email: string;
+  };
+  flaggedAt: string;
+  remarks: string | null;
+  coverage: string;
+}
+
 interface StatusCellProps {
   rowId: string;
   parameter: string;
   value: number | null;
   status: ValidationStatus;
   validatedByHuman?: boolean;
-  flaggedByHuman?: boolean;
   pendingAdminApproval?: boolean;
+  humanValidation?: HumanValidation | null;
   selectedCells: Set<string>;
   onCellClick: (rowId: string, parameter: string) => void;
 }
@@ -24,8 +35,8 @@ export default function StatusCell({
   value,
   status,
   validatedByHuman,
-  flaggedByHuman,
   pendingAdminApproval,
+  humanValidation,
   selectedCells,
   onCellClick,
 }: StatusCellProps) {
@@ -42,6 +53,22 @@ export default function StatusCell({
     }
   };
 
+  // Build tooltip text for human validation
+  const getTooltipText = (): string => {
+    if (!humanValidation) return "";
+
+    const date = new Date(humanValidation.flaggedAt);
+    const formattedDate = date.toLocaleString();
+
+    let tooltip = `Flagged by ${humanValidation.flaggedBy.name}\n`;
+    tooltip += `On: ${formattedDate}\n`;
+    tooltip += `Coverage: ${humanValidation.coverage}\n`;
+    if (humanValidation.remarks) {
+      tooltip += `\nRemarks:\n${humanValidation.remarks}`;
+    }
+    return tooltip;
+  };
+
   if (value === null) {
     return (
       <td className="w-[10%] px-4 py-3 text-center border-r border-white/5">
@@ -53,6 +80,14 @@ export default function StatusCell({
   // Cell is clickable for all statuses except no_data
   const isClickable = status !== "no_data";
 
+  // Determine which icon to show (priority: pending > human flag > validated)
+  const showIcon = pendingAdminApproval || humanValidation || validatedByHuman;
+  const iconBgColor = pendingAdminApproval
+    ? "bg-gray-500"
+    : humanValidation
+      ? "bg-orange-600"
+      : "bg-green-600";
+
   return (
     <td className="w-[10%] px-4 py-3 text-center border-r border-white/5">
       <div
@@ -60,32 +95,29 @@ export default function StatusCell({
           isClickable ? "cursor-pointer hover:ring-1 hover:ring-teal-100" : ""
         } ${isSelected ? "ring-2 ring-teal-100" : ""}`}
         onClick={handleClick}
+        title={humanValidation ? getTooltipText() : undefined}
       >
-        {value}
-        {/* Show pending clock icon when awaiting admin approval */}
-        {pendingAdminApproval && (
+        {typeof value === "number" ? Number(value.toFixed(2)) : value}
+
+        {/* Show icon badge */}
+        {showIcon && (
           <div
-            className="absolute -top-1 -right-1 bg-gray-500 rounded-full p-0.5"
-            title="Pending Admin Approval"
+            className={`absolute -top-1 -right-1 ${iconBgColor} rounded-full p-0.5`}
+            title={
+              pendingAdminApproval
+                ? "Pending Admin Approval"
+                : humanValidation
+                  ? getTooltipText()
+                  : "Validated by Human"
+            }
           >
-            <Clock className="w-3 h-3 text-white" />
-          </div>
-        )}
-        {/* Show validated check icon only when not pending */}
-        {validatedByHuman && !pendingAdminApproval && (
-          <div
-            className="absolute -top-1 -right-1 bg-green-600 rounded-full p-0.5"
-            title="Validated by Human"
-          >
-            <Check className="w-3 h-3 text-white" />
-          </div>
-        )}
-        {flaggedByHuman && (
-          <div
-            className="absolute -top-1 -right-1 bg-orange-600 rounded-full p-0.5"
-            title="Flagged by Human"
-          >
-            <Flag className="w-3 h-3 text-white" />
+            {pendingAdminApproval ? (
+              <Flag className="w-5 h-3 text-white" />
+            ) : humanValidation ? (
+              <User className="w-5 h-3 text-white" />
+            ) : (
+              <Check className="w-5 h-3 text-white" />
+            )}
           </div>
         )}
       </div>

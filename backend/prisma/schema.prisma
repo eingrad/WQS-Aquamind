@@ -175,6 +175,7 @@ model ValidationStatus {
   pendingAdminApproval  Boolean  @default(false) @map("pending_admin_approval")
   validatedBy           String?  @map("validated_by") @db.Uuid
   validatedAt           DateTime? @map("validated_at") @db.Timestamptz
+  remarks               String?   @db.Text
   createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 

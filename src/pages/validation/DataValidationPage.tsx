@@ -30,6 +30,12 @@ export default function DataValidationPage() {
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const [validationStatuses, setValidationStatuses] = useState(validationData);
 
+  // Track selected cell for flagging
+  const [selectedCellForFlag, setSelectedCellForFlag] = useState<{
+    timestamp: string;
+    parameter: string;
+  } | null>(null);
+
   // NEW: Backend data state
   const [backendRecords, setBackendRecords] = useState<ValidationRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -170,51 +176,73 @@ export default function DataValidationPage() {
           so2Status: (record.parameters.so2?.humanValidation?.status ||
             record.parameters.so2?.autoFlag ||
             "no_data") as ValidationStatus,
+          so2PendingAdminApproval:
+            !!record.parameters.so2?.pendingApproval?.isPending,
           h2s: record.parameters.h2s?.value || null,
           h2sStatus: (record.parameters.h2s?.humanValidation?.status ||
             record.parameters.h2s?.autoFlag ||
             "no_data") as ValidationStatus,
+          h2sPendingAdminApproval:
+            !!record.parameters.h2s?.pendingApproval?.isPending,
           no2: record.parameters.no2?.value || null,
           no2Status: (record.parameters.no2?.humanValidation?.status ||
             record.parameters.no2?.autoFlag ||
             "no_data") as ValidationStatus,
+          no2PendingAdminApproval:
+            !!record.parameters.no2?.pendingApproval?.isPending,
           btex: record.parameters.btex?.value ?? null,
           btexStatus: (record.parameters.btex?.humanValidation?.status ||
             record.parameters.btex?.autoFlag ||
             "no_data") as ValidationStatus,
+          btexPendingAdminApproval:
+            !!record.parameters.btex?.pendingApproval?.isPending,
           windSpeed: record.parameters.windSpeed?.value ?? null,
           windSpeedStatus: (record.parameters.windSpeed?.humanValidation
             ?.status ||
             record.parameters.windSpeed?.autoFlag ||
             "no_data") as ValidationStatus,
+          windSpeedPendingAdminApproval:
+            !!record.parameters.windSpeed?.pendingApproval?.isPending,
           windDirection: record.parameters.windDirection?.value ?? null,
           windDirectionStatus: (record.parameters.windDirection?.humanValidation
             ?.status ||
             record.parameters.windDirection?.autoFlag ||
             "no_data") as ValidationStatus,
+          windDirectionPendingAdminApproval:
+            !!record.parameters.windDirection?.pendingApproval?.isPending,
           temperature: record.parameters.temperature?.value ?? null,
           temperatureStatus: (record.parameters.temperature?.humanValidation
             ?.status ||
             record.parameters.temperature?.autoFlag ||
             "no_data") as ValidationStatus,
+          temperaturePendingAdminApproval:
+            !!record.parameters.temperature?.pendingApproval?.isPending,
           humidity: record.parameters.humidity?.value ?? null,
           humidityStatus: (record.parameters.humidity?.humanValidation
             ?.status ||
             record.parameters.humidity?.autoFlag ||
             "no_data") as ValidationStatus,
+          humidityPendingAdminApproval:
+            !!record.parameters.humidity?.pendingApproval?.isPending,
           pressure: record.parameters.pressure?.value ?? null,
           pressureStatus: (record.parameters.pressure?.humanValidation
             ?.status ||
             record.parameters.pressure?.autoFlag ||
             "no_data") as ValidationStatus,
+          pressurePendingAdminApproval:
+            !!record.parameters.pressure?.pendingApproval?.isPending,
           rain: record.parameters.rain?.value ?? null,
           rainStatus: (record.parameters.rain?.humanValidation?.status ||
             record.parameters.rain?.autoFlag ||
             "no_data") as ValidationStatus,
+          rainPendingAdminApproval:
+            !!record.parameters.rain?.pendingApproval?.isPending,
           radiation: record.parameters.solar?.value ?? null,
           radiationStatus: (record.parameters.solar?.humanValidation?.status ||
             record.parameters.solar?.autoFlag ||
             "no_data") as ValidationStatus,
+          radiationPendingAdminApproval:
+            !!record.parameters.solar?.pendingApproval?.isPending,
         }))
       : filteredData.slice(startIndex, endIndex);
 
@@ -274,8 +302,63 @@ export default function DataValidationPage() {
   };
 
   const handleFlag = () => {
-    if (selectedCells.size === 0) return;
-    setShowFlagSidebar(true);
+    if (selectedCells.size === 0) {
+      console.log("No cells selected");
+      return;
+    }
+
+    console.log("Selected cells:", Array.from(selectedCells));
+    console.log("useBackend:", useBackend);
+
+    // Get the first selected cell to determine timestamp and parameter
+    const firstCell = Array.from(selectedCells)[0];
+
+    // Split by LAST colon since timestamp contains colons
+    const lastColonIndex = firstCell.lastIndexOf(":");
+    const rowId = firstCell.substring(0, lastColonIndex);
+    const parameter = firstCell.substring(lastColonIndex + 1);
+
+    console.log("First cell:", firstCell);
+    console.log("Row ID:", rowId);
+    console.log("Parameter:", parameter);
+
+    // Find the row to get timestamp
+    if (useBackend) {
+      console.log("Backend records:", backendRecords.length);
+      const row = backendRecords.find((r) => {
+        const id = `hourly-${r.timestamp}`;
+        console.log("Comparing:", id, "with", rowId);
+        return id === rowId;
+      });
+
+      console.log("Found row:", row);
+
+      if (row) {
+        setSelectedCellForFlag({
+          timestamp: row.timestamp,
+          parameter: parameter,
+        });
+        setShowFlagSidebar(true);
+        console.log("Sidebar should show now");
+      } else {
+        console.error("Row not found!");
+      }
+    } else {
+      const row = validationStatuses.find((r) => r.id === rowId);
+      if (row && row.time) {
+        // Parse time format "HH:MM, DD/MM/YY" to ISO timestamp
+        const [timePart, datePart] = row.time.split(", ");
+        const [day, month, year] = datePart.split("/");
+        const [hour, minute] = timePart.split(":");
+        const isoDate = `20${year}-${month}-${day}T${hour}:${minute}:00.000Z`;
+
+        setSelectedCellForFlag({
+          timestamp: isoDate,
+          parameter: parameter,
+        });
+        setShowFlagSidebar(true);
+      }
+    }
   };
 
   // Handle flag submission from sidebar
@@ -353,7 +436,7 @@ export default function DataValidationPage() {
           {(
             Object.entries(validationStatusLabels) as [
               ValidationStatus,
-              string
+              string,
             ][]
           ).map(([status, label]) => (
             <div key={status} className="flex items-center gap-2">
@@ -423,10 +506,24 @@ export default function DataValidationPage() {
       />
 
       {/* Flag Sidebar */}
-      {showFlagSidebar && (
+      {showFlagSidebar && selectedCellForFlag && (
         <FlagSidebar
-          onClose={() => setShowFlagSidebar(false)}
-          onSubmit={handleFlagSubmit}
+          onClose={() => {
+            setShowFlagSidebar(false);
+            setSelectedCellForFlag(null);
+          }}
+          onSuccess={() => {
+            // Refresh data after successful flag submission
+            if (useBackend && selectedDevice && startDate && endDate) {
+              // Trigger data refetch
+              window.location.reload(); // Simple refresh for now
+            }
+            setSelectedCells(new Set());
+            setSelectedCellForFlag(null);
+          }}
+          deviceId={selectedDevice}
+          hourTimestamp={selectedCellForFlag.timestamp}
+          parameter={selectedCellForFlag.parameter}
         />
       )}
     </div>

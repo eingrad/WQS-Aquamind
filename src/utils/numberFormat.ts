@@ -24,16 +24,16 @@ export const formatSensorValue = (
  */
 const PARAMETER_DECIMALS: Record<string, number> = {
   // Pollutants (concentrations)
-  so2: 1, // µg/m³
+  so2: 2, // µg/m³
   h2s: 2, // ppm
   no2: 2, // ppm
   btx: 2, // ppb (BTEX)
 
   // Meteorological
-  solar: 1, // W/m²
-  temperature: 1, // °C
-  humidity: 1, // %
-  pressure: 1, // hPa
+  solar: 2, // W/m²
+  temperature: 2, // °C
+  humidity: 2, // %
+  pressure: 2, // hPa
   rain: 2, // mm
 
   // Wind

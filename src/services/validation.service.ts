@@ -18,6 +18,16 @@ export interface ValidationParameter {
     } | null;
     validatedAt: string | null;
   };
+  pendingApproval?: {
+    isPending: boolean;
+    requestedBy: {
+      name: string;
+      email: string;
+    };
+    requestedAt: string;
+    remarks: string | null;
+    flagType: string;
+  } | null;
 }
 
 export interface ValidationRecord {

@@ -1,3 +1,5 @@
+//NOT USED ON CODEBASE
+
 import { X } from "lucide-react";
 
 interface ValidationSidebarProps {
