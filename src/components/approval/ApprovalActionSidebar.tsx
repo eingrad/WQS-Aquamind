@@ -6,6 +6,7 @@ import {
 } from "../../data/approvalData";
 import { validationStatusLabels } from "../../data/validationData";
 import { useState } from "react";
+import { formatPollutantValue } from "../../utils/numberFormat";
 
 interface ApprovalActionSidebarProps {
   isOpen: boolean;
@@ -109,10 +110,19 @@ export default function ApprovalActionSidebar({
                     ? "New Value"
                     : "Value"}
                 </span>
-                <p className="text-white">{selectedRow.value}</p>
+                <p className="text-white">
+                  {formatPollutantValue(
+                    selectedRow.value,
+                    selectedRow.parameterKey,
+                  )}
+                </p>
                 {selectedRow.previousValue && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Previous: {selectedRow.previousValue}
+                    Previous:{" "}
+                    {formatPollutantValue(
+                      selectedRow.previousValue,
+                      selectedRow.parameterKey,
+                    )}
                   </p>
                 )}
               </div>
@@ -154,7 +164,8 @@ export default function ApprovalActionSidebar({
           {/* Admin Remarks */}
           <div className="space-y-2 mt-2">
             <label className="text-sm font-medium text-gray-400 mt-2">
-              Admin Remarks (Optional)
+              Admin Remarks
+              <span className="text-red-400 ml-1">*</span>
             </label>
             <textarea
               value={adminRemarks}
@@ -163,6 +174,12 @@ export default function ApprovalActionSidebar({
               className="w-full bg-[#1a2828] text-sm border border-white/10 rounded-lg mt-2 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 resize-none"
               placeholder="Add your remarks here..."
             />
+            {adminRemarks.length > 0 && adminRemarks.length < 10 && (
+              <p className="text-xs text-red-400">
+                {10 - adminRemarks.length} more characters required for
+                rejection
+              </p>
+            )}
           </div>
         </div>
 
@@ -176,7 +193,12 @@ export default function ApprovalActionSidebar({
           </button>
           <button
             onClick={handleReject}
-            className="flex-1 bg-red-600 text-sm hover:bg-red-700 text-white font-medium py-3 rounded-lg transition"
+            disabled={adminRemarks.length < 10}
+            className={`flex-1 text-sm font-medium py-3 rounded-lg transition ${
+              adminRemarks.length < 10
+                ? "bg-red-600/50 text-white/50 cursor-not-allowed"
+                : "bg-red-600 hover:bg-red-700 text-white"
+            }`}
           >
             Reject
           </button>

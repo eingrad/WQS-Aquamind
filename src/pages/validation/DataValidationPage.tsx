@@ -42,7 +42,7 @@ export default function DataValidationPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalRecords, setTotalRecords] = useState(0);
   const [devices, setDevices] = useState<any[]>([]);
-  const [useBackend, setUseBackend] = useState(true); // Toggle for backend vs static data
+  const [useBackend] = useState(true); // Toggle for backend vs static data
 
   // Validation sidebar state
   const [showValidateSidebar, setShowValidateSidebar] = useState(false);
@@ -362,45 +362,6 @@ export default function DataValidationPage() {
   };
 
   // Handle flag submission from sidebar
-  const handleFlagSubmit = (flagType: ValidationStatus, remarks: string) => {
-    const updatedData = validationStatuses.map((row) => {
-      const updates: any = { ...row };
-
-      const parameters = [
-        "so2",
-        "h2s",
-        "no2",
-        "windSpeed",
-        "windDirection",
-        "temperature",
-        "humidity",
-        "radiation",
-      ];
-      parameters.forEach((param) => {
-        const cellKey = `${row.id}:${param}`;
-        if (selectedCells.has(cellKey)) {
-          // Update status to the selected flag type
-          updates[`${param}Status`] = flagType;
-          updates[`${param}FlaggedByHuman`] = true;
-          updates[`${param}ValidatedByHuman`] = false;
-          updates[`${param}PendingAdminApproval`] = false;
-
-          // TODO: Store remarks for this flag
-          console.log("Flag submitted:", {
-            rowId: row.id,
-            param,
-            flagType,
-            remarks,
-          });
-        }
-      });
-
-      return updates;
-    });
-
-    setValidationStatuses(updatedData);
-    setSelectedCells(new Set());
-  };
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden min-w-0">

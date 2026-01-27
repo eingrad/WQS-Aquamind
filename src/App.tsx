@@ -7,6 +7,8 @@ import SettingsPage from "./pages/settings/SettingPage";
 import WindDirectionMap from "./pages/overview/newmap";
 import DataValidationPage from "./pages/validation/DataValidationPage";
 import DataValidationApprovalPage from "./pages/validation/DataValidationApprovalPage";
+import ThresholdManagementPage from "./pages/alerts/ThresholdManagementPage";
+import AlertHistoryPage from "./pages/alerts/AlertHistoryPage";
 
 export default function App() {
   return (
@@ -18,6 +20,8 @@ export default function App() {
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/data-validation" element={<DataValidationPage />} />
         <Route path="/data-approval" element={<DataValidationApprovalPage />} />
+        <Route path="/alert-thresholds" element={<ThresholdManagementPage />} />
+        <Route path="/alert-history" element={<AlertHistoryPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/newmap" element={<WindDirectionMap />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

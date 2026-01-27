@@ -31,6 +31,14 @@ router.post("/request-flag", approvalController.requestFlag);
 router.get("/pending-approvals", approvalController.getPendingApprovals);
 
 /**
+ * @route   GET /api/validation/all-approvals
+ * @desc    Admin views all flag approval requests (with optional status filter)
+ * @access  Private (Admin only)
+ * @query   status (optional): 'all', 'pending', 'approved', 'rejected'
+ */
+router.get("/all-approvals", approvalController.getAllApprovals);
+
+/**
  * @route   GET /api/validation/my-requests
  * @desc    User views their own flag requests
  * @access  Private

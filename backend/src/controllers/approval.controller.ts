@@ -148,9 +148,78 @@ export const getPendingApprovals = async (
         requestedAt: approval.qcReviewedAt,
         qcRemarks: approval.qcRemarks,
         recordCount: approval.recordCount,
+        hourlyValue: approval.hourlyValue,
       })),
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * GET /api/validation/all-approvals
+ * Admin views all approval requests (pending, approved, rejected)
+ */
+export const getAllApprovals = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const validatedQuery = getMyRequestsSchema.parse(req.query);
+
+    // Check if user is admin (assumes role checking middleware)
+    const userRole = (req as any).user?.role;
+    if (userRole !== "admin") {
+      res.status(403).json({
+        success: false,
+        error: "Admin access required",
+      });
+      return;
+    }
+
+    const approvals = await approvalService.getAllApprovals(
+      validatedQuery.status,
+    );
+
+    res.json({
+      success: true,
+      data: approvals.map((approval) => ({
+        approvalId: approval.approvalId,
+        device: {
+          id: approval.stationId,
+          name: approval.station.name,
+          location: approval.station.location,
+        },
+        parameter: approval.parameterCode,
+        flagType: approval.flagType,
+        status: approval.adminStatus,
+        timeRange: {
+          from: approval.timeFrom,
+          to: approval.timeTo,
+        },
+        requestedBy: {
+          name: approval.qcReviewer.fullName,
+          email: approval.qcReviewer.email,
+        },
+        requestedAt: approval.qcReviewedAt,
+        qcRemarks: approval.qcRemarks,
+        recordCount: approval.recordCount,
+        hourlyValue: approval.hourlyValue,
+        adminRemarks: approval.adminRemarks,
+        decidedAt: approval.adminDecidedAt,
+      })),
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        success: false,
+        error: "Validation error",
+        details: error.issues,
+      });
+      return;
+    }
+
     next(error);
   }
 };
@@ -343,6 +412,7 @@ export const rejectFlag = async (
 export default {
   requestFlag,
   getPendingApprovals,
+  getAllApprovals,
   getMyRequests,
   approveFlag,
   rejectFlag,

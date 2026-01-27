@@ -11,6 +11,8 @@ import {
   MessageCircleQuestionMark,
   CheckCircle,
   Flag,
+  Bell,
+  History,
 } from "lucide-react";
 
 export default function Sidebar({ active = "Dashboard" }: { active?: string }) {
@@ -95,6 +97,20 @@ export default function Sidebar({ active = "Dashboard" }: { active?: string }) {
             href="/data-approval"
             icon={<CheckCircle className="w-5 h-5" />}
           />
+
+          {/* Alert Management Section */}
+          <Item
+            label="Alert Thresholds"
+            href="/alert-thresholds"
+            icon={<Bell className="w-5 h-5" />}
+          />
+          <Item
+            label="Alert History"
+            href="/alert-history"
+            icon={<History className="w-5 h-5" />}
+          />
+
+          <div className="px-2 pt-4 pb-2 text-[11px] text-gray-400">SYSTEM</div>
           <Item
             label="Settings"
             href="/settings"

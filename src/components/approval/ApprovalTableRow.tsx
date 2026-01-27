@@ -8,6 +8,7 @@ import {
   approvalTypeColors,
 } from "../../data/approvalData";
 import { Eye } from "lucide-react";
+import { formatPollutantValue } from "../../utils/numberFormat";
 
 interface ApprovalTableRowProps {
   row: ApprovalDataRow;
@@ -55,10 +56,10 @@ export default function ApprovalTableRow({
       <td className="px-4 py-3 border-r border-white/5">{row.time}</td>
       <td className="px-4 py-3 border-r border-white/5">{row.parameter}</td>
       <td className="px-4 py-3 border-r border-white/5">
-        {row.value}
+        {formatPollutantValue(row.value, row.parameterKey)}
         {row.previousValue && (
           <span className="text-xs text-gray-500 ml-2">
-            (was {row.previousValue})
+            (was {formatPollutantValue(row.previousValue, row.parameterKey)})
           </span>
         )}
       </td>

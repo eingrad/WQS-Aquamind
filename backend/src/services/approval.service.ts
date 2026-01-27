@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import * as auditService from "./audit.service";
 
 const prisma = new PrismaClient();
 
@@ -76,6 +77,23 @@ export const createFlagRequest = async (params: CreateFlagRequestParams) => {
     },
   });
 
+  // Audit logging
+  await auditService.logFlagRequested(
+    qcReviewerId,
+    approvalRequest.approvalId,
+    {
+      deviceId,
+      parameter,
+      flagType,
+      timeRange: {
+        from: timeFrom,
+        to: timeTo,
+      },
+      recordCount,
+      qcRemarks: remarks,
+    },
+  );
+
   return {
     approvalRequest,
     recordCount,
@@ -114,8 +132,8 @@ export const getPendingApprovals = async () => {
     },
   });
 
-  // Get record counts for each approval
-  const approvalsWithCounts = await Promise.all(
+  // Get record counts and hourly values for each approval
+  const approvalsWithData = await Promise.all(
     approvals.map(async (approval) => {
       const recordCount = await prisma.telemetryProcessed.count({
         where: {
@@ -127,14 +145,135 @@ export const getPendingApprovals = async () => {
         },
       });
 
+      //Calculate 1-hour aggregated value for the parameter
+      const paramMap: Record<string, string> = {
+        so2: "so2_value",
+        h2s: "h2s_value",
+        no2: "no2_value",
+        btex: "btex_value",
+        windSpeed: "ws_value",
+        windDirection: "wd_value",
+        temperature: "temperature_value",
+        humidity: "humidity_value",
+        pressure: "pressure_value",
+        solar: "solar_value",
+        rain: "rain_value",
+      };
+      const columnName =
+        paramMap[approval.parameterCode] || `${approval.parameterCode}_value`;
+      const aggregation = await prisma.$queryRawUnsafe<any[]>(
+        `SELECT AVG("${columnName}") as avg_value
+         FROM telemetry_processed
+         WHERE device_id = $1::uuid
+           AND observed_at >= $2
+           AND observed_at < $3`,
+        approval.stationId,
+        approval.timeFrom,
+        approval.timeTo,
+      );
+
+      const hourlyValue = aggregation[0]?.avg_value
+        ? Number(aggregation[0].avg_value)
+        : null;
+
       return {
         ...approval,
         recordCount,
+        hourlyValue,
       };
-    })
+    }),
   );
 
-  return approvalsWithCounts;
+  return approvalsWithData;
+};
+
+/**
+ * Get all approval requests (for admin) - includes pending, approved, and rejected
+ */
+export const getAllApprovals = async (status?: string) => {
+  const where: any = {
+    approvalType: "flag",
+  };
+
+  // Add status filter if provided
+  if (status && status !== "all") {
+    where.adminStatus = status;
+  }
+
+  const approvals = await prisma.approvalRequest.findMany({
+    where,
+    include: {
+      station: {
+        select: {
+          name: true,
+          location: true,
+        },
+      },
+      qcReviewer: {
+        select: {
+          fullName: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      qcReviewedAt: "desc",
+    },
+  });
+
+  // Get record counts and hourly values for each approval
+  const approvalsWithData = await Promise.all(
+    approvals.map(async (approval) => {
+      const recordCount = await prisma.telemetryProcessed.count({
+        where: {
+          deviceId: approval.stationId,
+          observedAt: {
+            gte: approval.timeFrom,
+            lt: approval.timeTo,
+          },
+        },
+      });
+
+      //Calculate 1-hour aggregated value for the parameter
+      const paramMap: Record<string, string> = {
+        so2: "so2_value",
+        h2s: "h2s_value",
+        no2: "no2_value",
+        btex: "btex_value",
+        windSpeed: "ws_value",
+        windDirection: "wd_value",
+        temperature: "temperature_value",
+        humidity: "humidity_value",
+        pressure: "pressure_value",
+        solar: "solar_value",
+        rain: "rain_value",
+      };
+      const columnName =
+        paramMap[approval.parameterCode] || `${approval.parameterCode}_value`;
+      const aggregation = await prisma.$queryRawUnsafe<any[]>(
+        `SELECT AVG("${columnName}") as avg_value
+         FROM telemetry_processed
+         WHERE device_id = $1::uuid
+           AND observed_at >= $2
+           AND observed_at < $3`,
+        approval.stationId,
+        approval.timeFrom,
+        approval.timeTo,
+      );
+
+      const hourlyValue = aggregation[0]?.avg_value
+        ? Number(aggregation[0].avg_value)
+        : null;
+
+      return {
+        ...approval,
+        recordCount,
+        hourlyValue,
+      };
+    }),
+  );
+
+  return approvalsWithData;
 };
 
 /**
@@ -259,14 +398,27 @@ export const approveFlag = async (params: ApproveFlagParams) => {
             remarks: record.remarks,
           },
           create: record,
-        })
-      )
+        }),
+      ),
     );
 
     return {
       approval: updatedApproval,
       createdValidationRecords: createdRecords.length,
     };
+  });
+
+  // Audit logging
+  await auditService.logFlagApproved(adminId, approvalId, {
+    deviceId: approval.stationId,
+    parameter: approval.parameterCode,
+    flagType: approval.flagType!,
+    timeRange: {
+      from: approval.timeFrom,
+      to: approval.timeTo,
+    },
+    recordCount: result.createdValidationRecords,
+    adminRemarks,
   });
 
   return result;
@@ -303,12 +455,25 @@ export const rejectFlag = async (params: RejectFlagParams) => {
     },
   });
 
+  // Audit logging
+  await auditService.logFlagRejected(adminId, approvalId, {
+    deviceId: approval.stationId,
+    parameter: approval.parameterCode,
+    flagType: approval.flagType!,
+    timeRange: {
+      from: approval.timeFrom,
+      to: approval.timeTo,
+    },
+    adminRemarks,
+  });
+
   return updatedApproval;
 };
 
 export default {
   createFlagRequest,
   getPendingApprovals,
+  getAllApprovals,
   getMyRequests,
   approveFlag,
   rejectFlag,

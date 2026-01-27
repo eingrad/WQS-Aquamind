@@ -3,6 +3,8 @@ import { createReading } from "../operations/crud";
 import { getAllDevices } from "../../device.service";
 import { REQUIRED_POINTS_1M } from "../aggregation/data-quality";
 import redis from "../../redis.service";
+import * as alertEvaluation from "../../alert-evaluation.service";
+import * as notificationService from "../../notification.service";
 
 /**
  * Aggregation worker - processes buffered 5-second readings into 1-minute records
@@ -17,7 +19,7 @@ let isRunning = false;
  */
 const processMinuteBuffer = async (
   deviceId: string,
-  minuteBucket: string
+  minuteBucket: string,
 ): Promise<boolean> => {
   try {
     console.log(`📊 Processing buffer: ${deviceId} @ ${minuteBucket}`);
@@ -64,8 +66,8 @@ const processMinuteBuffer = async (
     if (insufficientParams.length > 0) {
       console.log(
         `   ⚠️  Insufficient data: ${insufficientParams.join(
-          ", "
-        )} (need ${REQUIRED_POINTS_1M})`
+          ", ",
+        )} (need ${REQUIRED_POINTS_1M})`,
       );
     } else {
       console.log(`   ✅ All parameters have sufficient data`);
@@ -74,11 +76,38 @@ const processMinuteBuffer = async (
     // Clear buffer after successful processing
     await bufferService.clearMinuteBuffer(deviceId, minuteBucket);
 
+    // ========================================
+    // Alert Evaluation: Check thresholds
+    // ========================================
+    try {
+      const alertResults = await alertEvaluation.batchEvaluateParameters(
+        deviceId,
+        observedAt,
+        readings,
+      );
+
+      if (alertResults.length > 0) {
+        console.log(`   🚨 ${alertResults.length} alert(s) triggered`);
+
+        // Send notifications for each triggered alert
+        for (const result of alertResults) {
+          if (result.alertHistory) {
+            await notificationService.sendMultiChannelNotification(
+              result.alertHistory,
+            );
+          }
+        }
+      }
+    } catch (alertError) {
+      // Don't fail aggregation if alert evaluation fails
+      console.error("⚠️  Alert evaluation error:", alertError);
+    }
+
     return true;
   } catch (error) {
     console.error(
       `❌ Error processing buffer ${deviceId} @ ${minuteBucket}:`,
-      error
+      error,
     );
     return false;
   }
@@ -128,7 +157,7 @@ const runAggregation = async (): Promise<void> => {
     // Get all active devices
     const devicesResult = await getAllDevices({});
     const devices = devicesResult.devices.filter(
-      (d: any) => d.status === "active"
+      (d: any) => d.status === "active",
     );
 
     console.log(`📱 Found ${devices.length} active devices`);
@@ -142,7 +171,7 @@ const runAggregation = async (): Promise<void> => {
 
     const duration = Date.now() - startTime;
     console.log(
-      `✅ Aggregation complete: ${processedCount}/${devices.length} devices processed in ${duration}ms\n`
+      `✅ Aggregation complete: ${processedCount}/${devices.length} devices processed in ${duration}ms\n`,
     );
   } catch (error) {
     console.error("❌ Aggregation worker error:", error);
@@ -177,7 +206,7 @@ export const startWorker = (): void => {
   }, secondsUntilNextMinute * 1000);
 
   console.log(
-    `⏰ Next aggregation in ${secondsUntilNextMinute} seconds (at :00)`
+    `⏰ Next aggregation in ${secondsUntilNextMinute} seconds (at :00)`,
   );
 };
 

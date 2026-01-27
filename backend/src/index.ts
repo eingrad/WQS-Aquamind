@@ -9,6 +9,7 @@ import telemetryRoutes from "./routes/telemetry.routes";
 import liveDataRoutes from "./routes/liveData.routes";
 import maintenanceRoutes from "./routes/maintenance.routes";
 import validationRoutes from "./routes/validation.routes";
+import alertRoutes from "./routes/alert.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import logger from "./config/logger";
@@ -24,7 +25,7 @@ app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -58,6 +59,9 @@ app.use(`${API_PREFIX}/live`, liveDataRoutes);
 // Mount validation routes (for QA/QC validation table)
 app.use(`${API_PREFIX}/validation`, validationRoutes);
 
+// Mount alert routes (for threshold and notification management)
+app.use(`${API_PREFIX}/alerts`, alertRoutes);
+
 // Mount maintenance routes
 app.use(API_PREFIX, maintenanceRoutes);
 
@@ -82,9 +86,8 @@ const server = app.listen(PORT, async () => {
 
   // Start aggregation worker (for 5-second data processing)
   try {
-    const { startWorker } = await import(
-      "./services/telemetry/worker/aggregation.worker"
-    );
+    const { startWorker } =
+      await import("./services/telemetry/worker/aggregation.worker");
     startWorker();
     logger.info("✅ Aggregation worker started");
   } catch (error) {
@@ -99,9 +102,8 @@ process.on("SIGTERM", async () => {
 
   // Stop worker
   try {
-    const { stopWorker } = await import(
-      "./services/telemetry/worker/aggregation.worker"
-    );
+    const { stopWorker } =
+      await import("./services/telemetry/worker/aggregation.worker");
     stopWorker();
   } catch (error) {
     // Worker may not be running

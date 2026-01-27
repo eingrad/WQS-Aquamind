@@ -5,6 +5,7 @@ import {
   validationStatusBgTransparent,
   validationStatusTextColors,
 } from "../../data/validationData";
+import { formatPollutantValue } from "../../utils/numberFormat";
 
 interface HumanValidation {
   status: string;
@@ -97,7 +98,9 @@ export default function StatusCell({
         onClick={handleClick}
         title={humanValidation ? getTooltipText() : undefined}
       >
-        {typeof value === "number" ? Number(value.toFixed(2)) : value}
+        {typeof value === "number"
+          ? formatPollutantValue(value, parameter)
+          : value}
 
         {/* Show icon badge */}
         {showIcon && (

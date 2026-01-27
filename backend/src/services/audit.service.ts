@@ -8,12 +8,26 @@ export enum AuditAction {
   USER_ROLE_CHANGED = "USER_ROLE_CHANGED",
   USER_DEACTIVATED = "USER_DEACTIVATED",
   USER_ACTIVATED = "USER_ACTIVATED",
+  FLAG_REQUESTED = "FLAG_REQUESTED",
+  FLAG_APPROVED = "FLAG_APPROVED",
+  FLAG_REJECTED = "FLAG_REJECTED",
+  THRESHOLD_CREATED = "THRESHOLD_CREATED",
+  THRESHOLD_UPDATED = "THRESHOLD_UPDATED",
+  THRESHOLD_DELETED = "THRESHOLD_DELETED",
+  THRESHOLD_ENABLED = "THRESHOLD_ENABLED",
+  THRESHOLD_DISABLED = "THRESHOLD_DISABLED",
+  ALERT_TRIGGERED = "ALERT_TRIGGERED",
+  ALERT_ACKNOWLEDGED = "ALERT_ACKNOWLEDGED",
 }
 
 interface AuditLogData {
   action: AuditAction;
   performedBy: string; // User ID who performed the action
-  targetUserId: string; // User ID affected by the action
+  targetUserId?: string; // User ID affected by the action (optional for validation actions)
+  actionCategory?: string; // Category of the action (USER_MANAGEMENT, VALIDATION, etc.)
+  entityType?: string; // Type of entity (USER, APPROVAL_REQUEST, etc.)
+  entityId?: string; // ID of the entity
+  approvalReference?: string; // Reference to the approval request
   changes?: {
     field: string;
     oldValue: any;
@@ -26,7 +40,17 @@ interface AuditLogData {
  * Create an audit log entry
  */
 export const createAuditLog = async (data: AuditLogData) => {
-  const { action, performedBy, targetUserId, changes, metadata } = data;
+  const {
+    action,
+    performedBy,
+    targetUserId,
+    actionCategory = "USER_MANAGEMENT",
+    entityType = "USER",
+    entityId,
+    approvalReference,
+    changes,
+    metadata,
+  } = data;
 
   // Get performer details
   const performer = await prisma.user.findUnique({
@@ -45,19 +69,20 @@ export const createAuditLog = async (data: AuditLogData) => {
       userEmail: performer?.email || "system",
       userRole: performer?.userRole?.roleId || "system",
       action,
-      actionCategory: "USER_MANAGEMENT",
-      entityType: "USER",
-      entityId: targetUserId,
+      actionCategory,
+      entityType,
+      entityId: entityId || targetUserId || performedBy,
+      approvalReference,
       oldValue: changes
         ? changes.reduce(
             (acc, c) => ({ ...acc, [c.field]: c.oldValue }),
-            {} as Record<string, any>
+            {} as Record<string, any>,
           )
         : undefined,
       newValue: changes
         ? changes.reduce(
             (acc, c) => ({ ...acc, [c.field]: c.newValue }),
-            {} as Record<string, any>
+            {} as Record<string, any>,
           )
         : undefined,
       changesSummary: changes
@@ -76,7 +101,7 @@ export const createAuditLog = async (data: AuditLogData) => {
 export const logUserCreated = async (
   performedBy: string,
   userId: string,
-  userData: any
+  userData: any,
 ) => {
   await createAuditLog({
     action: AuditAction.USER_CREATED,
@@ -97,7 +122,7 @@ export const logUserUpdated = async (
   performedBy: string,
   userId: string,
   oldData: any,
-  newData: any
+  newData: any,
 ) => {
   const changes: { field: string; oldValue: any; newValue: any }[] = [];
 
@@ -142,7 +167,7 @@ export const logRoleChanged = async (
   performedBy: string,
   userId: string,
   oldRole: string,
-  newRole: string
+  newRole: string,
 ) => {
   await createAuditLog({
     action: AuditAction.USER_ROLE_CHANGED,
@@ -163,7 +188,7 @@ export const logRoleChanged = async (
  */
 export const logPasswordChanged = async (
   performedBy: string,
-  userId: string
+  userId: string,
 ) => {
   await createAuditLog({
     action: AuditAction.USER_PASSWORD_CHANGED,
@@ -181,7 +206,7 @@ export const logPasswordChanged = async (
 export const logUserDeleted = async (
   performedBy: string,
   userId: string,
-  permanent: boolean
+  permanent: boolean,
 ) => {
   await createAuditLog({
     action: permanent ? AuditAction.USER_DELETED : AuditAction.USER_DEACTIVATED,
@@ -206,5 +231,267 @@ export const getUserAuditLogs = async (userId: string, limit: number = 50) => {
       createdAt: "desc",
     },
     take: limit,
+  });
+};
+
+/**
+ * Log flag request creation (QC user submits)
+ */
+export const logFlagRequested = async (
+  qcUserId: string,
+  approvalId: string,
+  metadata: {
+    deviceId: string;
+    parameter: string;
+    flagType: string;
+    timeRange: { from: Date; to: Date };
+    recordCount: number;
+    qcRemarks: string;
+  },
+) => {
+  await createAuditLog({
+    action: AuditAction.FLAG_REQUESTED,
+    performedBy: qcUserId,
+    actionCategory: "VALIDATION",
+    entityType: "APPROVAL_REQUEST",
+    entityId: approvalId,
+    approvalReference: approvalId,
+    metadata: {
+      deviceId: metadata.deviceId,
+      parameter: metadata.parameter,
+      flagType: metadata.flagType,
+      timeFrom: metadata.timeRange.from.toISOString(),
+      timeTo: metadata.timeRange.to.toISOString(),
+      recordCount: metadata.recordCount,
+      qcRemarks: metadata.qcRemarks,
+      reason: `Requested ${metadata.flagType} flag for ${metadata.parameter} (${metadata.recordCount} records). Reason: ${metadata.qcRemarks}`,
+    },
+  });
+};
+
+/**
+ * Log flag approval
+ */
+export const logFlagApproved = async (
+  adminId: string,
+  approvalId: string,
+  metadata: {
+    deviceId: string;
+    parameter: string;
+    flagType: string;
+    timeRange: { from: Date; to: Date };
+    recordCount: number;
+    adminRemarks?: string;
+  },
+) => {
+  await createAuditLog({
+    action: AuditAction.FLAG_APPROVED,
+    performedBy: adminId,
+    actionCategory: "VALIDATION",
+    entityType: "APPROVAL_REQUEST",
+    entityId: approvalId,
+    approvalReference: approvalId,
+    metadata: {
+      deviceId: metadata.deviceId,
+      parameter: metadata.parameter,
+      flagType: metadata.flagType,
+      timeFrom: metadata.timeRange.from.toISOString(),
+      timeTo: metadata.timeRange.to.toISOString(),
+      recordCount: metadata.recordCount,
+      adminRemarks: metadata.adminRemarks,
+      reason: `Approved ${metadata.flagType} flag for ${metadata.parameter} (${metadata.recordCount} records affected)`,
+    },
+  });
+};
+
+/**
+ * Log flag rejection
+ */
+export const logFlagRejected = async (
+  adminId: string,
+  approvalId: string,
+  metadata: {
+    deviceId: string;
+    parameter: string;
+    flagType: string;
+    timeRange: { from: Date; to: Date };
+    adminRemarks: string;
+  },
+) => {
+  await createAuditLog({
+    action: AuditAction.FLAG_REJECTED,
+    performedBy: adminId,
+    actionCategory: "VALIDATION",
+    entityType: "APPROVAL_REQUEST",
+    entityId: approvalId,
+    approvalReference: approvalId,
+    metadata: {
+      deviceId: metadata.deviceId,
+      parameter: metadata.parameter,
+      flagType: metadata.flagType,
+      timeFrom: metadata.timeRange.from.toISOString(),
+      timeTo: metadata.timeRange.to.toISOString(),
+      adminRemarks: metadata.adminRemarks,
+      reason: `Rejected ${metadata.flagType} flag for ${metadata.parameter}. Reason: ${metadata.adminRemarks}`,
+    },
+  });
+};
+
+/**
+ * Log threshold creation
+ */
+export const logThresholdCreated = async (
+  adminId: string,
+  thresholdId: string,
+  metadata: {
+    deviceId: string;
+    parameter: string;
+    thresholdType: string;
+    operator: string;
+    value: string;
+    cooldownMinutes: number;
+  },
+) => {
+  await createAuditLog({
+    action: AuditAction.THRESHOLD_CREATED,
+    performedBy: adminId,
+    actionCategory: "ALERT_MANAGEMENT",
+    entityType: "ALERT_THRESHOLD",
+    entityId: thresholdId,
+    metadata: {
+      ...metadata,
+      reason: `Created ${metadata.thresholdType} threshold: ${metadata.parameter} ${metadata.operator} ${metadata.value} for device ${metadata.deviceId}`,
+    },
+  });
+};
+
+/**
+ * Log threshold update
+ */
+export const logThresholdUpdated = async (
+  adminId: string,
+  thresholdId: string,
+  changes: { field: string; oldValue: any; newValue: any }[],
+) => {
+  await createAuditLog({
+    action: AuditAction.THRESHOLD_UPDATED,
+    performedBy: adminId,
+    actionCategory: "ALERT_MANAGEMENT",
+    entityType: "ALERT_THRESHOLD",
+    entityId: thresholdId,
+    changes,
+    metadata: {
+      reason: `Updated threshold configuration`,
+    },
+  });
+};
+
+/**
+ * Log threshold deletion
+ */
+export const logThresholdDeleted = async (
+  adminId: string,
+  thresholdId: string,
+  metadata: {
+    deviceId: string;
+    parameter: string;
+    thresholdType: string;
+    operator: string;
+    value: string;
+  },
+) => {
+  await createAuditLog({
+    action: AuditAction.THRESHOLD_DELETED,
+    performedBy: adminId,
+    actionCategory: "ALERT_MANAGEMENT",
+    entityType: "ALERT_THRESHOLD",
+    entityId: thresholdId,
+    metadata: {
+      ...metadata,
+      reason: `Deleted ${metadata.thresholdType} threshold: ${metadata.parameter} ${metadata.operator} ${metadata.value}`,
+    },
+  });
+};
+
+/**
+ * Log threshold enabled
+ */
+export const logThresholdEnabled = async (
+  adminId: string,
+  thresholdId: string,
+) => {
+  await createAuditLog({
+    action: AuditAction.THRESHOLD_ENABLED,
+    performedBy: adminId,
+    actionCategory: "ALERT_MANAGEMENT",
+    entityType: "ALERT_THRESHOLD",
+    entityId: thresholdId,
+    metadata: {
+      reason: `Enabled alert threshold`,
+    },
+  });
+};
+
+/**
+ * Log threshold disabled
+ */
+export const logThresholdDisabled = async (
+  adminId: string,
+  thresholdId: string,
+) => {
+  await createAuditLog({
+    action: AuditAction.THRESHOLD_DISABLED,
+    performedBy: adminId,
+    actionCategory: "ALERT_MANAGEMENT",
+    entityType: "ALERT_THRESHOLD",
+    entityId: thresholdId,
+    metadata: {
+      reason: `Disabled alert threshold`,
+    },
+  });
+};
+
+/**
+ * Log alert triggered
+ */
+export const logAlertTriggered = async (
+  alertHistoryId: string,
+  metadata: {
+    deviceId: string;
+    parameter: string;
+    thresholdType: string;
+    actualValue: number;
+    thresholdValue: number;
+  },
+) => {
+  await createAuditLog({
+    action: AuditAction.ALERT_TRIGGERED,
+    performedBy: "system",
+    actionCategory: "ALERT_NOTIFICATION",
+    entityType: "ALERT_HISTORY",
+    entityId: alertHistoryId,
+    metadata: {
+      ...metadata,
+      reason: `Alert triggered: ${metadata.parameter} = ${metadata.actualValue} (threshold: ${metadata.thresholdValue}, type: ${metadata.thresholdType})`,
+    },
+  });
+};
+
+/**
+ * Log alert acknowledged
+ */
+export const logAlertAcknowledged = async (
+  userId: string,
+  alertHistoryId: string,
+) => {
+  await createAuditLog({
+    action: AuditAction.ALERT_ACKNOWLEDGED,
+    performedBy: userId,
+    actionCategory: "ALERT_NOTIFICATION",
+    entityType: "ALERT_HISTORY",
+    entityId: alertHistoryId,
+    metadata: {
+      reason: `Acknowledged alert`,
+    },
   });
 };

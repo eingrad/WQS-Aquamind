@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
 import ApprovalTable from "../../components/approval/ApprovalTable";
@@ -6,12 +6,37 @@ import ApprovalActionSidebar from "../../components/approval/ApprovalActionSideb
 import Pagination from "../../components/widgets/Pagination";
 import DateRangePicker from "../../components/widgets/DateRangePicker";
 
-import { approvalData, type ApprovalDataRow } from "../../data/approvalData";
+import { type ApprovalDataRow } from "../../data/approvalData";
+import {
+  fetchAllApprovals,
+  approveFlag,
+  rejectFlag,
+  type PendingApprovalRequest,
+} from "../../services/approval.service";
+
+const parameterDisplayNames: Record<string, string> = {
+  so2: "SO₂",
+  h2s: "H₂S",
+  no2: "NO₂",
+  btex: "BTEX",
+  windSpeed: "Wind Speed",
+  windDirection: "Wind Direction",
+  temperature: "Temperature",
+  humidity: "Humidity",
+  pressure: "Pressure",
+  solar: "Solar Radiation",
+  rain: "Rain",
+};
 
 export default function DataValidationApprovalPage() {
-  const [data, setData] = useState(approvalData);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [data, setData] = useState<ApprovalDataRow[]>([]);
+  const [, setIsLoading] = useState(true);
+  const [, setError] = useState<string | null>(null);
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(30);
   const [selectedRow, setSelectedRow] = useState<ApprovalDataRow | null>(null);
@@ -19,6 +44,78 @@ export default function DataValidationApprovalPage() {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "pending" | "approved" | "rejected"
   >("all");
+
+  // Fetch pending approvals from backend
+  useEffect(() => {
+    loadPendingApprovals();
+  }, []);
+
+  const loadPendingApprovals = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const approvals = await fetchAllApprovals();
+
+      // Transform backend data to UI format
+      const transformedData: ApprovalDataRow[] = approvals.map(
+        (approval: PendingApprovalRequest) => {
+          console.log("Approval data:", approval); // Debug log
+
+          // Parse date from requestedAt
+          const date = approval.requestedAt
+            ? new Date(approval.requestedAt)
+            : new Date();
+
+          const timeStr = date.toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const dateStr = date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "2-digit",
+          });
+
+          const parameterName =
+            parameterDisplayNames[approval.parameter] || approval.parameter;
+
+          console.log("Transformed:", {
+            time: `${timeStr}, ${dateStr}`,
+            parameter: parameterName,
+            requestedBy: approval.requestedBy?.name,
+            status: approval.status,
+          });
+
+          // Map status from backend to frontend
+          const status = (approval.status || "pending") as
+            | "pending"
+            | "approved"
+            | "rejected";
+
+          return {
+            id: approval.approvalId,
+            time: `${timeStr}, ${dateStr}`,
+            parameter: parameterName,
+            parameterKey: approval.parameter,
+            value: approval.hourlyValue ?? 0,
+            remarks: approval.qcRemarks || "",
+            status: status,
+            requestedBy: approval.requestedBy?.name || "Unknown User",
+            flagType: approval.flagType as any,
+            approvalType: "flag" as const,
+            adminRemarks: approval.adminRemarks,
+          };
+        },
+      );
+
+      setData(transformedData);
+    } catch (err: any) {
+      console.error("Failed to fetch all approvals:", err);
+      setError(err.message || "Failed to load approval requests");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter data
   const filteredData = useMemo(() => {
@@ -62,26 +159,36 @@ export default function DataValidationApprovalPage() {
     setIsSidebarOpen(true);
   };
 
-  const handleApprove = (id: string, adminRemarks: string) => {
-    setData((prevData) =>
-      prevData.map((row) =>
-        row.id === id
-          ? { ...row, status: "approved" as const, adminRemarks }
-          : row
-      )
-    );
-    console.log(`Approved: ${id}, Remarks: ${adminRemarks}`);
+  const handleApprove = async (id: string, adminRemarks: string) => {
+    try {
+      await approveFlag(id, adminRemarks);
+      console.log(`Approved: ${id}, Remarks: ${adminRemarks}`);
+
+      // Refresh data to show updated status
+      await loadPendingApprovals();
+
+      // Close sidebar
+      setIsSidebarOpen(false);
+    } catch (err: any) {
+      console.error("Failed to approve:", err);
+      alert(err.message || "Failed to approve request");
+    }
   };
 
-  const handleReject = (id: string, adminRemarks: string) => {
-    setData((prevData) =>
-      prevData.map((row) =>
-        row.id === id
-          ? { ...row, status: "rejected" as const, adminRemarks }
-          : row
-      )
-    );
-    console.log(`Rejected: ${id}, Remarks: ${adminRemarks}`);
+  const handleReject = async (id: string, adminRemarks: string) => {
+    try {
+      await rejectFlag(id, adminRemarks);
+      console.log(`Rejected: ${id}, Remarks: ${adminRemarks}`);
+
+      // Refresh data to show updated status
+      await loadPendingApprovals();
+
+      // Close sidebar
+      setIsSidebarOpen(false);
+    } catch (err: any) {
+      console.error("Failed to reject:", err);
+      alert(err.message || "Failed to reject request");
+    }
   };
 
   return (

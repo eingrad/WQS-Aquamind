@@ -27,13 +27,16 @@ model User {
   updatedAt     DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  userRole              UserRole?
-  validationStatuses    ValidationStatus[]
-  approvals            ApprovalRequest[] @relation("ApprovalRequester")
-  adminApprovals       ApprovalRequest[] @relation("ApprovalAdmin")
-  auditLogs            AuditLog[]
-  notifications        Notification[]
-  reports              Report[]
+  userRole                  UserRole?
+  validationStatus          ValidationStatus[]
+  approvals                ApprovalRequest[] @relation("ApprovalRequester")
+  adminApprovals           ApprovalRequest[] @relation("ApprovalAdmin")
+  auditLogs                AuditLog[]
+  notifications            Notification[]
+  reports                  Report[]
+  createdThresholds        AlertThreshold[] @relation("ThresholdCreator")
+  acknowledgedAlerts       AlertHistory[] @relation("AlertAcknowledger")
+  notificationPreference   UserNotificationPreference?
 
   @@index([isActive], name: "idx_users_active")
   @@map("users")
@@ -90,6 +93,8 @@ model Device {
   validationStatuses  ValidationStatus[]
   approvalRequests    ApprovalRequest[]
   maintenanceLogs     MaintenanceLog[]
+  alertThresholds     AlertThreshold[]
+  alertHistory        AlertHistory[]
 
   @@map("devices")
 }
@@ -150,6 +155,7 @@ model TelemetryProcessed {
   device              Device             @relation(fields: [deviceId], references: [id])
   telemetryRaw        TelemetryRaw?      @relation(fields: [rawId], references: [rawId])
   validationStatuses  ValidationStatus[]
+  alertHistory        AlertHistory[]
   approvalRequests    ApprovalRequest[]
 
   @@id([observedAt, deviceId, recordId])
@@ -283,12 +289,15 @@ model Notification {
   message           String   @db.Text
   relatedEntityType String?  @map("related_entity_type") @db.VarChar(50)
   relatedEntityId   String?  @map("related_entity_id") @db.Uuid
+  severity          String?  @db.VarChar(20)
+  alertHistoryId    String?  @map("alert_history_id") @db.Uuid
   isRead            Boolean  @default(false) @map("is_read")
   readAt            DateTime? @map("read_at") @db.Timestamptz
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id])
+  alertHistory AlertHistory? @relation(fields: [alertHistoryId], references: [id])
 
   @@index([userId, createdAt(sort: Desc)], name: "idx_notifications_user")
   @@index([userId, isRead], name: "idx_notifications_unread")
@@ -346,4 +355,82 @@ model MaintenanceLog {
   @@index([deviceId, startTime(sort: Desc)], name: "idx_maintenance_device_time")
   @@index([startTime, endTime], name: "idx_maintenance_time_range")
   @@map("maintenance_log")
+}
+
+// ============================================================================
+// 13. ALERT_THRESHOLDS TABLE
+// ============================================================================
+model AlertThreshold {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  deviceId        String?  @map("device_id") @db.Uuid
+  parameter       String   @db.VarChar(50)
+  thresholdType   String   @map("threshold_type") @db.VarChar(20)
+  operator        String   @db.VarChar(10)
+  value           Decimal  @db.Decimal(10, 2)
+  enabled         Boolean  @default(true)
+  cooldownMinutes Int      @default(60) @map("cooldown_minutes")
+  createdBy       String   @map("created_by") @db.Uuid
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  device       Device?        @relation(fields: [deviceId], references: [id])
+  creator      User           @relation("ThresholdCreator", fields: [createdBy], references: [id])
+  alertHistory AlertHistory[]
+
+  @@index([parameter, enabled], name: "idx_threshold_parameter")
+  @@index([deviceId, parameter], name: "idx_threshold_device_param")
+  @@map("alert_thresholds")
+}
+
+// ============================================================================
+// 14. ALERT_HISTORY TABLE
+// ============================================================================
+model AlertHistory {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  thresholdId    String    @map("threshold_id") @db.Uuid
+  deviceId       String    @map("device_id") @db.Uuid
+  parameter      String    @db.VarChar(50)
+  recordId       String?   @map("record_id") @db.Uuid
+  observedAt     DateTime  @map("observed_at") @db.Timestamptz
+  actualValue    Decimal   @map("actual_value") @db.Decimal(10, 2)
+  thresholdValue Decimal   @map("threshold_value") @db.Decimal(10, 2)
+  thresholdType  String    @map("threshold_type") @db.VarChar(20)
+  acknowledged   Boolean   @default(false)
+  acknowledgedBy String?   @map("acknowledged_by") @db.Uuid
+  acknowledgedAt DateTime? @map("acknowledged_at") @db.Timestamptz
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  // Relations
+  threshold      AlertThreshold      @relation(fields: [thresholdId], references: [id])
+  device         Device              @relation(fields: [deviceId], references: [id])
+  record         TelemetryProcessed? @relation(fields: [recordId], references: [recordId])
+  acknowledger   User?               @relation("AlertAcknowledger", fields: [acknowledgedBy], references: [id])
+  notifications  Notification[]
+
+  @@index([thresholdId, createdAt(sort: Desc)], name: "idx_alert_threshold")
+  @@index([deviceId, parameter, createdAt(sort: Desc)], name: "idx_alert_device_param")
+  @@index([acknowledged], name: "idx_alert_acknowledged")
+  @@map("alert_history")
+}
+
+// ============================================================================
+// 15. USER_NOTIFICATION_PREFERENCES TABLE
+// ============================================================================
+model UserNotificationPreference {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  notifyInApp    Boolean  @default(true) @map("notify_in_app")
+  notifyEmail    Boolean  @default(true) @map("notify_email")
+  notifyTelegram Boolean  @default(true) @map("notify_telegram")
+  telegramChatId String?  @map("telegram_chat_id") @db.VarChar(255)
+  emailAddress   String?  @map("email_address") @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+  @@map("user_notification_preferences")
 }
