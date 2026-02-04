@@ -122,7 +122,7 @@ export const getThresholdById = async (req: Request, res: Response) => {
 export const createThreshold = async (req: Request, res: Response) => {
   try {
     const validatedData = createThresholdSchema.parse(req.body);
-    const userId = (req as any).user.id; // From auth middleware
+    const userId = (req as any).user.userId; // From auth middleware
 
     const threshold = await thresholdService.createThreshold({
       ...validatedData,
@@ -161,7 +161,7 @@ export const updateThreshold = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const validatedData = updateThresholdSchema.parse(req.body);
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
 
     const threshold = await thresholdService.updateThreshold(
       id,
@@ -207,7 +207,7 @@ export const updateThreshold = async (req: Request, res: Response) => {
 export const deleteThreshold = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
 
     const result = await thresholdService.deleteThreshold(id, userId);
 
@@ -242,7 +242,7 @@ export const toggleThreshold = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { enabled } = toggleThresholdSchema.parse(req.body);
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
 
     const threshold = await thresholdService.toggleThreshold(
       id,

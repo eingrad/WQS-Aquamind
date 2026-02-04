@@ -261,8 +261,13 @@ export const acknowledgeAlert = async (
     },
   });
 
-  // Audit logging
-  await auditService.logAlertAcknowledged(userId, alertHistoryId);
+  // Audit logging (non-blocking)
+  try {
+    await auditService.logAlertAcknowledged(userId, alertHistoryId);
+  } catch (error) {
+    console.error("Failed to log alert acknowledgment to audit:", error);
+    // Don't throw - audit logging shouldn't block the acknowledgment
+  }
 
   return updatedAlert;
 };
@@ -319,7 +324,7 @@ export const getAlertHistory = async (filters?: {
       },
     },
     orderBy: {
-      createdAt: "desc",
+      observedAt: "desc",
     },
     take: limit,
   });

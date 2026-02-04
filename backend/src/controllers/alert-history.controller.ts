@@ -111,21 +111,42 @@ export const getAlertById = async (req: Request, res: Response) => {
 export const acknowledgeAlert = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user.id;
+    const user = (req as any).user;
+
+    // Validate user authentication
+    if (!user || !user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: "User not authenticated",
+      });
+    }
+
+    const userId = user.userId;
 
     const alert = await alertEvaluation.acknowledgeAlert(id, userId);
+
+    // Convert Decimal to number for JSON serialization
+    const responseData = {
+      ...alert,
+      actualValue: Number(alert.actualValue),
+      thresholdValue: Number(alert.thresholdValue),
+      threshold: {
+        ...alert.threshold,
+        value: Number(alert.threshold.value),
+      },
+    };
 
     res.json({
       success: true,
       message: "Alert acknowledged successfully",
-      data: alert,
+      data: responseData,
     });
   } catch (error: any) {
-    console.error("Error acknowledging alert:", error);
     res.status(500).json({
       success: false,
       message: "Failed to acknowledge alert",
       error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };

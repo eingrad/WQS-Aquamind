@@ -31,10 +31,6 @@ export const sendInAppNotification = async (data: NotificationData) => {
     },
   });
 
-  console.log(
-    `📱 In-app notification sent to user ${data.userId}: ${data.title}`,
-  );
-
   return notification;
 };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Power, PowerOff } from "lucide-react";
 import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
+import ThresholdForm from "../../components/alerts/ThresholdForm";
 import * as thresholdService from "../../services/alert-threshold.service";
 import type { AlertThreshold } from "../../services/alert-threshold.service";
 
@@ -69,18 +70,17 @@ export default function ThresholdManagementPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0f0f] text-white overflow-hidden">
+    <div className="flex h-screen bg-[#0f1a1a] text-white overflow-hidden">
       <Sidebar active="Alert Thresholds" />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Topbar title="Alert Threshold Management" />
 
         <main className="flex-1 overflow-auto p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
+          <div className="max-w-screen-2xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-2xl font-semibold">Alert Thresholds</h2>
                 <p className="text-gray-400 text-sm mt-1">
                   Configure global alert thresholds for monitoring parameters
                 </p>
@@ -91,9 +91,9 @@ export default function ThresholdManagementPage() {
                   setEditingThreshold(null);
                   setShowForm(true);
                 }}
-                className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg transition"
+                className="flex text-sm text-black items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg transition"
               >
-                <Plus size={18} />
+                <Plus size={15} />
                 Add Threshold
               </button>
             </div>
@@ -116,7 +116,7 @@ export default function ThresholdManagementPage() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
                 {thresholds.map((threshold) => (
                   <div
                     key={threshold.id}
@@ -211,24 +211,16 @@ export default function ThresholdManagementPage() {
         </main>
       </div>
 
-      {/* Form Modal - Placeholder for now */}
+      {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#121b1b] border border-white/10 rounded-xl p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4">
-              {editingThreshold ? "Edit Threshold" : "Create Threshold"}
-            </h3>
-            <p className="text-gray-400 text-sm mb-4">
-              Form component will be implemented next...
-            </p>
-            <button
-              onClick={() => setShowForm(false)}
-              className="w-full px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <ThresholdForm
+          threshold={editingThreshold}
+          onClose={() => {
+            setShowForm(false);
+            setEditingThreshold(null);
+          }}
+          onSuccess={loadThresholds}
+        />
       )}
     </div>
   );

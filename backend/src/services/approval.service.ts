@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import * as auditService from "./audit.service";
+import * as notificationService from "./notification.service";
 
 const prisma = new PrismaClient();
 
@@ -77,22 +78,95 @@ export const createFlagRequest = async (params: CreateFlagRequestParams) => {
     },
   });
 
-  // Audit logging
-  await auditService.logFlagRequested(
-    qcReviewerId,
-    approvalRequest.approvalId,
-    {
-      deviceId,
-      parameter,
-      flagType,
-      timeRange: {
-        from: timeFrom,
-        to: timeTo,
+  // Audit logging (don't let it block notifications)
+  try {
+    await auditService.logFlagRequested(
+      qcReviewerId,
+      approvalRequest.approvalId,
+      {
+        deviceId,
+        parameter,
+        flagType,
+        timeRange: {
+          from: timeFrom,
+          to: timeTo,
+        },
+        recordCount,
+        qcRemarks: remarks,
       },
-      recordCount,
-      qcRemarks: remarks,
+    );
+  } catch (auditError) {
+    console.error("⚠️ Audit logging failed (non-critical):", auditError);
+    // Continue anyway - audit failure shouldn't block notifications
+  }
+
+  // Notify all admin users
+  const allActiveUsers = await prisma.user.findMany({
+    where: {
+      isActive: true,
     },
+    include: {
+      userRole: true,
+    },
+  });
+
+  // Filter for admin users
+  const adminUsers = allActiveUsers.filter(
+    (user) => user.userRole?.roleId === "admin",
   );
+
+  // Get device and QC user details for the notification
+  const device = await prisma.device.findUnique({
+    where: { id: deviceId },
+    select: { name: true, location: true },
+  });
+
+  const qcUser = await prisma.user.findUnique({
+    where: { id: qcReviewerId },
+    select: { fullName: true },
+  });
+
+  // Format time range
+  const timeRangeFormatted = `${timeFrom.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })} - ${timeTo.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+
+  const flagTypeLabels: Record<string, string> = {
+    out_of_range: "Out of Range",
+    exceeding_range: "Exceeding Range",
+    parameter_relation: "Parameter Relation",
+    maintenance: "Maintenance",
+    insufficient_data: "Insufficient Data",
+  };
+
+  const flagLabel = flagTypeLabels[flagType] || flagType;
+
+  // Send notifications to all admins
+  try {
+    for (const admin of adminUsers) {
+      await notificationService.sendInAppNotification({
+        userId: admin.id,
+        type: "approval_request",
+        title: "New Approval Request",
+        message: `Device: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nParameter: ${parameter.toUpperCase()}\nFlag Type: ${flagLabel}\nTime Range: ${timeRangeFormatted}\nRequested By: ${qcUser?.fullName || "Unknown"}\nRemarks: ${remarks}`,
+        severity: "info",
+        relatedEntityType: "APPROVAL_REQUEST",
+        relatedEntityId: approvalRequest.approvalId,
+      });
+    }
+  } catch (notificationError) {
+    console.error("Failed to send notifications:", notificationError);
+    // Don't throw - allow the request to succeed even if notifications fail
+  }
 
   return {
     approvalRequest,
@@ -153,7 +227,7 @@ export const getPendingApprovals = async () => {
         btex: "btex_value",
         windSpeed: "ws_value",
         windDirection: "wd_value",
-        temperature: "temperature_value",
+        temperature: "temp_value",
         humidity: "humidity_value",
         pressure: "pressure_value",
         solar: "solar_value",
@@ -242,7 +316,7 @@ export const getAllApprovals = async (status?: string) => {
         btex: "btex_value",
         windSpeed: "ws_value",
         windDirection: "wd_value",
-        temperature: "temperature_value",
+        temperature: "temp_value",
         humidity: "humidity_value",
         pressure: "pressure_value",
         solar: "solar_value",
@@ -421,6 +495,44 @@ export const approveFlag = async (params: ApproveFlagParams) => {
     adminRemarks,
   });
 
+  // Notify the QC user that their request was approved
+  const device = await prisma.device.findUnique({
+    where: { id: approval.stationId },
+    select: { name: true, location: true },
+  });
+
+  const admin = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { fullName: true },
+  });
+
+  const timeRangeFormatted = `${approval.timeFrom.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })} - ${approval.timeTo.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+
+  await notificationService.sendInAppNotification({
+    userId: approval.qcReviewerId,
+    type: "approval_decision",
+    title: "✅ Flag Request Approved",
+    message: `Your flag request has been approved\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}${adminRemarks ? `\nRemarks: ${adminRemarks}` : ""}`,
+    severity: "info",
+    relatedEntityType: "APPROVAL_REQUEST",
+    relatedEntityId: approvalId,
+  });
+
+  console.log(
+    `✅ Notified QC user of approved flag request for ${approval.parameterCode}`,
+  );
+
   return result;
 };
 
@@ -466,6 +578,44 @@ export const rejectFlag = async (params: RejectFlagParams) => {
     },
     adminRemarks,
   });
+
+  // Notify the QC user that their request was rejected
+  const device = await prisma.device.findUnique({
+    where: { id: approval.stationId },
+    select: { name: true, location: true },
+  });
+
+  const admin = await prisma.user.findUnique({
+    where: { id: adminId },
+    select: { fullName: true },
+  });
+
+  const timeRangeFormatted = `${approval.timeFrom.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })} - ${approval.timeTo.toLocaleString("en-MY", {
+    timeZone: "Asia/Kuala_Lumpur",
+    hour: "2-digit",
+    minute: "2-digit",
+  })}`;
+
+  await notificationService.sendInAppNotification({
+    userId: approval.qcReviewerId,
+    type: "approval_decision",
+    title: "❌ Flag Request Rejected",
+    message: `Your flag request has been rejected\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}\nRemarks: ${adminRemarks}`,
+    severity: "warning",
+    relatedEntityType: "APPROVAL_REQUEST",
+    relatedEntityId: approvalId,
+  });
+
+  console.log(
+    `❌ Notified QC user of rejected flag request for ${approval.parameterCode}`,
+  );
 
   return updatedApproval;
 };
