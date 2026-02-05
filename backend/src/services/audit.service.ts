@@ -52,20 +52,23 @@ export const createAuditLog = async (data: AuditLogData) => {
     metadata,
   } = data;
 
-  // Get performer details
-  const performer = await prisma.user.findUnique({
-    where: { id: performedBy },
-    select: {
-      email: true,
-      userRole: {
-        select: { roleId: true },
+  // Get performer details (skip lookup for system actions)
+  let performer = null;
+  if (performedBy !== "system") {
+    performer = await prisma.user.findUnique({
+      where: { id: performedBy },
+      select: {
+        email: true,
+        userRole: {
+          select: { roleId: true },
+        },
       },
-    },
-  });
+    });
+  }
 
   await prisma.auditLog.create({
     data: {
-      userId: performedBy,
+      userId: performedBy === "system" ? null : performedBy,
       userEmail: performer?.email || "system",
       userRole: performer?.userRole?.roleId || "system",
       action,

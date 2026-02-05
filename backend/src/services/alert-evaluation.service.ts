@@ -221,14 +221,20 @@ export const triggerAlert = async (data: {
     `🚨 Alert triggered: ${thresholdType.toUpperCase()} - ${parameter} = ${actualValue} (threshold: ${thresholdValue}) at ${deviceId}`,
   );
 
-  // Audit logging
-  await auditService.logAlertTriggered(alertHistory.id, {
-    deviceId,
-    parameter,
-    thresholdType,
-    actualValue,
-    thresholdValue,
-  });
+  // Audit logging (non-blocking)
+  try {
+    await auditService.logAlertTriggered(alertHistory.id, {
+      deviceId,
+      parameter,
+      thresholdType,
+      actualValue,
+      thresholdValue,
+    });
+    console.log(`📝 Audit log created for alert ${alertHistory.id}`);
+  } catch (error) {
+    console.error("❌ Failed to log alert trigger to audit:", error);
+    // Don't throw - audit logging shouldn't block alert triggering
+  }
 
   // Note: Notification sending will be handled by notification.service.ts
   // This is called after the alert is created

@@ -7,7 +7,7 @@ import * as notificationService from "../services/notification.service";
  */
 export const getNotifications = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId; // Fixed: was .id, should be .userId
     const { unreadOnly } = req.query;
 
     let notifications;
@@ -15,8 +15,7 @@ export const getNotifications = async (req: Request, res: Response) => {
     if (unreadOnly === "true") {
       notifications = await notificationService.getUnreadNotifications(userId);
     } else {
-      // TODO: Implement getAll notifications with pagination
-      notifications = await notificationService.getUnreadNotifications(userId);
+      notifications = await notificationService.getAllNotifications(userId);
     }
 
     res.json({
@@ -26,7 +25,7 @@ export const getNotifications = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Error fetching notifications:", error);
-    res.status(500).json({
+    res.json({
       success: false,
       message: "Failed to fetch notifications",
       error: error.message,
@@ -40,7 +39,7 @@ export const getNotifications = async (req: Request, res: Response) => {
  */
 export const getUnreadCount = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
 
     const count = await notificationService.getUnreadCount(userId);
 
@@ -89,7 +88,7 @@ export const markAsRead = async (req: Request, res: Response) => {
  */
 export const markAllAsRead = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user.id;
+    const userId = (req as any).user.userId;
 
     await notificationService.markAllAsRead(userId);
 

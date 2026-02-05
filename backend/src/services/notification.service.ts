@@ -2,6 +2,14 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+interface TelegramApiResponse {
+  ok: boolean;
+  result?: {
+    message_id: number;
+  };
+  description?: string;
+}
+
 interface NotificationData {
   userId: string;
   type: string;
@@ -73,32 +81,45 @@ export const sendEmailNotification = async (
 
 /**
  * Send Telegram notification
- * TODO: Implement Telegram Bot API integration
+ * Uses Telegram Bot API to send messages
  */
 export const sendTelegramNotification = async (
   chatId: string,
   message: string,
 ) => {
-  // Placeholder for Telegram Bot integration
-  console.log(`💬 Telegram notification queued to chat ${chatId}: ${message}`);
-
-  // TODO: Implement with Telegram Bot API
-  /*
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
-  
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: message,
-      parse_mode: "Markdown",
-    }),
-  });
-  */
 
-  return { sent: true, chatId };
+  if (!botToken) {
+    console.warn("⚠️ Telegram bot token not configured, skipping notification");
+    return { sent: false, chatId, error: "Bot token not configured" };
+  }
+
+  try {
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "Markdown",
+      }),
+    });
+
+    const data = (await response.json()) as TelegramApiResponse;
+
+    if (!response.ok) {
+      console.error(`❌ Telegram API error:`, data);
+      return { sent: false, chatId, error: data.description };
+    }
+
+    console.log(`✅ Telegram notification sent to chat ${chatId}`);
+    return { sent: true, chatId, messageId: data.result?.message_id };
+  } catch (error) {
+    console.error(`❌ Error sending Telegram notification:`, error);
+    return { sent: false, chatId, error: String(error) };
+  }
 };
 
 /**
@@ -211,6 +232,41 @@ export const sendMultiChannelNotification = async (alertHistory: any) => {
   );
 
   return results;
+};
+
+/**
+ * Get all notifications for a user (both read and unread)
+ */
+export const getAllNotifications = async (userId: string) => {
+  console.log("📬 getAllNotifications called with userId:", userId);
+
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId, // CRITICAL: Filter by userId to show only this user's notifications
+    },
+    include: {
+      alertHistory: {
+        include: {
+          device: {
+            select: {
+              deviceCode: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 100, // Return last 100 notifications
+  });
+
+  console.log(
+    `   Found ${notifications.length} notifications for user ${userId}`,
+  );
+
+  return notifications;
 };
 
 /**

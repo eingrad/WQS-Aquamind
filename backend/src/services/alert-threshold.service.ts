@@ -153,6 +153,7 @@ export const updateThreshold = async (
 
 /**
  * Delete a threshold
+ * This will also delete all related alert history and notifications
  */
 export const deleteThreshold = async (
   thresholdId: string,
@@ -167,6 +168,11 @@ export const deleteThreshold = async (
           name: true,
         },
       },
+      alertHistory: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
@@ -174,6 +180,27 @@ export const deleteThreshold = async (
     throw new Error("Threshold not found");
   }
 
+  // First, delete all notifications related to alert history for this threshold
+  if (threshold.alertHistory.length > 0) {
+    const alertHistoryIds = threshold.alertHistory.map((ah) => ah.id);
+
+    await prisma.notification.deleteMany({
+      where: {
+        alertHistoryId: {
+          in: alertHistoryIds,
+        },
+      },
+    });
+
+    // Then delete all alert history records for this threshold
+    await prisma.alertHistory.deleteMany({
+      where: {
+        thresholdId: thresholdId,
+      },
+    });
+  }
+
+  // Finally, delete the threshold itself
   await prisma.alertThreshold.delete({
     where: { id: thresholdId },
   });
@@ -187,7 +214,15 @@ export const deleteThreshold = async (
     value: threshold.value.toString(),
   });
 
-  return { deleted: true, threshold };
+  console.log(
+    `🗑️  Deleted threshold ${thresholdId} and ${threshold.alertHistory.length} related alert history records`,
+  );
+
+  return {
+    deleted: true,
+    threshold,
+    deletedAlertHistoryCount: threshold.alertHistory.length,
+  };
 };
 
 /**

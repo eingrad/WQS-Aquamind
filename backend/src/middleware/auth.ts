@@ -9,6 +9,7 @@ declare global {
         userId: string;
         email: string;
         role: string;
+        username?: string;
       };
     }
   }
@@ -20,7 +21,7 @@ declare global {
 export const authenticate = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   try {
     const token = extractToken(req.headers.authorization);
@@ -69,7 +70,7 @@ export const authorize = (allowedRoles: string[]) => {
       res.status(403).json({
         error: "Access denied",
         message: `This action requires one of the following roles: ${allowedRoles.join(
-          ", "
+          ", ",
         )}`,
         userRole: req.user.role,
       });
@@ -86,7 +87,7 @@ export const authorize = (allowedRoles: string[]) => {
 export const optionalAuth = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   try {
     const token = extractToken(req.headers.authorization);

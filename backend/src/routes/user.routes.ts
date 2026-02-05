@@ -43,6 +43,39 @@ router.put("/:id/password", userController.changePassword);
 router.delete("/:id", authorize(["admin"]), userController.deleteUser);
 
 /**
+ * @route   GET /api/users/me/notification-preferences
+ * @desc    Get notification preferences for current user
+ * @access  Private
+ */
+router.get("/me/notification-preferences", async (req, res) => {
+  const { getNotificationPreferences } =
+    await import("../controllers/notification-preferences.controller");
+  return getNotificationPreferences(req, res);
+});
+
+/**
+ * @route   PUT /api/users/me/notification-preferences
+ * @desc    Update notification preferences for current user
+ * @access  Private
+ */
+router.put("/me/notification-preferences", async (req, res) => {
+  const { updateNotificationPreferences } =
+    await import("../controllers/notification-preferences.controller");
+  return updateNotificationPreferences(req, res);
+});
+
+/**
+ * @route   POST /api/users/me/test-telegram
+ * @desc    Test Telegram notification for current user
+ * @access  Private
+ */
+router.post("/me/test-telegram", async (req, res) => {
+  const { testTelegramNotification } =
+    await import("../controllers/notification-preferences.controller");
+  return testTelegramNotification(req, res);
+});
+
+/**
  * @route   DELETE /api/users/:id/hard
  * @desc    Permanently delete user
  * @access  Admin only
