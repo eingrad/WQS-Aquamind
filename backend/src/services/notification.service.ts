@@ -42,9 +42,10 @@ export const sendInAppNotification = async (data: NotificationData) => {
   return notification;
 };
 
+import nodemailer from "nodemailer";
+
 /**
- * Send email notification
- * TODO: Implement email sending with NodeMailer
+ * Send email notification via SMTP2GO
  */
 export const sendEmailNotification = async (
   email: string,
@@ -52,31 +53,46 @@ export const sendEmailNotification = async (
   body: string,
   html?: string,
 ) => {
-  // Placeholder for email service integration
-  console.log(`📧 Email notification queued to ${email}: ${subject}`);
+  try {
+    // Check if SMTP is configured
+    if (
+      !process.env.SMTP_HOST ||
+      !process.env.SMTP_USER ||
+      !process.env.SMTP_PASSWORD
+    ) {
+      console.log(
+        `⚠️  Email NOT sent - SMTP not configured. Would send to: ${email}`,
+      );
+      return { sent: false, email, subject, reason: "SMTP not configured" };
+    }
 
-  // TODO: Implement with NodeMailer
-  /*
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
+    // Create transporter with SMTP2GO settings
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || "2525"), // SMTP2GO default port
+      secure: false, // Use STARTTLS
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
 
-  await transporter.sendMail({
-    from: process.env.SMTP_FROM || "PETRONAS Monitoring <noreply@petronas.com>",
-    to: email,
-    subject,
-    text: body,
-    html: html || body,
-  });
-  */
+    // Send email
+    await transporter.sendMail({
+      from:
+        process.env.SMTP_FROM || "PETRONAS Monitoring <noreply@petronas.com>",
+      to: email,
+      subject,
+      text: body,
+      html: html || body,
+    });
 
-  return { sent: true, email, subject };
+    console.log(`✅ Email sent to ${email}: ${subject}`);
+    return { sent: true, email, subject };
+  } catch (error) {
+    console.error(`❌ Failed to send email to ${email}:`, error);
+    return { sent: false, email, subject, error };
+  }
 };
 
 /**
@@ -176,7 +192,12 @@ export const sendMultiChannelNotification = async (alertHistory: any) => {
     minute: "2-digit",
   });
 
-  const title = `${emoji} ${thresholdType.toUpperCase()} Alert: ${parameter.toUpperCase()}`;
+  // Create two versions of title:
+  // 1. With emoji (for Telegram only)
+  // 2. Without emoji (for email and in-app)
+  const titleWithEmoji = `${emoji} ${thresholdType.toUpperCase()} Alert: ${parameter.toUpperCase()}`;
+  const titleWithoutEmoji = `${thresholdType.toUpperCase()} Alert: ${parameter.toUpperCase()}`;
+
   const message = `Device: ${device.name} (${device.location})\nParameter: ${parameter.toUpperCase()}\nValue: ${actualValue}\nThreshold: ${thresholdValue}\nTime: ${timestamp}`;
 
   const results = {
@@ -188,12 +209,12 @@ export const sendMultiChannelNotification = async (alertHistory: any) => {
   for (const user of users) {
     const prefs = user.notificationPreference;
 
-    // Send in-app notification (default enabled)
+    // Send in-app notification (default enabled) - WITHOUT emoji
     if (!prefs || prefs.notifyInApp) {
       await sendInAppNotification({
         userId: user.id,
         type: "alert",
-        title,
+        title: titleWithoutEmoji, // No emoji for in-app
         message,
         severity,
         alertHistoryId: alertHistory.id,
@@ -203,19 +224,19 @@ export const sendMultiChannelNotification = async (alertHistory: any) => {
       results.inApp++;
     }
 
-    // Send email if enabled and email address is set
+    // Send email if enabled and email address is set - WITHOUT emoji
     if (prefs?.notifyEmail && prefs.emailAddress) {
       const emailHtml = formatEmailHtml(alertHistory, device, severity);
       await sendEmailNotification(
         prefs.emailAddress,
-        title,
+        titleWithoutEmoji, // No emoji for email
         message,
         emailHtml,
       );
       results.email++;
     }
 
-    // Send Telegram if enabled and chatId is set
+    // Send Telegram if enabled and chatId is set - WITH emoji
     if (prefs?.notifyTelegram && prefs.telegramChatId) {
       const telegramMessage = formatTelegramMessage(
         alertHistory,
