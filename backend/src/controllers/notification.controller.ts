@@ -25,7 +25,7 @@ export const getNotifications = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.error("Error fetching notifications:", error);
-    res.json({
+    res.status(500).json({
       success: false,
       message: "Failed to fetch notifications",
       error: error.message,
@@ -64,8 +64,9 @@ export const getUnreadCount = async (req: Request, res: Response) => {
 export const markAsRead = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).user.userId;
 
-    const notification = await notificationService.markAsRead(id);
+    const notification = await notificationService.markAsRead(id, userId);
 
     res.json({
       success: true,
@@ -113,8 +114,9 @@ export const markAllAsRead = async (req: Request, res: Response) => {
 export const deleteNotification = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const userId = (req as any).user.userId;
 
-    await notificationService.deleteNotification(id);
+    await notificationService.deleteNotification(id, userId);
 
     res.json({
       success: true,

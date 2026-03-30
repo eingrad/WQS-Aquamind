@@ -5,11 +5,12 @@ import ReportPanel from "../../components/widgets/ReportPanel.tsx";
 import ReportTable from "../../components/widgets/ReportTable.tsx";
 
 export default function ReportsPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-screen max-w-screen overflow-x-hidden">
-      <Sidebar active="Report" />
+      <Sidebar active="Report" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
       <div className="flex flex-col flex-1 relative">
         <Topbar
           title="Reports"
@@ -17,6 +18,7 @@ export default function ReportsPage() {
           setView={function (_v: "graph" | "table"): void {
             throw new Error("Function not implemented.");
           }}
+          onMenuToggle={() => setSidebarOpen(true)}
         />
         <div className="p-4 border-white/5 border-b">
           <button

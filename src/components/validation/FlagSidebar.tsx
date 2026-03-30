@@ -1,5 +1,6 @@
 import { X, Loader2 } from "lucide-react";
 import { useState } from "react";
+import ConfirmDialog from "../modals/ConfirmDialog";
 import type { ValidationStatus } from "../../data/validationData";
 import {
   validationStatusLabels,
@@ -28,6 +29,8 @@ export default function FlagSidebar({
   const [remarks, setRemarks] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = async () => {
     if (!selectedFlagType) return;
@@ -51,17 +54,14 @@ export default function FlagSidebar({
 
       const data = response.data;
 
-      // Success! Call onSuccess to refresh data
-      onSuccess();
-      onClose();
-
-      // Show success message (you may want to use a toast notification library)
-      alert(
+      // Show success dialog
+      setSuccessMessage(
         `Flag request submitted successfully!\n\n` +
           `Status: ${data?.data?.status || "pending"}\n` +
           `Records affected: ${data?.data?.recordCount || "unknown"}\n\n` +
           `Your request is awaiting admin approval.`,
       );
+      setShowSuccess(true);
     } catch (err: any) {
       console.error("Flag submission error:", err);
       const errorMessage =
@@ -216,6 +216,20 @@ export default function FlagSidebar({
           </div>
         </div>
       </div>
+
+      {/* Success Dialog */}
+      <ConfirmDialog
+        isOpen={showSuccess}
+        title="Request Submitted"
+        message={successMessage}
+        confirmText="OK"
+        type="success"
+        onConfirm={() => {
+          setShowSuccess(false);
+          onSuccess();
+          onClose();
+        }}
+      />
     </>
   );
 }

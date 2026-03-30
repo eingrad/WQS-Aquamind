@@ -10,6 +10,7 @@ import liveDataRoutes from "./routes/liveData.routes";
 import maintenanceRoutes from "./routes/maintenance.routes";
 import validationRoutes from "./routes/validation.routes";
 import alertRoutes from "./routes/alert.routes";
+import reportRoutes from "./routes/report.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import logger from "./config/logger";
@@ -19,17 +20,19 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS - Restrict to allowed origin(s)
+app.use(
+  cors({
+    origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    credentials: true,
+  }),
+);
+
 // Middleware
 app.use(helmet());
 
-// CORS - Allow all methods
-app.use(
-  cors({
-    origin: "*", // Allow all origins temporarily
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    credentials: false, // Must be false when origin is *
-  }),
-);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -67,6 +70,9 @@ app.use(`${API_PREFIX}/alerts`, alertRoutes);
 
 // Mount maintenance routes
 app.use(API_PREFIX, maintenanceRoutes);
+
+// Mount report routes
+app.use(`${API_PREFIX}/reports`, reportRoutes);
 
 app.get(API_PREFIX, (req: Request, res: Response) => {
   res.json({

@@ -1,9 +1,11 @@
 // src/data/constants.ts
+import { useMemo } from "react";
+import { useUnits } from "../context/UnitContext";
 
 // Device list
 export const DEVICES = [{ id: "PRG01", name: "Pengerang" }];
 
-// Measurement parameters
+// Measurement parameters (static base units — used for keys/labels reference)
 export const PARAMETERS = [
   { key: "so2", label: "SO₂", unit: "ppm" },
   { key: "h2s", label: "H₂S", unit: "ppm" },
@@ -17,6 +19,23 @@ export const PARAMETERS = [
   { key: "windSpeed", label: "Wind Speed", unit: "m/s" },
   { key: "windDirection", label: "Wind Direction", unit: "°" },
 ];
+
+/**
+ * Hook that returns PARAMETERS with dynamic units from user preferences.
+ * Use this in components that display units to the user.
+ */
+export function useParametersWithUnits() {
+  const { getUnit } = useUnits();
+
+  return useMemo(
+    () =>
+      PARAMETERS.map((p) => ({
+        ...p,
+        unit: getUnit(p.key),
+      })),
+    [getUnit]
+  );
+}
 
 // Wind directions (16-point compass)
 export const WIND_DIRS = [

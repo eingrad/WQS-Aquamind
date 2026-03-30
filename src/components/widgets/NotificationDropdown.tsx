@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { X, Bell, AlertCircle } from "lucide-react";
 import * as notificationService from "../../services/notification.service";
 import NotificationItem from "./NotificationItem";
@@ -19,6 +20,7 @@ export default function NotificationDropdown({
   const [notifications, setNotifications] = useState<any[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [unreadCount, setUnreadCount] = useState(0);
+  const navigate = useNavigate();
 
   // Fetch notifications from API
   useEffect(() => {
@@ -72,13 +74,13 @@ export default function NotificationDropdown({
     // Navigate based on notification type
     if (notification.type === "approval_request") {
       // Admin received approval request → go to Data Approval page
-      window.location.href = `/data-validation-approval`;
+      navigate("/data-approval");
     } else if (notification.type === "approval_decision") {
       // QC user received approval decision → go to Data Validation page
-      window.location.href = `/data-validation`;
+      navigate("/data-validation");
     } else if (notification.alertHistoryId) {
       // Alert notification → go to Alert History page
-      window.location.href = `/alert-history`;
+      navigate("/alert-history");
     }
 
     onClose();

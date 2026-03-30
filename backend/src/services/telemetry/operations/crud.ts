@@ -2,12 +2,11 @@
  * Telemetry CRUD Operations
  */
 
-import { PrismaClient, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import prisma from "../../../config/database";
 import { validateParameterValues } from "../validation/parameter-validator";
 import { isDeviceInMaintenance } from "../../maintenance.service";
 import { REQUIRED_POINTS_1M } from "../aggregation/data-quality";
-
-const prisma = new PrismaClient();
 
 interface ReadingInput {
   deviceId: string;

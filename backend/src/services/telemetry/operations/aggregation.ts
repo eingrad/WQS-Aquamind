@@ -2,11 +2,9 @@
  * Telemetry Aggregation Operations
  */
 
-import { PrismaClient } from "@prisma/client";
+import prisma from "../../../config/database";
 import { buildRegularAggregationQuery } from "../aggregation/query-builder";
 import { validateParameterValues } from "../validation/parameter-validator";
-
-const prisma = new PrismaClient();
 
 interface TimeSeriesOptions {
   deviceId: string;
@@ -64,7 +62,7 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
   const parameterList = parameters.split(",").map((p) => p.trim());
 
   // Build the aggregation query
-  const query = buildRegularAggregationQuery({
+  const { query, params } = buildRegularAggregationQuery({
     deviceId,
     startDate,
     endDate,
@@ -72,13 +70,10 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
     paramList: parameterList,
   });
 
-  // Execute raw SQL query with parameters
+  // Execute raw SQL query with parameterized binding
   const results = (await prisma.$queryRawUnsafe(
     query,
-    interval,
-    deviceId,
-    startDate,
-    endDate
+    ...params
   )) as any[]; // Type assertion for raw SQL results
 
   // Validate 1-hour aggregates against regulatory limits
@@ -118,7 +113,7 @@ export const getHourlyAverages = async (options: HourlyAvgOptions) => {
   const { deviceId, startDate, endDate, parameter } = options;
 
   // Build hourly aggregation query
-  const query = buildRegularAggregationQuery({
+  const { query, params } = buildRegularAggregationQuery({
     deviceId,
     startDate,
     endDate,
@@ -128,10 +123,7 @@ export const getHourlyAverages = async (options: HourlyAvgOptions) => {
 
   const results = await prisma.$queryRawUnsafe(
     query,
-    "1h",
-    deviceId,
-    startDate,
-    endDate
+    ...params
   );
 
   // Convert BigInt values to numbers and Dates to ISO strings for JSON serialization

@@ -5,6 +5,7 @@ import {
   registerSchema,
   loginSchema,
   refreshSchema,
+  logoutSchema,
 } from "../utils/validation";
 import { z } from "zod";
 
@@ -110,11 +111,13 @@ export const refresh = async (
     // Verify refresh token
     const decoded = verifyRefreshToken(validatedData.refreshToken);
 
-    // Generate new tokens
+    // Generate new tokens (pass jti + exp for revocation and rotation)
     const result = await authService.refresh(
       decoded.userId,
       decoded.email,
-      decoded.role
+      decoded.role,
+      decoded.jti,
+      decoded.exp
     );
 
     res.status(200).json({
@@ -145,7 +148,7 @@ export const refresh = async (
 };
 
 /**
- * Logout user (client-side token deletion)
+ * Logout user — revokes the refresh token server-side
  * POST /api/auth/logout
  */
 export const logout = async (
@@ -154,15 +157,46 @@ export const logout = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    // JWT is stateless, so logout is handled client-side
-    // This endpoint exists for consistency and future token blacklisting
+    // Validate request body
+    const validatedData = logoutSchema.parse(req.body);
+
+    // Decode the refresh token to extract jti and expiry
+    const decoded = verifyRefreshToken(validatedData.refreshToken);
+
+    if (decoded.jti) {
+      // Calculate expiry date from the token's exp claim
+      const expiresAt = decoded.exp
+        ? new Date(decoded.exp * 1000)
+        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // fallback: 7 days
+
+      // Revoke the refresh token
+      await authService.revokeRefreshToken(
+        decoded.jti,
+        decoded.userId,
+        expiresAt
+      );
+    }
 
     res.status(200).json({
       success: true,
       message: "Logout successful",
     });
   } catch (error) {
-    next(error);
+    if (error instanceof z.ZodError) {
+      res.status(400).json({
+        success: false,
+        error: "Validation error",
+        details: error.issues,
+      });
+      return;
+    }
+
+    // Even if token verification fails, treat logout as successful
+    // (the token may already be expired/invalid)
+    res.status(200).json({
+      success: true,
+      message: "Logout successful",
+    });
   }
 };
 

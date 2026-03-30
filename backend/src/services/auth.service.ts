@@ -203,30 +203,81 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
 };
 
 /**
+ * Revoke a refresh token by storing its JTI in the blacklist
+ */
+export const revokeRefreshToken = async (
+  jti: string,
+  userId: string,
+  expiresAt: Date
+): Promise<void> => {
+  await prisma.revokedToken.upsert({
+    where: { jti },
+    update: {},
+    create: {
+      jti,
+      userId,
+      expiresAt,
+    },
+  });
+};
+
+/**
+ * Check if a refresh token has been revoked
+ */
+export const isTokenRevoked = async (jti: string): Promise<boolean> => {
+  const revoked = await prisma.revokedToken.findUnique({
+    where: { jti },
+  });
+  return revoked !== null;
+};
+
+/**
  * Refresh access token using refresh token
  */
 export const refresh = async (
   userId: string,
   email: string,
-  role: string
+  role: string,
+  jti?: string,
+  exp?: number
 ): Promise<{
   accessToken: string;
   refreshToken: string;
 }> => {
-  // Verify user still exists and is active
+  // Check if the refresh token has been revoked
+  if (jti) {
+    const revoked = await isTokenRevoked(jti);
+    if (revoked) {
+      throw new Error("Refresh token has been revoked");
+    }
+
+    // Rotate: revoke the old refresh token so it can't be replayed
+    const expiresAt = exp
+      ? new Date(exp * 1000)
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await revokeRefreshToken(jti, userId, expiresAt);
+  }
+
+  // Verify user still exists and is active, and fetch current role
   const user = await prisma.user.findUnique({
     where: { id: userId },
+    include: {
+      userRole: true,
+    },
   });
 
   if (!user || !user.isActive) {
     throw new Error("User not found or inactive");
   }
 
+  // Use the current role from the database, not from the old token
+  const currentRole = user.userRole?.roleId || "user";
+
   // Generate new tokens
   const tokenPayload = {
     userId: user.id,
     email: user.email,
-    role: role,
+    role: currentRole,
   };
 
   const accessToken = generateAccessToken(tokenPayload);

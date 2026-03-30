@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "../config/database";
 
 /**
  * Check if a device is in maintenance during a specific time range

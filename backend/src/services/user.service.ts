@@ -203,6 +203,47 @@ export const deleteUser = async (userId: string, performedBy: string) => {
  */
 export const hardDeleteUser = async (userId: string, performedBy: string) => {
   await prisma.$transaction(async (tx) => {
+    // 1. Set optional foreign keys to null to preserve system history
+    await tx.auditLog.updateMany({
+      where: { userId },
+      data: { userId: null },
+    });
+
+    await tx.validationStatus.updateMany({
+      where: { validatedBy: userId },
+      data: { validatedBy: null },
+    });
+
+    await tx.approvalRequest.updateMany({
+      where: { adminId: userId },
+      data: { adminId: null },
+    });
+
+    await tx.alertHistory.updateMany({
+      where: { acknowledgedBy: userId },
+      data: { acknowledgedBy: null },
+    });
+
+    await tx.alertThreshold.updateMany({
+      where: { createdBy: userId },
+      data: { createdBy: null },
+    });
+
+    await tx.approvalRequest.updateMany({
+      where: { qcReviewerId: userId },
+      data: { qcReviewerId: null },
+    });
+
+    // 2. Delete data that belongs exclusively to the user
+    await tx.report.deleteMany({ where: { createdBy: userId } });
+    await tx.notification.deleteMany({ where: { userId } });
+    await tx.userNotificationPreference.deleteMany({ where: { userId } });
+    
+    // Check if revokedToken exists on tx (since we recently added it)
+    if ((tx as any).revokedToken) {
+      await (tx as any).revokedToken.deleteMany({ where: { userId } });
+    }
+
     // Delete user role first (foreign key)
     await tx.userRole.deleteMany({
       where: { userId },

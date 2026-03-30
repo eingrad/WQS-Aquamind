@@ -85,8 +85,15 @@ export default function ApprovalActionSidebar({
             </h3>
 
             <div className="space-y-3">
+              {selectedRow.dataCapturedAt && (
+                <div>
+                  <span className="text-sm text-gray-500">Data Captured</span>
+                  <p className="text-white">{selectedRow.dataCapturedAt}</p>
+                </div>
+              )}
+
               <div>
-                <span className="text-sm text-gray-500">Time</span>
+                <span className="text-sm text-gray-500">Flagged At</span>
                 <p className="text-white">{selectedRow.time}</p>
               </div>
 

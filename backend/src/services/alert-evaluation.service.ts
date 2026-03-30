@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import prisma from "../config/database";
 import * as auditService from "./audit.service";
-
-const prisma = new PrismaClient();
 
 interface MinuteDataPoint {
   deviceId: string;

@@ -142,8 +142,8 @@ export const getPendingApprovals = async (
           to: approval.timeTo,
         },
         requestedBy: {
-          name: approval.qcReviewer.fullName,
-          email: approval.qcReviewer.email,
+          name: approval.qcReviewer?.fullName ?? "Deleted User",
+          email: approval.qcReviewer?.email ?? "N/A",
         },
         requestedAt: approval.qcReviewedAt,
         qcRemarks: approval.qcRemarks,
@@ -199,8 +199,8 @@ export const getAllApprovals = async (
           to: approval.timeTo,
         },
         requestedBy: {
-          name: approval.qcReviewer.fullName,
-          email: approval.qcReviewer.email,
+          name: approval.qcReviewer?.fullName ?? "Deleted User",
+          email: approval.qcReviewer?.email ?? "N/A",
         },
         requestedAt: approval.qcReviewedAt,
         qcRemarks: approval.qcRemarks,

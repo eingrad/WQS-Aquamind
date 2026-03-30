@@ -10,6 +10,7 @@ interface StationMapProps {
   location?: string;
   latitude?: number;
   longitude?: number;
+  status?: string;
 }
 
 // Green marker icon
@@ -29,7 +30,12 @@ export default function StationMap({
   location = "Pengerang",
   latitude = 1.366694,
   longitude = 104.108306,
+  status = "active",
 }: StationMapProps) {
+  const isActive = status.toLowerCase() === "active";
+  const statusColor = isActive ? "text-green-400" : "text-red-400";
+  const statusBg = isActive ? "bg-green-400" : "bg-red-400";
+
   return (
     <div className="h-full w-full flex flex-col">
       {/* Station Info Header */}
@@ -38,14 +44,14 @@ export default function StationMap({
         <div>
           <div className="text-sm font-medium text-gray-200">{stationName}</div>
           <div className="text-xs text-gray-400">
-            {location} ({formatCoordinate(latitude)}°N,{" "}
+            {location}, Malaysia ({formatCoordinate(latitude)}°N,{" "}
             {formatCoordinate(longitude)}°E)
           </div>
         </div>
       </div>
 
       {/* Map Container */}
-      <div className="flex-1 rounded-lg overflow-hidden border border-gray-700/50">
+      <div className="flex-1 rounded-lg overflow-hidden border border-gray-700/50 relative z-0">
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -54,6 +60,7 @@ export default function StationMap({
           dragging={true}
           className="w-full h-full"
           attributionControl={false}
+          key={`${latitude}-${longitude}`} // Force re-render when coords change
         >
           <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
 
@@ -79,13 +86,17 @@ export default function StationMap({
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <div className="bg-gray-800/50 rounded p-2">
           <div className="text-gray-400">Region</div>
-          <div className="text-gray-200 font-medium">Johor, Malaysia</div>
+          <div className="text-gray-200 font-medium">{location}, Malaysia</div>
         </div>
         <div className="bg-gray-800/50 rounded p-2">
           <div className="text-gray-400">Status</div>
-          <div className="text-green-400 font-medium flex items-center gap-1">
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            Active
+          <div className={`font-medium flex items-center gap-1 ${statusColor}`}>
+            <span
+              className={`w-2 h-2 rounded-full ${statusBg} ${
+                isActive ? "animate-pulse" : ""
+              }`}
+            />
+            {status.charAt(0).toUpperCase() + status.slice(1)}
           </div>
         </div>
       </div>

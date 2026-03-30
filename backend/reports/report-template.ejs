@@ -5,48 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Environmental Monitoring Report</title>
     <style>
+      /* Landscape page orientation for PDF */
+      @page {
+        size: A4 landscape;
+        margin: 1.5cm;
+      }
+
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         color: #1f2937;
         margin: 0;
-        padding: 2rem;
+        padding: 1rem;
         background-color: #ffffff;
       }
 
       .header {
         border-bottom: 3px solid #0f766e;
-        padding-bottom: 1rem;
-        margin-bottom: 2rem;
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
       }
 
       .title {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 700;
         color: #0f766e;
       }
 
       .subtitle {
-        font-size: 1rem;
+        font-size: 0.9rem;
         margin-top: 0.5rem;
         color: #6b7280;
       }
 
       .section {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
       }
 
       .section-title {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         font-weight: 600;
         border-left: 4px solid #0f766e;
         padding-left: 0.75rem;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
       }
 
       .table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.95rem;
+        font-size: 0.7rem; /* Reduced from 0.95rem */
       }
 
       .table thead {
@@ -57,24 +63,46 @@
       .table th,
       .table td {
         border: 1px solid #e5e7eb;
-        padding: 0.6rem 1rem;
+        padding: 0.3rem 0.4rem; /* Reduced from 0.6rem 1rem */
         text-align: left;
+        white-space: nowrap; /* Prevent text wrapping */
+      }
+
+      .table th {
+        font-size: 0.65rem;
+        font-weight: 600;
       }
 
       .summary {
         background-color: #f9fafb;
-        padding: 1rem;
+        padding: 0.75rem;
         border-left: 4px solid #0f766e;
         margin-top: 1rem;
+        font-size: 0.85rem;
+      }
+
+      .availability-high {
+        color: #15803d; /* Green for ≥90% */
+        font-weight: 600;
+      }
+
+      .availability-medium {
+        color: #ca8a04; /* Yellow for 70-89% */
+        font-weight: 600;
+      }
+
+      .availability-low {
+        color: #dc2626; /* Red for <70% */
+        font-weight: 600;
       }
 
       .footer {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: #6b7280;
         border-top: 1px solid #e5e7eb;
-        padding-top: 1rem;
+        padding-top: 0.75rem;
         text-align: center;
-        margin-top: 2rem;
+        margin-top: 1.5rem;
       }
     </style>
   </head>
@@ -119,18 +147,55 @@
       </table>
     </div>
 
+    <!-- Data Availability Section -->
+    <div class="section">
+      <div class="section-title">Data Availability</div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Availability (%)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% parameters.forEach(param => { 
+            const availability = (summary.availability && summary.availability[param.key]) || 0;
+            let statusClass = 'availability-low';
+            let statusText = 'Low';
+            if (availability >= 90) {
+              statusClass = 'availability-high';
+              statusText = 'Excellent';
+            } else if (availability >= 70) {
+              statusClass = 'availability-medium';
+              statusText = 'Good';
+            }
+          %>
+          <tr>
+            <td><%= param.label %></td>
+            <td class="<%= statusClass %>"><%= availability.toFixed(1) %>%</td>
+            <td class="<%= statusClass %>"><%= statusText %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
     <div class="section">
       <div class="section-title">Summary</div>
       <div class="summary">
         <p><strong>Max Temperature:</strong> <%= summary.maxTemp %> °C</p>
         <p><strong>Min Wind Speed:</strong> <%= summary.minWind %> m/s</p>
         <p><strong>SO₂ Average:</strong> <%= summary.avgSO2 %> ppm</p>
-        <!-- Add more summary metrics as needed -->
+        <p><strong>H₂S Average:</strong> <%= summary.avgH2S %> ppm</p>
+        <p><strong>NO₂ Average:</strong> <%= summary.avgNO2 %> ppm</p>
+        <p><strong>BTEX Average:</strong> <%= summary.avgBTEX %> ppb</p>
+        <p><strong>Solar Radiation Average:</strong> <%= summary.avgSolar %> W/m²</p>
       </div>
     </div>
 
     <div class="footer">
-      This report was generated automatically by the PETRONAS Monitoring System
+      This report was generated automatically by the PETRONAS Air Quality Monitoring System
       Dashboard.
     </div>
   </body>

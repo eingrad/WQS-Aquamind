@@ -1,4 +1,5 @@
 import api from "./api";
+import axios from "axios";
 import {
   getStorageItem,
   setStorageItem,
@@ -42,12 +43,32 @@ export const login = async (credentials: LoginCredentials) => {
 
 /**
  * Logout user and clear tokens
+ * Uses a direct axios call (not the api instance) to avoid the
+ * response interceptor redirecting to /login on 401 before
+ * the revocation request completes.
  */
 export const logout = async () => {
   try {
-    await api.post("/auth/logout");
+    const refreshToken = getStorageItem<string>(STORAGE_KEYS.REFRESH_TOKEN);
+    const accessToken = getStorageItem<string>(STORAGE_KEYS.ACCESS_TOKEN);
+    const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+    if (refreshToken && accessToken) {
+      await axios.post(
+        `${baseURL}/auth/logout`,
+        { refreshToken },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 5000,
+        }
+      );
+    }
   } catch (error) {
     // Continue even if API call fails
+    console.warn("Logout API call failed:", error);
   } finally {
     removeStorageItem(STORAGE_KEYS.ACCESS_TOKEN);
     removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);

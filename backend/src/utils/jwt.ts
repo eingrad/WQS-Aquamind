@@ -1,16 +1,27 @@
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || "your-super-secret-key-change-in-production";
-const JWT_REFRESH_SECRET =
-  process.env.JWT_REFRESH_SECRET || "your-refresh-secret-key";
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    "FATAL: JWT_SECRET is not set in environment variables. Server cannot start without a secure secret.",
+  );
+}
+if (!process.env.JWT_REFRESH_SECRET) {
+  throw new Error(
+    "FATAL: JWT_REFRESH_SECRET is not set in environment variables. Server cannot start without a secure secret.",
+  );
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "15m";
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
 
-interface TokenPayload {
+export interface TokenPayload {
   userId: string;
   email: string;
   role: string;
+  jti?: string;
 }
 
 /**
@@ -26,9 +37,11 @@ export const generateAccessToken = (payload: TokenPayload): string => {
 
 /**
  * Generate JWT refresh token (long-lived)
+ * Includes a unique jti (JWT ID) for revocation support.
  */
 export const generateRefreshToken = (payload: TokenPayload): string => {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, {
+  const jti = crypto.randomUUID();
+  return jwt.sign({ ...payload, jti }, JWT_REFRESH_SECRET, {
     expiresIn: JWT_REFRESH_EXPIRES_IN,
     issuer: "petronas-monitoring",
     audience: "petronas-api",
@@ -60,13 +73,14 @@ export const verifyToken = (token: string): TokenPayload => {
 
 /**
  * Verify JWT refresh token
+ * Returns the decoded payload including jti for revocation checks.
  */
-export const verifyRefreshToken = (token: string): TokenPayload => {
+export const verifyRefreshToken = (token: string): TokenPayload & { exp?: number } => {
   try {
     const decoded = jwt.verify(token, JWT_REFRESH_SECRET, {
       issuer: "petronas-monitoring",
       audience: "petronas-api",
-    }) as TokenPayload;
+    }) as TokenPayload & { exp?: number };
     return decoded;
   } catch (error) {
     if (error instanceof Error) {

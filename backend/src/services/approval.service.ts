@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/database";
 import * as auditService from "./audit.service";
 import * as notificationService from "./notification.service";
-
-const prisma = new PrismaClient();
 
 /**
  * Approval Service
@@ -522,16 +520,12 @@ export const approveFlag = async (params: ApproveFlagParams) => {
   await notificationService.sendInAppNotification({
     userId: approval.qcReviewerId,
     type: "approval_decision",
-    title: "✅ Flag Request Approved",
+    title: "Flag Request Approved",
     message: `Your flag request has been approved\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}${adminRemarks ? `\nRemarks: ${adminRemarks}` : ""}`,
     severity: "info",
     relatedEntityType: "APPROVAL_REQUEST",
     relatedEntityId: approvalId,
   });
-
-  console.log(
-    `✅ Notified QC user of approved flag request for ${approval.parameterCode}`,
-  );
 
   return result;
 };
@@ -606,7 +600,7 @@ export const rejectFlag = async (params: RejectFlagParams) => {
   await notificationService.sendInAppNotification({
     userId: approval.qcReviewerId,
     type: "approval_decision",
-    title: "❌ Flag Request Rejected",
+    title: "Flag Request Rejected",
     message: `Your flag request has been rejected\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}\nRemarks: ${adminRemarks}`,
     severity: "warning",
     relatedEntityType: "APPROVAL_REQUEST",

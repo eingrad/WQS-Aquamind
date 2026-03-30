@@ -70,6 +70,13 @@ export const getDataQualityThresholds = (interval: string) => {
         expected: EXPECTED_POINTS_8H,
         required: REQUIRED_POINTS_8H,
       };
+    case "1d":
+      // 1-day aggregation: expects 1440 minutes (24 hours * 60 minutes)
+      // Required: 1080 minutes (75% = 18 hours)
+      return {
+        expected: 1440,
+        required: 1080,
+      };
     case "24h":
     case "24h_ma":
       return {
@@ -87,7 +94,7 @@ export const getDataQualityThresholds = (interval: string) => {
  */
 export const assessDataQuality = (
   count: number,
-  interval: string
+  interval: string,
 ): "valid" | "insufficient_data" => {
   const thresholds = getDataQualityThresholds(interval);
 
@@ -107,7 +114,7 @@ export const assessDataQualityWithMaintenance = async (
   deviceId: string,
   timeRange: { start: Date; end: Date },
   count: number,
-  interval: string
+  interval: string,
 ): Promise<"valid" | "maintenance" | "insufficient_data"> => {
   // Priority 1: Check if device was in maintenance during this period
   const inMaintenance = await isDeviceInMaintenance(deviceId, timeRange);
@@ -125,7 +132,7 @@ export const assessDataQualityWithMaintenance = async (
  */
 export const calculateDataAvailability = (
   count: number,
-  interval: string
+  interval: string,
 ): number => {
   const thresholds = getDataQualityThresholds(interval);
 

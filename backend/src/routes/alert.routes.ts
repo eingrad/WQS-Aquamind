@@ -8,7 +8,7 @@ const router = Router();
 
 // ========================================
 // THRESHOLD MANAGEMENT (Admin Only)
-// ========================================g
+// ========================================
 router.get(
   "/thresholds",
   authenticate,

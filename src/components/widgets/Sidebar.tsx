@@ -5,7 +5,6 @@ import {
   CircleGauge,
   MapPin,
   ClipboardList,
-  Menu,
   X,
   Settings,
   MessageCircleQuestionMark,
@@ -13,10 +12,21 @@ import {
   Flag,
   Bell,
   History,
+  BarChart3,
 } from "lucide-react";
 
-export default function Sidebar({ active = "Dashboard" }: { active?: string }) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function Sidebar({
+  active = "Dashboard",
+  isOpen: isOpenProp,
+  onToggle,
+}: {
+  active?: string;
+  isOpen?: boolean;
+  onToggle?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = isOpenProp !== undefined ? isOpenProp : internalOpen;
+  const setIsOpen = onToggle || setInternalOpen;
 
   const Item = ({
     label,
@@ -34,7 +44,7 @@ export default function Sidebar({ active = "Dashboard" }: { active?: string }) {
           ? "bg-teal-600 text-black"
           : "hover:bg-white/5 text-gray-200"
       }`}
-      onClick={() => setIsOpen(false)} // Auto-close sidebar on mobile after clicking
+      onClick={() => setIsOpen(false)}
     >
       {icon}
       {label}
@@ -43,25 +53,33 @@ export default function Sidebar({ active = "Dashboard" }: { active?: string }) {
 
   return (
     <>
-      {/* Ripple / Hamburger Button (visible on mobile only) */}
-      <div className="fixed top-3 left-4 z-50 xl:hidden">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="bg-[#14b8a6] p-2 rounded-full text-white shadow-md"
-        >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
+      {/* Overlay backdrop when sidebar is open on mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-[1040] xl:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
       {/* Sidebar Drawer */}
       <aside
         className={`space-y-2 bg-[#121b1b] p-4 border-white/5 border-r text-white
-          w-[16rem] max-w-[16rem] min-h-screen z-40
+          w-[16rem] max-w-[16rem] min-h-screen z-[1050]
           transform xl:translate-x-0 transition-transform duration-300 ease-in-out
           fixed xl:relative top-0 left-0
           ${isOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"}
         `}
       >
+        {/* Close button - visible on mobile only */}
+        <div className="flex justify-end xl:hidden">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="bg-[#14b8a6] p-2 rounded-full text-white shadow-md"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
         {/* Logo */}
         <div className="flex items-center gap-3 px-8 pb-5">
           <img src={logoSrc} alt="PETRONAS" className="w-35 h-20" />
@@ -81,6 +99,11 @@ export default function Sidebar({ active = "Dashboard" }: { active?: string }) {
             label="Dashboard"
             href="/dashboard"
             icon={<CircleGauge className="w-5 h-5" />}
+          />
+          <Item
+            label="Analytics"
+            href="/analytics"
+            icon={<BarChart3 className="w-5 h-5" />}
           />
           <Item
             label="Report"

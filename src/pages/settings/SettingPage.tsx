@@ -1,24 +1,35 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
 import Card from "../../components/widgets/Card";
 import { notificationPreferencesService } from "../../services/notificationPreferences.service";
 import type { NotificationPreferences } from "../../services/notificationPreferences.service";
+import { useUnits } from "../../context/UnitContext";
+import { UNIT_OPTIONS } from "../../utils/unitConversion";
+import { ChevronDown } from "lucide-react";
 
-type UnitKey = "temperature" | "windSpeed" | "so2" | "h2s" | "h2" | "solar";
+// Parameters that have configurable units
+const UNIT_SETTINGS = [
+  { key: "so2", label: "Sulfur Dioxide (SO₂)" },
+  { key: "h2s", label: "Hydrogen Sulfide (H₂S)" },
+  { key: "no2", label: "Nitrogen Dioxide (NO₂)" },
+  { key: "btex", label: "Benzene, Toluene, Ethylbenzene, Xylene (BTEX)" },
+  { key: "solar", label: "Solar Radiation" },
+  { key: "temperature", label: "Temperature" },
+  { key: "windSpeed", label: "Wind Speed" },
+  { key: "humidity", label: "Humidity" },
+  { key: "windDirection", label: "Wind Direction" },
+  { key: "pressure", label: "Atmospheric Pressure" },
+  { key: "rain", label: "Rainfall" },
+];
 
 export default function SettingsPage() {
-  const [units, setUnits] = useState<Record<UnitKey, string>>({
-    temperature: "°C",
-    windSpeed: "m/s",
-    so2: "µg/m³",
-    h2s: "µg/m³",
-    h2: "µg/m³",
-    solar: "W/m²",
-  });
+  const { units, setUnit, resetUnits } = useUnits();
   const [view, setView] = useState<"graph" | "table">("graph");
 
   // Notification preferences state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<
     Partial<NotificationPreferences>
   >({
@@ -36,6 +47,9 @@ export default function SettingsPage() {
     success: boolean;
     error?: string;
   } | null>(null);
+
+  // Unit save feedback
+  const [unitSaveMessage, setUnitSaveMessage] = useState("");
 
   // Load notification preferences on mount
   useEffect(() => {
@@ -94,140 +108,131 @@ export default function SettingsPage() {
     }
   };
 
-  const handleUnitChange = (key: UnitKey, value: string) => {
-    setUnits((prev) => ({ ...prev, [key]: value }));
+  // Handle unit change with feedback
+  const handleUnitChange = (parameter: string, unit: string) => {
+    setUnit(parameter, unit);
+    setUnitSaveMessage("Units updated and saved automatically");
+    setTimeout(() => setUnitSaveMessage(""), 2000);
+  };
+
+  // Format option labels for better readability
+  const formatOptionLabel = (param: string, option: string): string => {
+    if (param === "so2") {
+      if (option === "ppm") return "Parts per million (ppm)";
+      if (option === "ppb") return "Parts per billion (ppb)";
+      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
+    }
+    if (param === "h2s") {
+      if (option === "ppm") return "Parts per million (ppm)";
+      if (option === "ppb") return "Parts per billion (ppb)";
+      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
+    }
+    if (param === "no2") {
+      if (option === "ppm") return "Parts per million (ppm)";
+      if (option === "ppb") return "Parts per billion (ppb)";
+      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
+    }
+    if (param === "btex") {
+      if (option === "ppm") return "Parts per million (ppm)";
+      if (option === "ppb") return "Parts per billion (ppb)";
+      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
+    }
+    if (param === "solar") {
+      if (option === "W/m²") return "Watts per square meter (W/m²)";
+      if (option === "kWh/m²")
+        return "Kilowatt-hours per square meter (kWh/m²)";
+    }
+    if (param === "temperature") {
+      if (option === "°C") return "Celsius (°C)";
+      if (option === "°F") return "Fahrenheit (°F)";
+    }
+    if (param === "windSpeed") {
+      if (option === "m/s") return "Meters per second (m/s)";
+      if (option === "km/h") return "Kilometers per hour (km/h)";
+      if (option === "mph") return "Miles per hour (mph)";
+    }
+    if (param === "windDirection") {
+      if (option === "°") return "Degrees (°)";
+      if (option === "Cardinal") return "Cardinal (N, NE, E…)";
+    }
+    if (param === "humidity") {
+      if (option === "%") return "Relative Humidity (%)";
+      if (option === "g/m³") return "Absolute Humidity (g/m³)";
+    }
+    if (param === "pressure") {
+      if (option === "hPa") return "Hectopascal (hPa)";
+      if (option === "mmHg") return "Millimeters of Mercury (mmHg)";
+      if (option === "atm") return "Atmospheres (atm)";
+      if (option === "psi") return "Pounds per sq inch (psi)";
+    }
+    if (param === "rain") {
+      if (option === "mm/h") return "Millimeters per hour (mm/h)";
+      if (option === "in/h") return "Inches per hour (in/h)";
+    }
+    return option;
   };
 
   return (
     <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 w-screen max-w-screen overflow-x-hidden">
-      <Sidebar active="Settings" />
+      <Sidebar active="Settings" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
       <div className="flex flex-col flex-1">
-        <Topbar title="Settings" view={view} setView={setView} />
+        <Topbar title="Settings" view={view} setView={setView} onMenuToggle={() => setSidebarOpen(true)} />
 
         <div className="p-6 flex flex-col gap-6">
           {/* Units Section */}
           <Card title="Measurement Units">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* H2S */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Hydrogen Sulfide (H₂S)
-                </label>
-                <select
-                  value={units.h2s}
-                  onChange={(e) => handleUnitChange("h2", e.target.value)}
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="µg/m³">µg/m³</option>
-                  <option value="ppm">ppm</option>
-                  <option value="ppb">ppb</option>
-                </select>
-              </div>
+              {UNIT_SETTINGS.map(({ key, label }) => {
+                const options = UNIT_OPTIONS[key] || [];
+                if (options.length <= 1) return null;
 
-              {/* SO₂ */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Sulfur Dioxide (SO₂)
-                </label>
-                <select
-                  value={units.so2}
-                  onChange={(e) => handleUnitChange("so2", e.target.value)}
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="µg/m³">µg/m³</option>
-                  <option value="ppm">ppm</option>
-                  <option value="ppb">ppb</option>
-                </select>
-              </div>
+                return (
+                  <div key={key}>
+                    <label className="block mb-1 text-sm text-gray-300">
+                      {label}
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={units[key] || options[0]}
+                        onChange={(e) => handleUnitChange(key, e.target.value)}
+                        className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0d1717] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                      >
+                        {options.map((option) => (
+                          <option key={option} value={option}>
+                            {formatOptionLabel(key, option)}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400 pointer-events-none" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* H₂ */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Nitrogen Dioxide (NO₂)
-                </label>
-                <select
-                  value={units.h2}
-                  onChange={(e) => handleUnitChange("h2", e.target.value)}
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="µg/m³">µg/m³</option>
-                  <option value="ppm">ppm</option>
-                  <option value="ppb">ppb</option>
-                </select>
-              </div>
-
-              {/* BTEX */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Benzene, Toluene, Ethylbenzene, Xylene (BTEX)
-                </label>
-                <select
-                  value={units.h2}
-                  onChange={(e) => handleUnitChange("h2", e.target.value)}
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="µg/m³">µg/m³</option>
-                  <option value="ppm">ppm</option>
-                  <option value="ppb">ppb</option>
-                </select>
-              </div>
-
-              {/* Solar Radiation */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Solar Radiation
-                </label>
-                <select
-                  value={units.solar}
-                  onChange={(e) => handleUnitChange("solar", e.target.value)}
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="W/m²">W/m²</option>
-                  <option value="kWh/m²">kWh/m²</option>
-                </select>
-              </div>
-
-              {/* Temperature */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Temperature
-                </label>
-                <select
-                  value={units.temperature}
-                  onChange={(e) =>
-                    handleUnitChange("temperature", e.target.value)
-                  }
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="°C">Celsius (°C)</option>
-                  <option value="°F">Fahrenheit (°F)</option>
-                </select>
-              </div>
-
-              {/* Wind Speed */}
-              <div>
-                <label className="block mb-1 text-sm text-gray-300">
-                  Wind Speed
-                </label>
-                <select
-                  value={units.windSpeed}
-                  onChange={(e) =>
-                    handleUnitChange("windSpeed", e.target.value)
-                  }
-                  className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
-                >
-                  <option value="m/s">m/s</option>
-                  <option value="km/h">km/h</option>
-                  <option value="mph">mph</option>
-                </select>
-              </div>
+            {/* Reset & Feedback */}
+            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-white/10">
+              <button
+                onClick={() => {
+                  resetUnits();
+                  setUnitSaveMessage("Units reset to defaults");
+                  setTimeout(() => setUnitSaveMessage(""), 2000);
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+              >
+                Reset to Defaults
+              </button>
+              {unitSaveMessage && (
+                <div className="flex items-center text-sm text-emerald-400">
+                  ✓ {unitSaveMessage}
+                </div>
+              )}
             </div>
           </Card>
 
           {/* Notification Preferences Section */}
           <Card title="Notification Preferences">
             <div className="space-y-6">
-              {/* Loading state */}
               {preferencesLoading && (
                 <div className="text-sm text-gray-400">
                   Loading preferences...
@@ -379,14 +384,12 @@ export default function SettingsPage() {
                     </div>
                     <p className="text-xs text-gray-500">
                       Need help? Follow our{" "}
-                      <a
-                        href="https://t.me/userinfobot"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        to="/telegram-setup"
                         className="text-blue-400 hover:underline"
                       >
                         setup guide
-                      </a>{" "}
+                      </Link>{" "}
                       to get your Chat ID
                     </p>
                     {telegramTestResult && (

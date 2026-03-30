@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/database";
 import { getTimeSeriesData } from "./telemetry/operations/aggregation";
-
-const prisma = new PrismaClient();
 
 export interface ValidationRecord {
   recordId: string;

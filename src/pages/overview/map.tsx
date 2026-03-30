@@ -11,21 +11,12 @@ import ResetMapView from "../../components/map/ResetMapView";
 import NorthIndicator from "../../components/map/NorthIndicator";
 import WindRoseOverlay from "../../components/map/WindRoseOverlay";
 import MapControls from "../../components/map/MapControls";
+import { getDevices } from "../../services/device.service";
 
-// Dummy device data
-const dummyDeviceData = [
-  {
-    id: "AQMS_PRG01",
-    name: "Pengerang Station",
-    lat: 1.366694,
-    lng: 104.108306,
-  },
-];
-
-// Default initial view for the map
-const initialView = {
-  lat: dummyDeviceData[0].lat,
-  lng: dummyDeviceData[0].lng,
+// Default initial view for the map (Malaysia center as fallback)
+const DEFAULT_VIEW = {
+  lat: 1.366694,
+  lng: 104.108306,
   zoom: 12,
 };
 
@@ -53,7 +44,11 @@ function ResizeFixer() {
 }
 
 export default function OverviewPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mapType, setMapType] = useState<"osm" | "sat">("osm");
+  const [devices, setDevices] = useState<
+    { id: string; name: string; lat: number; lng: number }[]
+  >([]);
   const [selectedDevice, setSelectedDevice] = useState<{
     id: string;
     name: string;
@@ -62,6 +57,31 @@ export default function OverviewPage() {
   } | null>(null);
   const [resetView, setResetView] = useState(false);
   const [showWindRose, setShowWindRose] = useState(false);
+
+  // Fetch devices from database
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        const data = await getDevices({ status: "active" });
+        const mapped = (data.devices || data).map((d: any) => ({
+          id: d.id,
+          name: d.name,
+          lat: d.latitude ? parseFloat(d.latitude) : DEFAULT_VIEW.lat,
+          lng: d.longitude ? parseFloat(d.longitude) : DEFAULT_VIEW.lng,
+        }));
+        setDevices(mapped);
+      } catch (error) {
+        console.error("Error fetching devices:", error);
+      }
+    };
+    fetchDevices();
+  }, []);
+
+  // Compute initial view from first device or fallback
+  const initialView =
+    devices.length > 0
+      ? { lat: devices[0].lat, lng: devices[0].lng, zoom: 12 }
+      : DEFAULT_VIEW;
 
   const toggleMapType = () => {
     setMapType((prev) => (prev === "osm" ? "sat" : "osm"));
@@ -77,9 +97,7 @@ export default function OverviewPage() {
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden">
-      <div className="z-50 lg:z-auto">
-        <Sidebar active="Overview" />
-      </div>
+      <Sidebar active="Overview" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
       <div className="flex flex-col flex-1">
         <Topbar
@@ -88,13 +106,14 @@ export default function OverviewPage() {
           setView={function (_v: "graph" | "table"): void {
             throw new Error("Function not implemented.");
           }}
+          onMenuToggle={() => setSidebarOpen(true)}
         />
 
         {/* Header controls */}
         <MapControls
           mapType={mapType}
           onToggleMapType={toggleMapType}
-          devices={dummyDeviceData}
+          devices={devices}
         />
 
         {/* Map and Info Panel */}
@@ -123,7 +142,7 @@ export default function OverviewPage() {
                 />
               )}
 
-              {dummyDeviceData.map((device) => (
+              {devices.map((device) => (
                 <div key={device.id}>
                   <Circle
                     center={[device.lat, device.lng]}
@@ -156,13 +175,6 @@ export default function OverviewPage() {
                     lat={selectedDevice.lat}
                     lng={selectedDevice.lng}
                   />
-                  <DeviceInfoPanel
-                    device={selectedDevice}
-                    onClose={() => {
-                      setSelectedDevice(null);
-                      setResetView(true);
-                    }}
-                  />
                 </>
               ) : (
                 resetView && (
@@ -184,6 +196,17 @@ export default function OverviewPage() {
               )}
             </MapContainer>
           </div>
+
+          {/* Device Info Panel - outside MapContainer so scroll works */}
+          {selectedDevice && (
+            <DeviceInfoPanel
+              device={selectedDevice}
+              onClose={() => {
+                setSelectedDevice(null);
+                setResetView(true);
+              }}
+            />
+          )}
         </div>
       </div>
     </div>

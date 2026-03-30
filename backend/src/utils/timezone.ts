@@ -33,11 +33,8 @@ export const convertToUTC = (
   }
 
   // Check if timestamp has timezone information
-  const hasTimezone =
-    timestamp.includes("Z") || // UTC indicator
-    timestamp.includes("+") || // Positive offset
-    (timestamp.includes("T") &&
-      timestamp.lastIndexOf("-") > timestamp.indexOf("T")); // Negative offset after T
+  // Matches: Z, +HH:MM, -HH:MM, +HHMM, -HHMM, +HH, -HH at the end
+  const hasTimezone = /Z|[+-]\d{2}(:?\d{2})?$/.test(timestamp);
 
   // If it has timezone info, let Date constructor handle it
   if (hasTimezone) {
@@ -69,4 +66,51 @@ export const getSensorTimezoneOffset = (): number => {
 export const convertSensorTimestampToUTC = (timestamp: string | Date): Date => {
   const offset = getSensorTimezoneOffset();
   return convertToUTC(timestamp, offset);
+};
+
+/**
+ * Parse a date range for report generation.
+ * Converts user-selected dates (in Malaysia time) to proper UTC boundaries.
+ *
+ * When a user selects "Feb 10", they mean Feb 10 00:00 Malaysia time (UTC+8).
+ * This equals Feb 9 16:00 UTC.
+ *
+ * @param startDate - Start date string from the user
+ * @param endDate - End date string from the user
+ * @param offsetHours - Timezone offset (default: 8 for Malaysia)
+ * @returns { start: Date, end: Date } in UTC
+ *
+ * @example
+ * parseReportDateRange('2026-02-10', '2026-02-10')
+ * // start = Feb 9 16:00 UTC, end = Feb 10 15:59:59.999 UTC
+ */
+export const parseReportDateRange = (
+  startDate: string,
+  endDate: string,
+  offsetHours: number = 8
+): { start: Date; end: Date } => {
+  const OFFSET_MS = offsetHours * 60 * 60 * 1000;
+  const hasTimezone = /Z|[+-]\d{2}(:?\d{2})?$/.test(startDate);
+
+  let start: Date;
+  let end: Date;
+
+  if (hasTimezone) {
+    // Input already has timezone — parse directly, just clamp to day boundaries
+    start = new Date(startDate);
+    end = new Date(endDate);
+  } else {
+    // Timezone-naive — treat as local Malaysia date
+    start = new Date(startDate);
+    end = new Date(endDate);
+
+    // Set to beginning/end of day, then subtract offset to get UTC
+    start.setUTCHours(0, 0, 0, 0);
+    start.setTime(start.getTime() - OFFSET_MS);
+
+    end.setUTCHours(23, 59, 59, 999);
+    end.setTime(end.getTime() - OFFSET_MS);
+  }
+
+  return { start, end };
 };

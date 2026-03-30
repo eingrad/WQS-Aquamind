@@ -17,8 +17,10 @@ import {
   type ValidationRecord,
 } from "../../services/validation.service";
 import { getDevices } from "../../services/device.service";
+import { LandPlot } from "lucide-react";
 
 export default function DataValidationPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const [selectedDevice, setSelectedDevice] = useState("");
@@ -365,17 +367,16 @@ export default function DataValidationPage() {
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden min-w-0">
-      <div className="z-50 lg:z-auto">
-        <Sidebar active="Data Validation" />
-      </div>
+      <Sidebar active="Data Validation" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
       <div className="flex flex-col flex-1 min-w-0">
         <Topbar
-          title="Data Validation (1-Hour Averages)"
+          title="Data Validation"
           view={"table"}
           setView={function (): void {
             throw new Error("Function not implemented.");
           }}
+          onMenuToggle={() => setSidebarOpen(true)}
         />
 
         {/* Header Controls */}
@@ -392,22 +393,24 @@ export default function DataValidationPage() {
           onValidate={handleValidate}
         />
 
-        {/* Validation Legend */}
-        <div className="mt-6 mb-6 ml-4 flex flex-wrap items-center gap-4 text-xs">
-          {(
-            Object.entries(validationStatusLabels) as [
-              ValidationStatus,
-              string,
-            ][]
-          ).map(([status, label]) => (
-            <div key={status} className="flex items-center gap-2">
-              <div
-                className={`w-3 h-3 rounded-full ${validationStatusColors[status]}`}
-              />
-              <span className="text-gray-300">{label}</span>
-            </div>
-          ))}
-        </div>
+        {/* Validation Legend - only show when there's data */}
+        {!isLoading && !error && currentData.length > 0 && (
+          <div className="mt-6 mb-6 ml-4 flex flex-wrap items-center gap-4 text-xs">
+            {(
+              Object.entries(validationStatusLabels) as [
+                ValidationStatus,
+                string,
+              ][]
+            ).map(([status, label]) => (
+              <div key={status} className="flex items-center gap-2">
+                <div
+                  className={`w-3 h-3 rounded-full ${validationStatusColors[status]}`}
+                />
+                <span className="text-gray-300">{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Table View */}
         <>
@@ -429,16 +432,29 @@ export default function DataValidationPage() {
           )}
 
           {/* Table */}
-          {!isLoading && !error && (
+          {!isLoading && !error && currentData.length === 0 ? (
+            <div className="mx-4 mt-6 bg-[#121b1b] border border-white/5 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-5 animate-pulse">
+                <LandPlot className="w-8 h-8 text-teal-500/50" />
+              </div>
+              <h3 className="text-white font-medium text-lg mb-2">
+                No Validation Data
+              </h3>
+              <p className="text-white/50 text-sm max-w-sm mx-auto mb-2">
+                No telemetry data found for the selected device and date range.
+                Try adjusting the filters above.
+              </p>
+            </div>
+          ) : !isLoading && !error ? (
             <ValidationTable
               data={currentData}
               selectedCells={selectedCells}
               onCellClick={handleCellClick}
             />
-          )}
+          ) : null}
 
-          {/* Pagination */}
-          {!isLoading && (
+          {/* Pagination - only show when there's data */}
+          {!isLoading && currentData.length > 0 && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

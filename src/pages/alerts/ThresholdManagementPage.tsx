@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Plus, Edit, Trash2, Power, PowerOff, BellOff } from "lucide-react";
 import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
 import ThresholdForm from "../../components/alerts/ThresholdForm";
+import ConfirmDialog from "../../components/modals/ConfirmDialog";
 import * as thresholdService from "../../services/alert-threshold.service";
 import type { AlertThreshold } from "../../services/alert-threshold.service";
 
@@ -27,11 +28,17 @@ const severityColors = {
 };
 
 export default function ThresholdManagementPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [thresholds, setThresholds] = useState<AlertThreshold[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingThreshold, setEditingThreshold] =
     useState<AlertThreshold | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    thresholdId: string;
+    thresholdName: string;
+  }>({ isOpen: false, thresholdId: "", thresholdName: "" });
 
   useEffect(() => {
     loadThresholds();
@@ -58,34 +65,34 @@ export default function ThresholdManagementPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this threshold?")) return;
+  const handleDelete = (id: string, name: string) => {
+    setDeleteDialog({ isOpen: true, thresholdId: id, thresholdName: name });
+  };
+
+  const confirmDelete = async () => {
+    const { thresholdId } = deleteDialog;
 
     try {
-      await thresholdService.deleteThreshold(id);
+      await thresholdService.deleteThreshold(thresholdId);
+      setDeleteDialog({ isOpen: false, thresholdId: "", thresholdName: "" });
       await loadThresholds();
     } catch (error) {
       console.error("Failed to delete threshold:", error);
+      setDeleteDialog({ isOpen: false, thresholdId: "", thresholdName: "" });
     }
   };
 
   return (
     <div className="flex h-screen bg-[#0f1a1a] text-white overflow-hidden">
-      <Sidebar active="Alert Thresholds" />
+      <Sidebar active="Alert Thresholds" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar title="Alert Threshold Management" />
+        <Topbar title="Alert Threshold Management" onMenuToggle={() => setSidebarOpen(true)} />
 
         <main className="flex-1 overflow-auto p-6">
           <div className="max-w-screen-2xl mx-auto space-y-6">
             {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-gray-400 text-sm mt-1">
-                  Configure global alert thresholds for monitoring parameters
-                </p>
-              </div>
-
+            <div className="flex items-center">
               <button
                 onClick={() => {
                   setEditingThreshold(null);
@@ -96,6 +103,12 @@ export default function ThresholdManagementPage() {
                 <Plus size={15} />
                 Add Threshold
               </button>
+
+              <div>
+                <p className="text-gray-400 pl-4 text-sm mt-1">
+                  Configure global alert thresholds for monitoring parameters
+                </p>
+              </div>
             </div>
 
             {/* Thresholds Grid */}
@@ -104,16 +117,17 @@ export default function ThresholdManagementPage() {
                 Loading thresholds...
               </div>
             ) : thresholds.length === 0 ? (
-              <div className="bg-[#121b1b] border border-white/5 rounded-xl p-12 text-center">
-                <p className="text-gray-400 mb-4">
-                  No thresholds configured yet
+              <div className="flex flex-col items-center justify-center py-12 bg-[#121b1b] border border-white/5 rounded-xl text-center">
+                <div className="p-4 rounded-full bg-white/5 mb-4 animate-pulse">
+                  <BellOff className="w-8 h-8 text-teal-500/50" />
+                </div>
+                <h3 className="text-white font-medium text-lg mb-2">
+                  No Thresholds Configured
+                </h3>
+                <p className="text-white/50 text-sm max-w-sm mx-auto mb-6">
+                  Set up alert thresholds to get notified when parameter values
+                  exceed safe limits.
                 </p>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="text-teal-400 hover:text-teal-300 underline"
-                >
-                  Create your first threshold
-                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
@@ -191,7 +205,12 @@ export default function ThresholdManagementPage() {
                       </button>
 
                       <button
-                        onClick={() => handleDelete(threshold.id)}
+                        onClick={() =>
+                          handleDelete(
+                            threshold.id,
+                            `${parameterLabels[threshold.parameter] || threshold.parameter} (${threshold.thresholdType})`,
+                          )
+                        }
                         className="p-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition"
                         title="Delete"
                       >
@@ -222,6 +241,20 @@ export default function ThresholdManagementPage() {
           onSuccess={loadThresholds}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        title="Delete Threshold"
+        message={`Are you sure you want to delete the threshold "${deleteDialog.thresholdName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={confirmDelete}
+        onCancel={() =>
+          setDeleteDialog({ isOpen: false, thresholdId: "", thresholdName: "" })
+        }
+      />
     </div>
   );
 }

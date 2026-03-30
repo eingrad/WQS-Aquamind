@@ -215,7 +215,7 @@ model ApprovalRequest {
   flagType        String?  @map("flag_type") @db.VarChar(50)
   validationType  String?  @map("validation_type") @db.VarChar(50)
   validationMode  String?  @map("validation_mode") @db.VarChar(50)
-  qcReviewerId    String   @map("qc_reviewer_id") @db.Uuid
+  qcReviewerId    String?  @map("qc_reviewer_id") @db.Uuid
   qcReviewedAt    DateTime @default(now()) @map("qc_reviewed_at") @db.Timestamptz
   qcRemarks       String?  @map("qc_remarks") @db.Text
   adminStatus     String   @default("pending") @map("admin_status") @db.VarChar(50)
@@ -228,7 +228,7 @@ model ApprovalRequest {
   // Relations
   station          Device              @relation(fields: [stationId], references: [id])
   telemetryRecord  TelemetryProcessed? @relation(fields: [recordId], references: [recordId])
-  qcReviewer       User                @relation("ApprovalRequester", fields: [qcReviewerId], references: [id])
+  qcReviewer       User?               @relation("ApprovalRequester", fields: [qcReviewerId], references: [id])
   admin            User?               @relation("ApprovalAdmin", fields: [adminId], references: [id])
   auditLogs        AuditLog[]
 
@@ -369,13 +369,13 @@ model AlertThreshold {
   value           Decimal  @db.Decimal(10, 2)
   enabled         Boolean  @default(true)
   cooldownMinutes Int      @default(60) @map("cooldown_minutes")
-  createdBy       String   @map("created_by") @db.Uuid
+  createdBy       String?  @map("created_by") @db.Uuid
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
   device       Device?        @relation(fields: [deviceId], references: [id])
-  creator      User           @relation("ThresholdCreator", fields: [createdBy], references: [id])
+  creator      User?          @relation("ThresholdCreator", fields: [createdBy], references: [id])
   alertHistory AlertHistory[]
 
   @@index([parameter, enabled], name: "idx_threshold_parameter")
@@ -433,4 +433,19 @@ model UserNotificationPreference {
 
   @@unique([userId])
   @@map("user_notification_preferences")
+}
+
+// ============================================================================
+// 16. REVOKED_TOKENS TABLE (Refresh Token Blacklist)
+// ============================================================================
+model RevokedToken {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  jti       String   @unique @db.VarChar(36)
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  revokedAt DateTime @default(now()) @map("revoked_at") @db.Timestamptz
+
+  @@index([jti], name: "idx_revoked_token_jti")
+  @@index([expiresAt], name: "idx_revoked_token_expires")
+  @@map("revoked_tokens")
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { PARAMETERS } from "../../data/constants";
 import { formatPollutantValue } from "../../utils/numberFormat";
+import { useUnits } from "../../context/UnitContext";
 
 interface RealTimeParametersProps {
   deviceId: string;
@@ -11,6 +12,7 @@ export default function RealTimeParameters({
 }: RealTimeParametersProps) {
   const [liveData, setLiveData] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const { convert, getUnit } = useUnits();
 
   useEffect(() => {
     if (!deviceId) return;
@@ -79,8 +81,10 @@ export default function RealTimeParameters({
       <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
         <div className="space-y-2">
           {PARAMETERS.map((param) => {
-            const value = liveData[param.key] ?? 0;
-            const formattedValue = formatPollutantValue(value, param.key);
+            const rawValue = liveData[param.key] ?? 0;
+            const convertedValue = convert(rawValue, param.key) ?? rawValue;
+            const formattedValue = formatPollutantValue(convertedValue, param.key);
+            const displayUnit = getUnit(param.key);
 
             // Calculate bar width based on parameter range
             let maxValue = 100;
@@ -89,7 +93,7 @@ export default function RealTimeParameters({
             if (param.key === "pressure") maxValue = 1050;
             if (param.key === "windDirection") maxValue = 360;
 
-            const percentage = Math.min((value / maxValue) * 100, 100);
+            const percentage = Math.min((rawValue / maxValue) * 100, 100);
 
             return (
               <div key={param.key} className="space-y-1">
@@ -100,7 +104,7 @@ export default function RealTimeParameters({
                   </span>
                   <span className="text-white font-mono">
                     {formattedValue}{" "}
-                    <span className="text-gray-400 text-xs">{param.unit}</span>
+                    <span className="text-gray-400 text-xs">{displayUnit}</span>
                   </span>
                 </div>
 

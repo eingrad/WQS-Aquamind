@@ -5,7 +5,6 @@ import ApprovalTable from "../../components/approval/ApprovalTable";
 import ApprovalActionSidebar from "../../components/approval/ApprovalActionSidebar";
 import Pagination from "../../components/widgets/Pagination";
 import DateRangePicker from "../../components/widgets/DateRangePicker";
-
 import { type ApprovalDataRow } from "../../data/approvalData";
 import {
   fetchAllApprovals,
@@ -13,6 +12,7 @@ import {
   rejectFlag,
   type PendingApprovalRequest,
 } from "../../services/approval.service";
+import { CircleCheckBig } from "lucide-react";
 
 const parameterDisplayNames: Record<string, string> = {
   so2: "SO₂",
@@ -29,6 +29,7 @@ const parameterDisplayNames: Record<string, string> = {
 };
 
 export default function DataValidationApprovalPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [data, setData] = useState<ApprovalDataRow[]>([]);
   const [, setIsLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
@@ -104,6 +105,21 @@ export default function DataValidationApprovalPage() {
             flagType: approval.flagType as any,
             approvalType: "flag" as const,
             adminRemarks: approval.adminRemarks,
+            dataCapturedAt: approval.timeRange?.from
+              ? (() => {
+                  const d = new Date(approval.timeRange.from);
+                  const t = d.toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                  const dt = d.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "2-digit",
+                  });
+                  return `${t}, ${dt}`;
+                })()
+              : undefined,
           };
         },
       );
@@ -193,9 +209,7 @@ export default function DataValidationApprovalPage() {
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden">
-      <div className="z-50 lg:z-auto">
-        <Sidebar active="Data Approval" />
-      </div>
+      <Sidebar active="Data Approval" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
       <div className="flex flex-col flex-1">
         <Topbar
@@ -204,6 +218,7 @@ export default function DataValidationApprovalPage() {
           setView={function (): void {
             throw new Error("Function not implemented.");
           }}
+          onMenuToggle={() => setSidebarOpen(true)}
         />
 
         {/* Header Controls */}
@@ -283,26 +298,46 @@ export default function DataValidationApprovalPage() {
         </div>
 
         <div className="space-y-6">
-          {/* Table */}
-          <ApprovalTable
-            data={paginatedData}
-            onActionClick={handleActionClick}
-          />
+          {/* Table or Empty State */}
+          {paginatedData.length === 0 ? (
+            <div className="mx-4 mt-6 bg-[#121b1b] border border-white/5 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-5 animate-pulse">
+                <CircleCheckBig className="w-8 h-8 text-teal-500/50" />
+              </div>
+              <h3 className="text-white font-medium text-lg mb-2">
+                No Approval Requests
+              </h3>
+              <p className="text-white/50 text-sm max-w-sm mx-auto mb-2">
+                There are no flag requests to review at the moment. Requests
+                will appear here when QC reviewers flag data for approval.
+              </p>
+            </div>
+          ) : (
+            <>
+              <ApprovalTable
+                data={paginatedData}
+                onActionClick={handleActionClick}
+              />
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredData.length}
-            itemsPerPage={itemsPerPage}
-            startIndex={(currentPage - 1) * itemsPerPage}
-            endIndex={Math.min(currentPage * itemsPerPage, filteredData.length)}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={(newItemsPerPage) => {
-              setItemsPerPage(newItemsPerPage);
-              setCurrentPage(1);
-            }}
-          />
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredData.length}
+                itemsPerPage={itemsPerPage}
+                startIndex={(currentPage - 1) * itemsPerPage}
+                endIndex={Math.min(
+                  currentPage * itemsPerPage,
+                  filteredData.length,
+                )}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={(newItemsPerPage) => {
+                  setItemsPerPage(newItemsPerPage);
+                  setCurrentPage(1);
+                }}
+              />
+            </>
+          )}
         </div>
       </div>
 

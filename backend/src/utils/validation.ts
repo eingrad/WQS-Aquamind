@@ -36,9 +36,17 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1, "Refresh token is required"),
 });
 
+/**
+ * Logout request validation schema
+ */
+export const logoutSchema = z.object({
+  refreshToken: z.string().min(1, "Refresh token is required"),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
+export type LogoutInput = z.infer<typeof logoutSchema>;
 
 /**
  * Update user validation schema

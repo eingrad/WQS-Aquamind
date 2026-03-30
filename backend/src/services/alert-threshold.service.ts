@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/database";
 import * as auditService from "./audit.service";
-
-const prisma = new PrismaClient();
 
 interface CreateThresholdParams {
   deviceId?: string;

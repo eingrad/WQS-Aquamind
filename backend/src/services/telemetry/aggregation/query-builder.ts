@@ -6,7 +6,7 @@ import { getDataQualityThresholds } from "./data-quality";
  */
 export const buildAggregationColumns = (
   paramList: string[],
-  isMovingAvg: boolean
+  isMovingAvg: boolean,
 ): string => {
   return paramList
     .filter((p) => PARAMETER_DB_MAP[p])
@@ -100,6 +100,8 @@ export const buildMovingAverageColumns = (paramList: string[]): string => {
 
 /**
  * Build complete regular aggregation query
+ * Returns { query, params } for use with $queryRawUnsafe parameterized binding
+ * Params: $1=deviceId, $2=startDate, $3=endDate, $4=interval
  */
 export const buildRegularAggregationQuery = (options: {
   deviceId: string;
@@ -107,7 +109,7 @@ export const buildRegularAggregationQuery = (options: {
   endDate: Date;
   interval: string;
   paramList: string[];
-}): string => {
+}): { query: string; params: any[] } => {
   const { deviceId, startDate, endDate, interval, paramList } = options;
   const thresholds = getDataQualityThresholds(interval);
   // Fallback if thresholds is null
@@ -115,20 +117,28 @@ export const buildRegularAggregationQuery = (options: {
   const expectedPoints = thresholds?.expected ?? 60;
   const aggregationColumns = buildAggregationColumns(paramList, false);
 
-  return `
+  // For daily aggregations (1d interval), use Malaysia timezone to ensure
+  // day boundaries match local time rather than UTC
+  // This fixes inconsistency between daily and weekly reports
+  const timeBucketExpression =
+    interval === "1d"
+      ? `time_bucket($4::interval, tp.observed_at::timestamptz AT TIME ZONE 'Asia/Kuala_Lumpur')`
+      : `time_bucket($4::interval, tp.observed_at)`;
+
+  const query = `
     WITH time_buckets AS (
-      SELECT time_bucket('${interval}', tp.observed_at) as bucket
+      SELECT ${timeBucketExpression} as bucket
       FROM telemetry_processed tp
-      WHERE tp.device_id = '${deviceId}'
-        AND tp.observed_at >= '${startDate.toISOString()}'
-        AND tp.observed_at < '${endDate.toISOString()}'
+      WHERE tp.device_id = $1::uuid
+        AND tp.observed_at >= $2::timestamptz
+        AND tp.observed_at < $3::timestamptz
       GROUP BY bucket
     )
     SELECT
       tb.bucket,
       ${aggregationColumns},
       COUNT(*) as count,
-      ROUND((COUNT(*)::decimal / ${requiredPoints}) * 100, 1) as data_availability_pct,
+      ROUND((COUNT(*)::decimal / ${expectedPoints}) * 100, 1) as data_availability_pct,
       CASE
         WHEN COUNT(*) >= ${expectedPoints} THEN 'complete'
         WHEN COUNT(*) >= ${Math.ceil(requiredPoints * 0.5)} THEN 'partial'
@@ -136,17 +146,24 @@ export const buildRegularAggregationQuery = (options: {
       END as data_quality
     FROM time_buckets tb
     LEFT JOIN telemetry_processed tp
-      ON time_bucket('${interval}', tp.observed_at) = tb.bucket
-      AND tp.device_id = '${deviceId}'
-      AND tp.observed_at >= '${startDate.toISOString()}'
-      AND tp.observed_at < '${endDate.toISOString()}'
+      ON time_bucket($4::interval, tp.observed_at) = tb.bucket
+      AND tp.device_id = $1::uuid
+      AND tp.observed_at >= $2::timestamptz
+      AND tp.observed_at < $3::timestamptz
     GROUP BY tb.bucket
     ORDER BY tb.bucket DESC
   `;
+
+  return {
+    query,
+    params: [deviceId, startDate.toISOString(), endDate.toISOString(), interval],
+  };
 };
 
 /**
  * Build complete moving average query
+ * Returns { query, params } for use with $queryRawUnsafe parameterized binding
+ * Params: $1=deviceId, $2=startDate, $3=endDate, $4=interval
  */
 export const buildMovingAverageQuery = (options: {
   deviceId: string;
@@ -154,7 +171,7 @@ export const buildMovingAverageQuery = (options: {
   endDate: Date;
   interval: string;
   paramList: string[];
-}): string => {
+}): { query: string; params: any[] } => {
   const { deviceId, startDate, endDate, interval, paramList } = options;
   const thresholds = getDataQualityThresholds(interval);
   // Fallback if thresholds is null
@@ -163,13 +180,19 @@ export const buildMovingAverageQuery = (options: {
   const baseAggColumns = buildBaseAggregationColumns(paramList);
   const movingAvgColumns = buildMovingAverageColumns(paramList);
 
-  return `
+  // Apply same timezone logic for 1d aggregations
+  const timeBucketExpression =
+    interval === "1d"
+      ? `time_bucket($4::interval, tp.observed_at::timestamptz AT TIME ZONE 'Asia/Kuala_Lumpur')`
+      : `time_bucket($4::interval, tp.observed_at)`;
+
+  const query = `
     WITH time_buckets AS (
-      SELECT time_bucket('${interval}', tp.observed_at) as bucket
+      SELECT ${timeBucketExpression} as bucket
       FROM telemetry_processed tp
-      WHERE tp.device_id = '${deviceId}'
-        AND tp.observed_at >= '${startDate.toISOString()}'
-        AND tp.observed_at < '${endDate.toISOString()}'
+      WHERE tp.device_id = $1::uuid
+        AND tp.observed_at >= $2::timestamptz
+        AND tp.observed_at < $3::timestamptz
       GROUP BY bucket
     ),
     base_aggregation AS (
@@ -177,7 +200,7 @@ export const buildMovingAverageQuery = (options: {
         tb.bucket,
         ${baseAggColumns},
         COUNT(*) as count,
-        ROUND((COUNT(*)::decimal / ${requiredPoints}) * 100, 1) as data_availability_pct,
+        ROUND((COUNT(*)::decimal / ${expectedPoints}) * 100, 1) as data_availability_pct,
         CASE
           WHEN COUNT(*) >= ${expectedPoints} THEN 'complete'
           WHEN COUNT(*) >= ${Math.ceil(requiredPoints * 0.5)} THEN 'partial'
@@ -185,10 +208,10 @@ export const buildMovingAverageQuery = (options: {
         END as data_quality
       FROM time_buckets tb
       LEFT JOIN telemetry_processed tp
-        ON time_bucket('${interval}', tp.observed_at) = tb.bucket
-        AND tp.device_id = '${deviceId}'
-        AND tp.observed_at >= '${startDate.toISOString()}'
-        AND tp.observed_at < '${endDate.toISOString()}'
+        ON time_bucket($4::interval, tp.observed_at) = tb.bucket
+        AND tp.device_id = $1::uuid
+        AND tp.observed_at >= $2::timestamptz
+        AND tp.observed_at < $3::timestamptz
       GROUP BY tb.bucket
     )
     SELECT
@@ -200,4 +223,9 @@ export const buildMovingAverageQuery = (options: {
     FROM base_aggregation
     ORDER BY bucket DESC
   `;
+
+  return {
+    query,
+    params: [deviceId, startDate.toISOString(), endDate.toISOString(), interval],
+  };
 };

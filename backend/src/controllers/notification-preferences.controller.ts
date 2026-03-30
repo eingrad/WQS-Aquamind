@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import prisma from "../config/database";
 import { sendTelegramNotification } from "../services/notification.service";
-
-const prisma = new PrismaClient();
 
 /**
  * Get notification preferences for the current user

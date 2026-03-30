@@ -22,10 +22,14 @@ import {
 
 // Constants
 import { PARAMETERS } from "../../data/constants";
+import { useUnits } from "../../context/UnitContext";
 import TableView from "../../components/widgets/TableView.tsx";
 import EmptyState from "../../components/common/EmptyState.tsx";
 
 export default function DashboardPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { getUnit } = useUnits();
+
   // Devices from backend
   const [devices, setDevices] = useState<any[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
@@ -249,9 +253,8 @@ export default function DashboardPage() {
         } else {
           // Viewing current/recent data - check if device is active
           try {
-            const { getDeviceStatus } = await import(
-              "../../services/deviceStatus.service"
-            );
+            const { getDeviceStatus } =
+              await import("../../services/deviceStatus.service");
             const status = await getDeviceStatus(device);
             setHasRecentTableData(status.isActive);
             setDeviceLastSeen(status.latestTimestamp || null);
@@ -325,18 +328,18 @@ export default function DashboardPage() {
 
   // Get metadata for selected parameters
   const selectedParamsMeta = params.map(
-    (p) => PARAMETERS.find((param) => param.key === p)!
+    (p) => PARAMETERS.find((param) => param.key === p)!,
   );
   const displayTitle =
     params.length === 1
-      ? `${selectedParamsMeta[0].label} (${selectedParamsMeta[0].unit}) | Live Data`
+      ? `${selectedParamsMeta[0].label} (${getUnit(selectedParamsMeta[0].key)}) | Live Data`
       : "Multiple Parameters | Live Data";
 
   return (
     <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 overflow-x-hidden min-w-0">
-      <Sidebar active="Dashboard" />
+      <Sidebar active="Dashboard" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
       <div className="flex flex-col flex-1 min-w-0">
-        <Topbar title="Dashboard" view={view} setView={setView} />
+        <Topbar title="Dashboard" view={view} setView={setView} onMenuToggle={() => setSidebarOpen(true)} />
 
         {/* Controls */}
         <div className="bg-[#0f1717] px-4 sm:px-6 py-4 border-white/5 border-b">
@@ -518,7 +521,33 @@ export default function DashboardPage() {
               <div className="col-span-5 xl:col-span-2">
                 <Card title="Station Location">
                   <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem]">
-                    <StationMap />
+                    <StationMap
+                      stationName={
+                        devices.find((d) => d.id === device)?.name ||
+                        "Unknown Station"
+                      }
+                      location={
+                        devices.find((d) => d.id === device)?.location ||
+                        "Unknown Location"
+                      }
+                      latitude={
+                        devices.find((d) => d.id === device)?.latitude
+                          ? parseFloat(
+                              devices.find((d) => d.id === device)!.latitude!,
+                            )
+                          : undefined
+                      }
+                      longitude={
+                        devices.find((d) => d.id === device)?.longitude
+                          ? parseFloat(
+                              devices.find((d) => d.id === device)!.longitude!,
+                            )
+                          : undefined
+                      }
+                      status={
+                        devices.find((d) => d.id === device)?.status || "active"
+                      }
+                    />
                   </div>
                 </Card>
               </div>
@@ -569,6 +598,14 @@ export default function DashboardPage() {
                     <div className="h-96 flex items-center justify-center">
                       <div className="text-red-400">{chartError}</div>
                     </div>
+                  ) : chartData.length === 0 ? (
+                    <div className="h-96">
+                      <EmptyState
+                        compact
+                        title="No Chart Data"
+                        message="The device may be offline or no data has been recorded yet."
+                      />
+                    </div>
                   ) : (
                     <LineSensorChart data={chartData} params={params} />
                   )}
@@ -580,17 +617,46 @@ export default function DashboardPage() {
                 <Card
                   title="Wind Rose"
                   right={
-                    <select className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg text-md">
-                      <option>Direction From</option>
-                      <option>Direction To</option>
-                    </select>
+                    <div className="relative group">
+                      <select className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none">
+                        <option>Direction From</option>
+                        <option>Direction To</option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg
+                          className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
                   }
                 >
                   <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem]">
-                    <WindRoseChart
-                      data={windRoseData}
-                      loading={windRoseLoading}
-                    />
+                    {windRoseLoading ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-teal-400">Loading...</div>
+                      </div>
+                    ) : !windRoseData ? (
+                      <EmptyState
+                        compact
+                        title="No Wind Data"
+                        message="The device may be offline or no data has been recorded yet."
+                      />
+                    ) : (
+                      <WindRoseChart
+                        data={windRoseData}
+                        loading={windRoseLoading}
+                      />
+                    )}
                   </div>
                 </Card>
               </div>
@@ -600,17 +666,46 @@ export default function DashboardPage() {
                 <Card
                   title="Pollution Rose"
                   right={
-                    <select className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg text-md">
-                      <option>Direction From</option>
-                      <option>Direction To</option>
-                    </select>
+                    <div className="relative group">
+                      <select className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none">
+                        <option>Direction From</option>
+                        <option>Direction To</option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg
+                          className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
                   }
                 >
                   <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem]">
-                    <PollutionRoseChart
-                      data={pollutionRoseData}
-                      loading={pollutionRoseLoading}
-                    />
+                    {pollutionRoseLoading ? (
+                      <div className="h-full flex items-center justify-center">
+                        <div className="text-teal-400">Loading...</div>
+                      </div>
+                    ) : !pollutionRoseData ? (
+                      <EmptyState
+                        compact
+                        title="No Pollution Data"
+                        message="The device may be offline or no data has been recorded yet."
+                      />
+                    ) : (
+                      <PollutionRoseChart
+                        data={pollutionRoseData}
+                        loading={pollutionRoseLoading}
+                      />
+                    )}
                   </div>
                 </Card>
               </div>
@@ -637,6 +732,7 @@ export default function DashboardPage() {
             <TableView
               data={tableData}
               device={device}
+              devices={devices}
               startDate={startDate}
               endDate={endDate}
             />

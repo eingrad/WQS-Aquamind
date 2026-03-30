@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle, ChevronDown } from "lucide-react";
+import { CheckCircle, ChevronDown, BellOff } from "lucide-react";
 import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
 import Pagination from "../../components/widgets/Pagination";
@@ -27,6 +27,7 @@ const severityColors = {
 };
 
 export default function AlertHistoryPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertHistory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -102,10 +103,10 @@ export default function AlertHistoryPage() {
       `}</style>
 
       <div className="flex h-screen bg-[#0a0f0f] text-white overflow-hidden">
-        <Sidebar active="Alert History" />
+        <Sidebar active="Alert History" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Topbar title="Alert History" />
+          <Topbar title="Alert History" onMenuToggle={() => setSidebarOpen(true)} />
 
           <main className="flex-1 overflow-auto p-4 md:p-6">
             <div className="max-w-screen-2xl mx-auto space-y-6">
@@ -183,144 +184,152 @@ export default function AlertHistoryPage() {
                 </div>
               </div>
 
-              {/* Alerts Table */}
-              <div className="bg-[#121b1b] border border-white/5 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto alert-table-scroll">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-white/5">
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Time
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Device
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Parameter
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Value
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Threshold
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Severity
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Status
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
-                          Action
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {isLoading ? (
-                        <tr>
-                          <td
-                            colSpan={8}
-                            className="px-4 py-8 text-center text-gray-400"
-                          >
-                            Loading alerts...
-                          </td>
+              {/* Alerts Table or Empty State */}
+              {!isLoading && alerts.length === 0 ? (
+                <div className="bg-[#121b1b] border border-white/5 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-5 animate-pulse">
+                    <BellOff className="w-8 h-8 text-teal-500/50" />
+                  </div>
+                  <h3 className="text-white font-medium text-lg mb-2">
+                    No Alert History Yet
+                  </h3>
+                  <p className="text-white/50 text-sm max-w-sm mx-auto mb-4">
+                    Set up alert thresholds to get notified when parameter
+                    values exceed safe limits.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-[#121b1b] border border-white/5 rounded-xl overflow-hidden">
+                  <div className="overflow-x-auto alert-table-scroll">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-white/5">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Time
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Device
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Parameter
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Value
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Threshold
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Severity
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Status
+                          </th>
+                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                            Action
+                          </th>
                         </tr>
-                      ) : paginatedAlerts.length === 0 ? (
-                        <tr>
-                          <td
-                            colSpan={8}
-                            className="px-4 py-8 text-center text-gray-400"
-                          >
-                            No alerts found
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedAlerts.map((alert) => (
-                          <tr
-                            key={alert.id}
-                            className="border-b border-white/5 hover:bg-white/5 transition"
-                          >
-                            <td className="px-4 py-3 text-sm whitespace-nowrap">
-                              {new Date(alert.observedAt).toLocaleString(
-                                "en-MY",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  day: "2-digit",
-                                  month: "short",
-                                  hour12: false,
-                                },
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-sm whitespace-nowrap">
-                              {alert.device.name}
-                            </td>
-                            <td className="px-4 py-3 text-sm font-medium whitespace-nowrap">
-                              {parameterLabels[alert.parameter] ||
-                                alert.parameter}
-                            </td>
-                            <td className="px-4 py-3 text-sm font-bold text-teal-400 whitespace-nowrap">
-                              {Number(alert.actualValue).toFixed(2)}
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
-                              {alert.threshold.operator}{" "}
-                              {Number(alert.thresholdValue).toFixed(2)}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              <span
-                                className={`px-2 py-1 rounded text-xs font-medium ${
-                                  severityColors[alert.thresholdType]
-                                }`}
-                              >
-                                {alert.thresholdType.toUpperCase()}
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-sm whitespace-nowrap">
-                              {alert.acknowledged ? (
-                                <span className="text-green-400 flex items-center gap-1">
-                                  <CheckCircle size={14} />
-                                  Acknowledged
-                                </span>
-                              ) : (
-                                <span className="text-yellow-400">Pending</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 whitespace-nowrap">
-                              {!alert.acknowledged && (
-                                <button
-                                  onClick={() => handleAcknowledge(alert.id)}
-                                  className="px-3 py-1 text-xs bg-teal-600 hover:bg-teal-700 rounded transition"
-                                >
-                                  Acknowledge
-                                </button>
-                              )}
+                      </thead>
+                      <tbody>
+                        {isLoading ? (
+                          <tr>
+                            <td
+                              colSpan={8}
+                              className="px-4 py-8 text-center text-gray-400"
+                            >
+                              Loading alerts...
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="border-t border-white/5 p-4">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      itemsPerPage={itemsPerPage}
-                      startIndex={startIdx}
-                      endIndex={Math.min(
-                        startIdx + itemsPerPage,
-                        alerts.length,
-                      )}
-                      totalItems={alerts.length}
-                      onPageChange={setCurrentPage}
-                      onItemsPerPageChange={setItemsPerPage}
-                    />
+                        ) : (
+                          paginatedAlerts.map((alert) => (
+                            <tr
+                              key={alert.id}
+                              className="border-b border-white/5 hover:bg-white/5 transition"
+                            >
+                              <td className="px-4 py-3 text-sm whitespace-nowrap">
+                                {new Date(alert.observedAt).toLocaleString(
+                                  "en-MY",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    day: "2-digit",
+                                    month: "short",
+                                    hour12: false,
+                                  },
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-sm whitespace-nowrap">
+                                {alert.device.name}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-medium whitespace-nowrap">
+                                {parameterLabels[alert.parameter] ||
+                                  alert.parameter}
+                              </td>
+                              <td className="px-4 py-3 text-sm font-bold text-teal-400 whitespace-nowrap">
+                                {Number(alert.actualValue).toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
+                                {alert.threshold.operator}{" "}
+                                {Number(alert.thresholdValue).toFixed(2)}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span
+                                  className={`px-2 py-1 rounded text-xs font-medium ${
+                                    severityColors[alert.thresholdType]
+                                  }`}
+                                >
+                                  {alert.thresholdType.toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-sm whitespace-nowrap">
+                                {alert.acknowledged ? (
+                                  <span className="text-green-400 flex items-center gap-1">
+                                    <CheckCircle size={14} />
+                                    Acknowledged
+                                  </span>
+                                ) : (
+                                  <span className="text-yellow-400">
+                                    Pending
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {!alert.acknowledged && (
+                                  <button
+                                    onClick={() => handleAcknowledge(alert.id)}
+                                    className="px-3 py-1 text-xs bg-teal-600 hover:bg-teal-700 rounded transition"
+                                  >
+                                    Acknowledge
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
-                )}
-              </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="border-t border-white/5 p-4">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        itemsPerPage={itemsPerPage}
+                        startIndex={startIdx}
+                        endIndex={Math.min(
+                          startIdx + itemsPerPage,
+                          alerts.length,
+                        )}
+                        totalItems={alerts.length}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={setItemsPerPage}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </main>
         </div>
