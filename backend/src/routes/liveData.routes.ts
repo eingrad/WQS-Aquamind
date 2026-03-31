@@ -1,43 +1,48 @@
 import { Router } from "express";
 import * as liveDataController from "../controllers/liveData.controller";
-import { authenticate } from "../middleware/auth";
+import { authenticate, requireInternalSecret } from "../middleware/auth";
 
 const router = Router();
-
-// All live data routes require authentication
-router.use(authenticate);
 
 /**
  * @route   GET /api/live/wind-rose
  * @desc    Get current wind rose data (10s updates)
- * @access  Private
+ * @access  Private (JWT)
  * @query   deviceId - Device UUID
  */
-router.get("/wind-rose", liveDataController.getWindRose);
+router.get("/wind-rose", authenticate, liveDataController.getWindRose);
 
 /**
  * @route   GET /api/live/pollution-rose
  * @desc    Get current pollution rose data (10s updates)
- * @access  Private
+ * @access  Private (JWT)
  * @query   deviceId - Device UUID
  * @query   parameter - Pollutant (SO2, H2S, NO2, BTEX)
  */
-router.get("/pollution-rose", liveDataController.getPollutionRose);
+router.get("/pollution-rose", authenticate, liveDataController.getPollutionRose);
 
 /**
  * @route   POST /api/live/wind-rose/update
- * @desc    Update wind rose data (called by generator script)
- * @access  Private
+ * @desc    Update wind rose data (called by MQTT/generator script)
+ * @access  Internal only — requires X-Internal-Secret header
  * @body    { deviceId, timestamp, directions }
  */
-router.post("/wind-rose/update", liveDataController.updateWindRose);
+router.post(
+  "/wind-rose/update",
+  requireInternalSecret,
+  liveDataController.updateWindRose,
+);
 
 /**
  * @route   POST /api/live/pollution-rose/update
- * @desc    Update pollution rose data (called by generator script)
- * @access  Private
+ * @desc    Update pollution rose data (called by MQTT/generator script)
+ * @access  Internal only — requires X-Internal-Secret header
  * @body    { deviceId, parameter, timestamp, directions }
  */
-router.post("/pollution-rose/update", liveDataController.updatePollutionRose);
+router.post(
+  "/pollution-rose/update",
+  requireInternalSecret,
+  liveDataController.updatePollutionRose,
+);
 
 export default router;

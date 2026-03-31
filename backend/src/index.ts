@@ -14,6 +14,7 @@ import reportRoutes from "./routes/report.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import logger from "./config/logger";
+import { purgeExpiredTokens } from "./services/auth.service";
 
 dotenv.config();
 
@@ -87,6 +88,23 @@ app.use(notFoundHandler);
 // Error handlers (must be last)
 app.use(errorHandler);
 
+// Revoked-token cleanup job
+const CLEANUP_INTERVAL_MS =
+  Number(process.env.REVOKED_TOKEN_CLEANUP_INTERVAL_MS) || 60 * 60 * 1000; // default: 1 hour
+
+let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+async function runTokenCleanup() {
+  try {
+    const removed = await purgeExpiredTokens();
+    if (removed > 0) {
+      logger.info(`🗑️  Purged ${removed} expired revoked-token row(s)`);
+    }
+  } catch (err) {
+    logger.error("Failed to purge expired revoked tokens:", err);
+  }
+}
+
 // Start server
 const server = app.listen(PORT, async () => {
   logger.info(`🚀 Server running on port ${PORT}`);
@@ -100,27 +118,21 @@ const server = app.listen(PORT, async () => {
     startWorker();
     logger.info("✅ Aggregation worker started");
   } catch (error) {
-    logger.warn("⚠️  Aggregation worker not started:", error);
-    logger.warn("   System will continue without 5-second data processing");
+    logger.error("Failed to start aggregation worker:", error);
   }
+
+  // Start revoked-token cleanup job
+  await runTokenCleanup(); // run once immediately on startup
+  cleanupTimer = setInterval(runTokenCleanup, CLEANUP_INTERVAL_MS);
+  logger.info(`✅ Token cleanup job scheduled every ${CLEANUP_INTERVAL_MS / 1000 / 60} minutes`);
 });
 
 // Graceful shutdown
-process.on("SIGTERM", async () => {
-  logger.info("SIGTERM signal received: closing HTTP server");
-
-  // Stop worker
-  try {
-    const { stopWorker } =
-      await import("./services/telemetry/worker/aggregation.worker");
-    stopWorker();
-  } catch (error) {
-    // Worker may not be running
-  }
-
+process.on("SIGTERM", () => {
+  if (cleanupTimer) clearInterval(cleanupTimer);
   server.close(() => {
-    logger.info("HTTP server closed");
+    logger.info("Server shut down gracefully");
+    process.exit(0);
   });
 });
-
-export default app;
+   

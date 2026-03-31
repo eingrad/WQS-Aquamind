@@ -1,6 +1,7 @@
 import { Download, Trash2, Eye, FileBarChart } from "lucide-react";
 import { useState, useEffect } from "react";
 import ConfirmDialog from "../modals/ConfirmDialog";
+import api from "../../services/api";
 
 interface Report {
   id: string;
@@ -44,22 +45,9 @@ export default function ReportTable() {
 
   const fetchReports = async () => {
     try {
-      const API_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${API_URL}/reports`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch reports");
-      }
-
-      const data = await response.json();
-      setReports(data);
+      const response = await api.get("/reports");
+      // API returns { success, data, pagination } since bug #26 fix
+      setReports(response.data.data ?? response.data);
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {
@@ -71,26 +59,14 @@ export default function ReportTable() {
     setDownloading(reportId);
 
     try {
-      const API_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${API_URL}/reports/${reportId}/download`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Download failed");
-      }
-
-      const blob = await response.blob();
       const report = reports.find((r) => r.id === reportId);
-
       if (!report) return;
 
-      const downloadUrl = window.URL.createObjectURL(blob);
+      const response = await api.get(`/reports/${reportId}/download`, {
+        responseType: "blob",
+      });
+
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.setAttribute("download", report.fileName);
@@ -113,22 +89,11 @@ export default function ReportTable() {
     setPreviewing(reportId);
 
     try {
-      const API_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${API_URL}/reports/${reportId}/download`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await api.get(`/reports/${reportId}/download`, {
+        responseType: "blob",
       });
 
-      if (!response.ok) {
-        throw new Error("Preview failed");
-      }
-
-      const blob = await response.blob();
-      const previewUrl = window.URL.createObjectURL(blob);
+      const previewUrl = window.URL.createObjectURL(new Blob([response.data]));
       window.open(previewUrl, "_blank");
     } catch (error) {
       console.error("Preview error:", error);
@@ -150,20 +115,7 @@ export default function ReportTable() {
     const { reportId } = deleteDialog;
 
     try {
-      const API_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-      const token = localStorage.getItem("accessToken");
-
-      const response = await fetch(`${API_URL}/reports/${reportId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Delete failed");
-      }
+      await api.delete(`/reports/${reportId}`);
 
       // Remove from local state
       setReports(reports.filter((r) => r.id !== reportId));

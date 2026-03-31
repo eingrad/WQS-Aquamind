@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as maintenanceController from "../controllers/maintenance.controller";
-import { authenticate } from "../middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 
 const router = Router();
 
@@ -12,24 +12,35 @@ router.use(authenticate);
  */
 router.post(
   "/devices/:deviceId/maintenance",
+  authorize(["admin", "technician"]),
   maintenanceController.createMaintenance
 );
 
 router.get(
   "/devices/:deviceId/maintenance",
+  authorize(["admin", "technician"]),
   maintenanceController.getMaintenanceLogs
 );
 
 router.get(
   "/devices/:deviceId/maintenance/active",
+  authorize(["admin", "technician"]),
   maintenanceController.getActiveMaintenance
 );
 
 /**
  * Maintenance log-specific routes
  */
-router.patch("/maintenance/:logId/end", maintenanceController.endMaintenance);
+router.patch(
+  "/maintenance/:logId/end",
+  authorize(["admin", "technician"]),
+  maintenanceController.endMaintenance
+);
 
-router.delete("/maintenance/:logId", maintenanceController.deleteMaintenance);
+router.delete(
+  "/maintenance/:logId",
+  authorize(["admin"]),
+  maintenanceController.deleteMaintenance
+);
 
 export default router;

@@ -470,20 +470,38 @@ export const getAllReports = async (req: Request, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const reports = await prisma.report.findMany({
-      where: { createdBy: userId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        creator: {
-          select: {
-            fullName: true,
-            email: true,
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 50));
+    const skip = (page - 1) * limit;
+
+    const [reports, total] = await Promise.all([
+      prisma.report.findMany({
+        where: { createdBy: userId },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+        include: {
+          creator: {
+            select: {
+              fullName: true,
+              email: true,
+            },
           },
         },
+      }),
+      prisma.report.count({ where: { createdBy: userId } }),
+    ]);
+
+    res.json({
+      success: true,
+      data: reports,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
     });
-
-    res.json(reports);
   } catch (error: any) {
     logger.error("Error fetching reports:", error);
     res.status(500).json({

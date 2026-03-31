@@ -69,10 +69,7 @@ export const authorize = (allowedRoles: string[]) => {
     if (!allowedRoles.includes(req.user.role)) {
       res.status(403).json({
         error: "Access denied",
-        message: `This action requires one of the following roles: ${allowedRoles.join(
-          ", ",
-        )}`,
-        userRole: req.user.role,
+        message: "You do not have permission to perform this action",
       });
       return;
     }
@@ -102,4 +99,41 @@ export const optionalAuth = (
     // Token invalid but not required, continue without user
     next();
   }
+};
+
+/**
+ * Internal secret middleware - for machine-to-machine calls (e.g. MQTT generator scripts)
+ * These callers have no user session, so JWT is not applicable.
+ *
+ * The caller must send the header:
+ *   X-Internal-Secret: <value of INTERNAL_API_SECRET in .env>
+ *
+ * Fails safe: if INTERNAL_API_SECRET is not configured, all requests are denied (503).
+ */
+export const requireInternalSecret = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  const expected = process.env.INTERNAL_API_SECRET;
+
+  if (!expected) {
+    res.status(503).json({
+      error: "Service unavailable",
+      message: "INTERNAL_API_SECRET is not configured on the server",
+    });
+    return;
+  }
+
+  const provided = req.headers["x-internal-secret"];
+
+  if (!provided || provided !== expected) {
+    res.status(401).json({
+      error: "Unauthorized",
+      message: "Invalid or missing X-Internal-Secret header",
+    });
+    return;
+  }
+
+  next();
 };

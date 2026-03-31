@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import DateRangePicker from "./DateRangePicker";
 import api from "../../services/api";
+import { getStorageItem, STORAGE_KEYS } from "../../utils/storage";
 
 interface Device {
   id: string;
@@ -41,30 +42,13 @@ export default function ReportPanel({ onClose }: { onClose: () => void }) {
   }, []);
 
   const downloadFile = async (
-    url: string,
+    path: string,
     body: any,
     filename: string,
-    contentType: string,
   ) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Download failed");
-    }
-
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(
-      new Blob([blob], { type: contentType }),
-    );
+    const response = await api.post(path, body, { responseType: "blob" });
+    const blob = new Blob([response.data]);
+    const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = downloadUrl;
     link.setAttribute("download", filename);
@@ -97,9 +81,6 @@ export default function ReportPanel({ onClose }: { onClose: () => void }) {
     setIsGenerating(true);
 
     try {
-      const API_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
       const requestBody = {
         deviceId: selectedDevice,
         startDate,
@@ -107,34 +88,18 @@ export default function ReportPanel({ onClose }: { onClose: () => void }) {
         frequency: frequency.toLowerCase(),
       };
 
-      if (exportType === "PDF") {
-        await downloadFile(
-          `${API_URL}/reports/export/pdf`,
-          requestBody,
-          `report_${selectedDevice}_${frequency}_${startDate}_to_${endDate}.pdf`,
-          "application/pdf",
-        );
-      } else if (exportType === "CSV") {
-        await downloadFile(
-          `${API_URL}/reports/export/csv`,
-          requestBody,
-          `report_${selectedDevice}_${frequency}_${startDate}_to_${endDate}.csv`,
-          "text/csv",
-        );
-      } else if (exportType === "TXT") {
-        await downloadFile(
-          `${API_URL}/reports/export/txt`,
-          requestBody,
-          `report_${selectedDevice}_${frequency}_${startDate}_to_${endDate}.txt`,
-          "text/plain",
-        );
-      }
+      const ext = exportType.toLowerCase();
+      await downloadFile(
+        `/reports/export/${ext}`,
+        requestBody,
+        `report_${selectedDevice}_${frequency}_${startDate}_to_${endDate}.${ext}`,
+      );
 
       // Success - close panel
       onClose();
     } catch (err: any) {
       console.error("Report generation error:", err);
-      setError(err.message || "Failed to generate report. Please try again.");
+      setError(err.response?.data?.error || err.message || "Failed to generate report. Please try again.");
     } finally {
       setIsGenerating(false);
     }

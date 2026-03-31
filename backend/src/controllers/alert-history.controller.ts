@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import * as alertEvaluation from "../services/alert-evaluation.service";
 
@@ -23,7 +23,7 @@ const acknowledgeAlertSchema = z.object({
  * Get alert history with filtering
  * GET /api/alerts/history
  */
-export const getAlertHistory = async (req: Request, res: Response) => {
+export const getAlertHistory = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const validatedQuery = getAlertHistorySchema.parse(req.query);
 
@@ -53,22 +53,16 @@ export const getAlertHistory = async (req: Request, res: Response) => {
       data: alerts,
       count: alerts.length,
     });
-  } catch (error: any) {
-    console.error("Error fetching alert history:", error);
-
+  } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: "Validation error",
         errors: error.issues,
       });
+      return;
     }
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch alert history",
-      error: error.message,
-    });
+    next(error);
   }
 };
 
@@ -76,7 +70,7 @@ export const getAlertHistory = async (req: Request, res: Response) => {
  * Get single alert by ID
  * GET /api/alerts/history/:id
  */
-export const getAlertById = async (req: Request, res: Response) => {
+export const getAlertById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
 
@@ -84,23 +78,19 @@ export const getAlertById = async (req: Request, res: Response) => {
     const alert = alerts.find((a) => a.id === id);
 
     if (!alert) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         message: "Alert not found",
       });
+      return;
     }
 
     res.json({
       success: true,
       data: alert,
     });
-  } catch (error: any) {
-    console.error("Error fetching alert:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch alert",
-      error: error.message,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -108,17 +98,18 @@ export const getAlertById = async (req: Request, res: Response) => {
  * Acknowledge an alert
  * PATCH /api/alerts/history/:id/acknowledge
  */
-export const acknowledgeAlert = async (req: Request, res: Response) => {
+export const acknowledgeAlert = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
     const user = (req as any).user;
 
     // Validate user authentication
     if (!user || !user.userId) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         message: "User not authenticated",
       });
+      return;
     }
 
     const userId = user.userId;
@@ -141,13 +132,8 @@ export const acknowledgeAlert = async (req: Request, res: Response) => {
       message: "Alert acknowledged successfully",
       data: responseData,
     });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to acknowledge alert",
-      error: error.message,
-      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
-    });
+  } catch (error) {
+    next(error);
   }
 };
 

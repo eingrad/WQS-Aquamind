@@ -178,29 +178,31 @@ export const deleteThreshold = async (
     throw new Error("Threshold not found");
   }
 
-  // First, delete all notifications related to alert history for this threshold
-  if (threshold.alertHistory.length > 0) {
-    const alertHistoryIds = threshold.alertHistory.map((ah) => ah.id);
+  // Delete notifications → alertHistory → threshold atomically.
+  // If any step fails the entire operation is rolled back.
+  await prisma.$transaction(async (tx) => {
+    // Step 1: delete notifications linked to this threshold's alert history
+    if (threshold.alertHistory.length > 0) {
+      const alertHistoryIds = threshold.alertHistory.map((ah) => ah.id);
 
-    await prisma.notification.deleteMany({
-      where: {
-        alertHistoryId: {
-          in: alertHistoryIds,
+      await tx.notification.deleteMany({
+        where: {
+          alertHistoryId: {
+            in: alertHistoryIds,
+          },
         },
-      },
-    });
+      });
 
-    // Then delete all alert history records for this threshold
-    await prisma.alertHistory.deleteMany({
-      where: {
-        thresholdId: thresholdId,
-      },
-    });
-  }
+      // Step 2: delete the alert history records
+      await tx.alertHistory.deleteMany({
+        where: { thresholdId },
+      });
+    }
 
-  // Finally, delete the threshold itself
-  await prisma.alertThreshold.delete({
-    where: { id: thresholdId },
+    // Step 3: delete the threshold itself
+    await tx.alertThreshold.delete({
+      where: { id: thresholdId },
+    });
   });
 
   // Audit logging

@@ -232,6 +232,17 @@ export const isTokenRevoked = async (jti: string): Promise<boolean> => {
 };
 
 /**
+ * Delete all revoked-token rows that have already expired.
+ * Safe to call at any time; returns the number of rows removed.
+ */
+export const purgeExpiredTokens = async (): Promise<number> => {
+  const { count } = await prisma.revokedToken.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+  return count;
+};
+
+/**
  * Refresh access token using refresh token
  */
 export const refresh = async (

@@ -27,9 +27,10 @@ export default function PetronasLogin() {
       navigate("/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
+      // Backend auth errors use { error: "..." }; other endpoints use { message: "..." }
       setError(
-        err.response?.data?.message ||
-          err.message ||
+        err.response?.data?.error ||
+          err.response?.data?.message ||
           "Login failed. Please check your credentials."
       );
     } finally {

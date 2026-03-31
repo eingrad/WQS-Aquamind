@@ -114,16 +114,6 @@ export const getPendingApprovals = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    // Check if user is admin (assumes role checking middleware)
-    const userRole = (req as any).user?.role;
-    if (userRole !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Admin access required",
-      });
-      return;
-    }
-
     const approvals = await approvalService.getPendingApprovals();
 
     res.json({
@@ -167,16 +157,6 @@ export const getAllApprovals = async (
 ): Promise<void> => {
   try {
     const validatedQuery = getMyRequestsSchema.parse(req.query);
-
-    // Check if user is admin (assumes role checking middleware)
-    const userRole = (req as any).user?.role;
-    if (userRole !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Admin access required",
-      });
-      return;
-    }
 
     const approvals = await approvalService.getAllApprovals(
       validatedQuery.status,
@@ -304,16 +284,7 @@ export const approveFlag = async (
   try {
     const validatedData = approveFlagSchema.parse(req.body);
 
-    const userRole = (req as any).user?.role;
     const userId = (req as any).user?.userId;
-
-    if (userRole !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Admin access required",
-      });
-      return;
-    }
 
     const result = await approvalService.approveFlag({
       ...validatedData,
@@ -363,16 +334,7 @@ export const rejectFlag = async (
   try {
     const validatedData = rejectFlagSchema.parse(req.body);
 
-    const userRole = (req as any).user?.role;
     const userId = (req as any).user?.userId;
-
-    if (userRole !== "admin") {
-      res.status(403).json({
-        success: false,
-        error: "Admin access required",
-      });
-      return;
-    }
 
     const result = await approvalService.rejectFlag({
       ...validatedData,

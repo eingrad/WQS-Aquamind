@@ -198,15 +198,6 @@ export default function DashboardPage() {
           }
         }
 
-        console.log("🔍 TABLE FETCH DEBUG:", {
-          device,
-          interval: average,
-          startTime: startTime.toISOString(),
-          endTime: endTime.toISOString(),
-          usedDatePicker: !!(startDate && endDate),
-          cappedToNow: startDate && endDate && new Date(endDate) > now,
-        });
-
         const data = await getTimeSeriesData({
           deviceId: device,
           startDate: startTime.toISOString(),
@@ -216,26 +207,21 @@ export default function DashboardPage() {
             "so2,h2s,no2,btex,solar,temperature,humidity,windSpeed,windDirection,pressure,rain",
         });
 
-        // Transform backend data for table format
-        // NOTE: Backend returns wind fields in lowercase (windspeed_avg, winddirection_avg)
-        console.log("📊 RAW API RESPONSE:", data.timeSeries?.slice(0, 2)); // Show first 2 records
-
         const transformed = data.timeSeries.map((item: any) => ({
           t: item.bucket,
-          so2: item.so2_avg || 0,
-          h2s: item.h2s_avg || 0,
-          no2: item.no2_avg || 0,
-          btx: item.btex_avg || 0,
-          solar: item.solar_avg || 0,
-          temperature: item.temperature_avg || 0,
-          humidity: item.humidity_avg || 0,
-          pressure: item.pressure_avg || 0,
-          rain: item.rain_avg || 0,
-          windSpeed: item.windspeed_avg || 0, // Backend uses lowercase
-          windDir: item.winddirection_avg || 0, // Backend uses lowercase
+          so2: item.so2_avg ?? null,
+          h2s: item.h2s_avg ?? null,
+          no2: item.no2_avg ?? null,
+          btx: item.btex_avg ?? null,
+          solar: item.solar_avg ?? null,
+          temperature: item.temperature_avg ?? null,
+          humidity: item.humidity_avg ?? null,
+          pressure: item.pressure_avg ?? null,
+          rain: item.rain_avg ?? null,
+          windSpeed: item.windspeed_avg ?? null,
+          windDir: item.winddirection_avg ?? null,
         }));
 
-        console.log("📊 TRANSFORMED DATA:", transformed?.slice(0, 2)); // Show first 2 transformed records
         setTableData(transformed);
 
         // Only check device activity if viewing current/recent data
@@ -337,9 +323,18 @@ export default function DashboardPage() {
 
   return (
     <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 overflow-x-hidden min-w-0">
-      <Sidebar active="Dashboard" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
+      <Sidebar
+        active="Dashboard"
+        isOpen={sidebarOpen}
+        onToggle={setSidebarOpen}
+      />
       <div className="flex flex-col flex-1 min-w-0">
-        <Topbar title="Dashboard" view={view} setView={setView} onMenuToggle={() => setSidebarOpen(true)} />
+        <Topbar
+          title="Dashboard"
+          view={view}
+          setView={setView}
+          onMenuToggle={() => setSidebarOpen(true)}
+        />
 
         {/* Controls */}
         <div className="bg-[#0f1717] px-4 sm:px-6 py-4 border-white/5 border-b">

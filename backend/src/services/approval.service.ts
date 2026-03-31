@@ -517,15 +517,17 @@ export const approveFlag = async (params: ApproveFlagParams) => {
     minute: "2-digit",
   })}`;
 
-  await notificationService.sendInAppNotification({
-    userId: approval.qcReviewerId,
-    type: "approval_decision",
-    title: "Flag Request Approved",
-    message: `Your flag request has been approved\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}${adminRemarks ? `\nRemarks: ${adminRemarks}` : ""}`,
-    severity: "info",
-    relatedEntityType: "APPROVAL_REQUEST",
-    relatedEntityId: approvalId,
-  });
+  if (approval.qcReviewerId) {
+    await notificationService.sendInAppNotification({
+      userId: approval.qcReviewerId,
+      type: "approval_decision",
+      title: "Flag Request Approved",
+      message: `Your flag request has been approved\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}${adminRemarks ? `\nRemarks: ${adminRemarks}` : ""}`,
+      severity: "info",
+      relatedEntityType: "APPROVAL_REQUEST",
+      relatedEntityId: approvalId,
+    });
+  }
 
   return result;
 };
@@ -597,15 +599,17 @@ export const rejectFlag = async (params: RejectFlagParams) => {
     minute: "2-digit",
   })}`;
 
-  await notificationService.sendInAppNotification({
-    userId: approval.qcReviewerId,
-    type: "approval_decision",
-    title: "Flag Request Rejected",
-    message: `Your flag request has been rejected\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}\nRemarks: ${adminRemarks}`,
-    severity: "warning",
-    relatedEntityType: "APPROVAL_REQUEST",
-    relatedEntityId: approvalId,
-  });
+  if (approval.qcReviewerId) {
+    await notificationService.sendInAppNotification({
+      userId: approval.qcReviewerId,
+      type: "approval_decision",
+      title: "Flag Request Rejected",
+      message: `Your flag request has been rejected\nParameter: ${approval.parameterCode.toUpperCase()}\nDevice: ${device?.name || "Unknown"} (${device?.location || "Unknown"})\nTime Range: ${timeRangeFormatted}\nAdmin: ${admin?.fullName || "Unknown"}\nRemarks: ${adminRemarks}`,
+      severity: "warning",
+      relatedEntityType: "APPROVAL_REQUEST",
+      relatedEntityId: approvalId,
+    });
+  }
 
   console.log(
     `❌ Notified QC user of rejected flag request for ${approval.parameterCode}`,
