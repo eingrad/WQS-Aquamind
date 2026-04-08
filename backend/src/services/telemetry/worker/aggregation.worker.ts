@@ -5,6 +5,7 @@ import { REQUIRED_POINTS_1M } from "../aggregation/data-quality";
 import redis from "../../redis.service";
 import * as alertEvaluation from "../../alert-evaluation.service";
 import * as notificationService from "../../notification.service";
+import { isDeviceInMaintenance } from "../../maintenance.service";
 
 /**
  * Aggregation worker - processes buffered 5-second readings into 1-minute records
@@ -78,23 +79,33 @@ const processMinuteBuffer = async (
 
     // ========================================
     // Alert Evaluation: Check thresholds
+    // Skip if device is in maintenance
     // ========================================
     try {
-      const alertResults = await alertEvaluation.batchEvaluateParameters(
-        deviceId,
-        observedAt,
-        readings,
-      );
+      const inMaintenance = await isDeviceInMaintenance(deviceId, {
+        start: observedAt,
+        end: observedAt,
+      });
 
-      if (alertResults.length > 0) {
-        console.log(`   🚨 ${alertResults.length} alert(s) triggered`);
+      if (inMaintenance) {
+        console.log(`   🔧 Device in maintenance, skipping alert evaluation`);
+      } else {
+        const alertResults = await alertEvaluation.batchEvaluateParameters(
+          deviceId,
+          observedAt,
+          readings,
+        );
 
-        // Send notifications for each triggered alert
-        for (const result of alertResults) {
-          if (result.alertHistory) {
-            await notificationService.sendMultiChannelNotification(
-              result.alertHistory,
-            );
+        if (alertResults.length > 0) {
+          console.log(`   🚨 ${alertResults.length} alert(s) triggered`);
+
+          // Send notifications for each triggered alert
+          for (const result of alertResults) {
+            if (result.alertHistory) {
+              await notificationService.sendMultiChannelNotification(
+                result.alertHistory,
+              );
+            }
           }
         }
       }

@@ -15,6 +15,7 @@ import DataValidationApprovalPage from "./pages/validation/DataValidationApprova
 import ThresholdManagementPage from "./pages/alerts/ThresholdManagementPage";
 import AlertHistoryPage from "./pages/alerts/AlertHistoryPage";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
+import ParameterInfoPage from "./pages/parameters/ParameterInfoPage";
 
 /** Redirects unauthenticated users to /login */
 function PrivateRoute({ element }: { element: ReactElement }) {
@@ -36,6 +37,7 @@ export default function App() {
             <Route path="/data-approval" element={<PrivateRoute element={<DataValidationApprovalPage />} />} />
             <Route path="/alert-thresholds" element={<PrivateRoute element={<ThresholdManagementPage />} />} />
             <Route path="/alert-history" element={<PrivateRoute element={<AlertHistoryPage />} />} />
+            <Route path="/parameters" element={<PrivateRoute element={<ParameterInfoPage />} />} />
             <Route path="/settings" element={<PrivateRoute element={<SettingsPage />} />} />
             <Route path="/telegram-setup" element={<PrivateRoute element={<TelegramSetupGuide />} />} />
             <Route path="/newmap" element={<PrivateRoute element={<WindDirectionMap />} />} />

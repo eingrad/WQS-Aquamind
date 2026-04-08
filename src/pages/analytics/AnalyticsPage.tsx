@@ -1,22 +1,15 @@
-import { useState, useEffect } from "react";
-
-// Components
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
 import Card from "../../components/widgets/Card";
 import AnalyticsChart from "../../components/charts/AnalyticsChart";
-import DateRangePicker from "../../components/widgets/DateRangePicker";
+import AnalyticsControls from "../../components/widgets/AnalyticsControl";
 import EmptyState from "../../components/common/EmptyState";
-
-// Services
 import { getDevices } from "../../services/device.service";
 import { getTimeSeriesData } from "../../services/telemetry.service";
-
-// Constants
 import { PARAMETERS } from "../../data/constants";
 import { useUnits } from "../../context/UnitContext";
 
-// Time average options
 const TIME_AVERAGES = [
   { value: "30m", label: "30 Minute Avg" },
   { value: "1h", label: "1 Hour Avg" },
@@ -26,129 +19,129 @@ const TIME_AVERAGES = [
 
 type TimeAverage = (typeof TIME_AVERAGES)[number]["value"];
 
-// Default date ranges based on interval
-function getDefaultDateRange(interval: TimeAverage): {
-  start: Date;
-  end: Date;
-} {
-  const now = new Date();
-  let start: Date;
-
-  switch (interval) {
-    case "30m":
-    case "1h":
-      start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days
-      break;
-    case "8h":
-      start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days
-      break;
-    case "24h":
-      start = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000); // 90 days
-      break;
-    default:
-      start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  }
-
-  return { start, end: now };
-}
+const LOOKBACK_MS: Record<TimeAverage, number> = {
+  "30m": 7 * 24 * 60 * 60 * 1000,
+  "1h": 7 * 24 * 60 * 60 * 1000,
+  "8h": 30 * 24 * 60 * 60 * 1000,
+  "24h": 90 * 24 * 60 * 60 * 1000,
+};
 
 export default function AnalyticsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { convert, getUnit } = useUnits();
 
-  // Devices
   const [devices, setDevices] = useState<any[]>([]);
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [device, setDevice] = useState("");
 
-  // Parameters (multi-select)
   const [selectedParams, setSelectedParams] = useState<string[]>(["so2"]);
-  const [isParamDropdownOpen, setIsParamDropdownOpen] = useState(false);
-
-  // Time average
   const [timeAverage, setTimeAverage] = useState<TimeAverage>("1h");
-
-  // Date range
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Chart data
   const [chartData, setChartData] = useState<any[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [chartError, setChartError] = useState("");
 
-  // Auto-detected latest data timestamp for the device
-  const [latestDataTime, setLatestDataTime] = useState<Date | null>(null);
+  // undefined = not yet fetched, null = fetched but no timestamp
+  const [latestDataTime, setLatestDataTime] = useState<Date | null | undefined>(
+    undefined,
+  );
 
-  // Fetch devices
+  // ─── Derived state ──────────────────────────────────────────────────────────
+
+  const chartTitle = useMemo(() => {
+    if (selectedParams.length === 1) {
+      const meta = PARAMETERS.find((p) => p.key === selectedParams[0]);
+      return meta ? `${meta.label} (${getUnit(meta.key)})` : selectedParams[0];
+    }
+    return `${selectedParams.length} Parameters Selected`;
+  }, [selectedParams, getUnit]);
+
+  const avgLabel = useMemo(
+    () => TIME_AVERAGES.find((t) => t.value === timeAverage)?.label ?? "",
+    [timeAverage],
+  );
+
+  // ─── Handlers ───────────────────────────────────────────────────────────────
+
+  const toggleParam = useCallback((key: string) => {
+    setSelectedParams((prev) => {
+      if (prev.includes(key))
+        return prev.length === 1 ? prev : prev.filter((p) => p !== key);
+      return [...prev, key];
+    });
+  }, []);
+
+  const selectAllParams = useCallback(
+    () => setSelectedParams(PARAMETERS.map((p) => p.key)),
+    [],
+  );
+  const deselectAllParams = useCallback(() => setSelectedParams(["so2"]), []);
+
+  // ─── Effects ────────────────────────────────────────────────────────────────
+
+  // Fetch devices once on mount
   useEffect(() => {
-    const fetchDevices = async () => {
+    const run = async () => {
       try {
         setDevicesLoading(true);
         const data = await getDevices({ status: "active" });
         setDevices(data.devices);
-        if (data.devices.length > 0) {
-          setDevice(data.devices[0].id);
-        }
-      } catch (error: any) {
-        console.error("Failed to fetch devices:", error);
+        if (data.devices.length > 0) setDevice(data.devices[0].id);
+      } catch (err) {
+        console.error("Failed to fetch devices:", err);
         setChartError("Failed to load devices");
       } finally {
         setDevicesLoading(false);
       }
     };
-    fetchDevices();
+    run();
   }, []);
 
-  // Fetch latest data timestamp when device changes
+  // Fetch latest timestamp whenever device changes
   useEffect(() => {
     if (!device) return;
+    setLatestDataTime(undefined); // reset while fetching
 
-    const fetchLatestTime = async () => {
+    const run = async () => {
       try {
         const { getDeviceStatus } =
           await import("../../services/deviceStatus.service");
         const status = await getDeviceStatus(device);
-        if (status.latestTimestamp) {
-          setLatestDataTime(new Date(status.latestTimestamp));
-        } else {
-          setLatestDataTime(null);
-        }
-      } catch (error) {
-        console.error("Failed to fetch device status:", error);
+        setLatestDataTime(
+          status.latestTimestamp ? new Date(status.latestTimestamp) : null,
+        );
+      } catch (err) {
+        console.error("Failed to fetch device status:", err);
         setLatestDataTime(null);
       }
     };
-    fetchLatestTime();
+    run();
   }, [device]);
 
-  // Fetch chart data
+  // Fetch chart data — wait until latestDataTime is resolved
   useEffect(() => {
-    if (!device || selectedParams.length === 0) return;
+    if (!device || selectedParams.length === 0 || latestDataTime === undefined)
+      return;
 
-    const fetchData = async () => {
+    const run = async () => {
       try {
         setChartLoading(true);
         setChartError("");
 
-        // Determine date range
         let startTime: Date;
         let endTime: Date;
 
         if (startDate && endDate) {
-          // User selected custom date range
           const now = new Date();
           startTime = new Date(startDate + "T00:00:00.000Z");
           const selectedEnd = new Date(endDate + "T23:59:59.999Z");
           endTime = selectedEnd > now ? now : selectedEnd;
         } else {
-          // Auto-detect: use latest data timestamp as end, or fall back to now
-          const anchor = latestDataTime || new Date();
-          const defaults = getDefaultDateRange(timeAverage);
-          // Calculate the lookback duration and apply it from the anchor
-          const lookbackMs = defaults.end.getTime() - defaults.start.getTime();
+          const anchor = latestDataTime ?? new Date();
           endTime = anchor;
-          startTime = new Date(anchor.getTime() - lookbackMs);
+          startTime = new Date(anchor.getTime() - LOOKBACK_MS[timeAverage]);
         }
 
         const data = await getTimeSeriesData({
@@ -159,37 +152,42 @@ export default function AnalyticsPage() {
           parameters: selectedParams.join(","),
         });
 
-        // Transform backend data for chart
         const transformed = data.timeSeries.map((item: any) => {
-          const result: any = {
-            t: new Date(item.bucket).getTime(),
-          };
-
+          const point: any = { t: new Date(item.bucket).getTime() };
           selectedParams.forEach((param) => {
-            let avgKey = `${param}_avg`;
-            if (param === "windSpeed") avgKey = "windspeed_avg";
-            else if (param === "windDirection") avgKey = "winddirection_avg";
-
-            if (item[avgKey] !== null && item[avgKey] !== undefined) {
-              const raw = parseFloat(item[avgKey]);
-              result[param] = convert(raw, param) ?? raw;
+            const key =
+              param === "windSpeed"
+                ? "windspeed_avg"
+                : param === "windDirection"
+                  ? "winddirection_avg"
+                  : `${param}_avg`;
+            if (item[key] != null) {
+              const raw = parseFloat(item[key]);
+              point[param] = convert(raw, param) ?? raw;
             }
           });
-
-          return result;
+          return point;
         });
 
-        setChartData(transformed.reverse());
-      } catch (error: any) {
-        console.error("Failed to fetch analytics data:", error);
+        // Drop trailing empty buckets (O(n), computed once)
+        const lastWithData = transformed.reduce(
+          (last: number, point: any, idx: number) => {
+            const hasData = selectedParams.some((p) => point[p] != null);
+            return hasData ? idx : last;
+          },
+          0,
+        );
+
+        setChartData(transformed.slice(0, lastWithData + 1).reverse());
+      } catch (err) {
+        console.error("Failed to fetch analytics data:", err);
         setChartError("Failed to load analytics data");
         setChartData([]);
       } finally {
         setChartLoading(false);
       }
     };
-
-    fetchData();
+    run();
   }, [
     device,
     selectedParams,
@@ -200,282 +198,49 @@ export default function AnalyticsPage() {
     latestDataTime,
   ]);
 
-  // Toggle parameter selection
-  const toggleParam = (key: string) => {
-    setSelectedParams((prev) => {
-      if (prev.includes(key)) {
-        // Don't allow deselecting the last one
-        if (prev.length === 1) return prev;
-        return prev.filter((p) => p !== key);
-      }
-      return [...prev, key];
-    });
-  };
-
-  // Select all / deselect all
-  const selectAllParams = () => {
-    setSelectedParams(PARAMETERS.map((p) => p.key));
-  };
-
-  const deselectAllParams = () => {
-    setSelectedParams(["so2"]); // Keep at least one
-  };
-
-  // Build chart title
-  const selectedMeta = selectedParams.map(
-    (p) => PARAMETERS.find((param) => param.key === p)!,
-  );
-  const chartTitle =
-    selectedParams.length === 1
-      ? `${selectedMeta[0].label} (${getUnit(selectedMeta[0].key)})`
-      : `${selectedParams.length} Parameters Selected`;
-
-  const avgLabel =
-    TIME_AVERAGES.find((t) => t.value === timeAverage)?.label || "";
+  // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 overflow-x-hidden min-w-0">
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          height: 10px;
-          width: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1f2937;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #14b8a6;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #0d9488;
-        }
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #474747ff #1f2937;
-        }
+        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0d9488; }
+        .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #474747ff #1f2937; }
       `}</style>
-      <Sidebar active="Analytics" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
+
+      <Sidebar
+        active="Analytics"
+        isOpen={sidebarOpen}
+        onToggle={setSidebarOpen}
+      />
+
       <div className="flex flex-col flex-1 min-w-0">
         <Topbar title="Analytics" onMenuToggle={() => setSidebarOpen(true)} />
 
-        {/* Controls */}
-        <div className="bg-[#0f1717] px-4 sm:px-6 py-4 border-white/5 border-b">
-          <div className="flex flex-col md:flex-row md:items-center gap-3 flex-wrap">
-            {/* Device Selector */}
-            <div className="relative group">
-              <select
-                value={device}
-                onChange={(e) => setDevice(e.target.value)}
-                disabled={devicesLoading}
-                className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none disabled:opacity-50"
-              >
-                {devicesLoading ? (
-                  <option>Loading devices...</option>
-                ) : devices.length > 0 ? (
-                  devices.map((d) => (
-                    <option
-                      value={d.id}
-                      key={d.id}
-                      className="bg-[#1a2a2a] text-white"
-                    >
-                      {d.name}
-                    </option>
-                  ))
-                ) : (
-                  <option>No devices found</option>
-                )}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
+        <AnalyticsControls
+          devices={devices}
+          devicesLoading={devicesLoading}
+          device={device}
+          onDeviceChange={setDevice}
+          startDate={startDate}
+          endDate={endDate}
+          onStartDateChange={setStartDate}
+          onEndDateChange={setEndDate}
+          timeAverage={timeAverage}
+          onTimeAverageChange={setTimeAverage}
+          selectedParams={selectedParams}
+          onToggleParam={toggleParam}
+          onSelectAll={selectAllParams}
+          onDeselectAll={deselectAllParams}
+          getUnit={getUnit}
+        />
 
-            {/* Date Range Picker */}
-            <DateRangePicker
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={setStartDate}
-              onEndDateChange={setEndDate}
-            />
-
-            {/* Time Average Selector */}
-            <div className="relative group">
-              <select
-                value={timeAverage}
-                onChange={(e) => setTimeAverage(e.target.value as TimeAverage)}
-                className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
-              >
-                {TIME_AVERAGES.map((avg) => (
-                  <option
-                    key={avg.value}
-                    value={avg.value}
-                    className="bg-[#1a2a2a] text-white"
-                  >
-                    {avg.label}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Parameter Multi-Select Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsParamDropdownOpen(!isParamDropdownOpen)}
-                className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer min-w-[220px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none text-left"
-              >
-                {selectedParams.length === PARAMETERS.length
-                  ? "All Parameters"
-                  : selectedParams.length === 1
-                    ? PARAMETERS.find((p) => p.key === selectedParams[0])?.label
-                    : `${selectedParams.length} Parameters`}
-              </button>
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className={`w-4 h-4 text-teal-400 transition-transform ${
-                    isParamDropdownOpen ? "rotate-180" : ""
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
-
-              {/* Dropdown */}
-              {isParamDropdownOpen && (
-                <div className="absolute top-full mt-2 z-50 bg-[#1a2a2a] rounded-lg shadow-2xl border border-white/10 overflow-hidden min-w-[260px]">
-                  {/* Select All / Deselect All */}
-                  <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
-                    <button
-                      onClick={selectAllParams}
-                      className="text-xs text-teal-400 hover:text-teal-300 transition-colors"
-                    >
-                      Select All
-                    </button>
-                    <button
-                      onClick={deselectAllParams}
-                      className="text-xs text-gray-400 hover:text-gray-300 transition-colors"
-                    >
-                      Deselect All
-                    </button>
-                  </div>
-
-                  {/* Parameter Checkboxes */}
-                  <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
-                    {PARAMETERS.map((param) => (
-                      <label
-                        key={param.key}
-                        className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedParams.includes(param.key)}
-                          onChange={() => toggleParam(param.key)}
-                          className="w-4 h-4 rounded border-white/20 bg-transparent text-teal-500 focus:ring-teal-500/20 focus:ring-offset-0 cursor-pointer accent-teal-500"
-                        />
-                        <span className="text-sm text-gray-200">
-                          {param.label}
-                        </span>
-                        <span className="text-xs text-gray-500 ml-auto">
-                          {getUnit(param.key)}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Done Button */}
-                  <div className="px-4 py-2.5 border-t border-white/10">
-                    <button
-                      onClick={() => setIsParamDropdownOpen(false)}
-                      className="w-full bg-teal-600 text-black text-sm font-medium py-2 rounded-lg hover:bg-teal-500 transition-colors"
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Selected Parameters Chips */}
-          {selectedParams.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">
-              {selectedParams.map((key) => {
-                const param = PARAMETERS.find((p) => p.key === key);
-                if (!param) return null;
-                return (
-                  <span
-                    key={key}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-teal-500/15 text-teal-300 border border-teal-500/20"
-                  >
-                    {param.label}
-                    {selectedParams.length > 1 && (
-                      <button
-                        onClick={() => toggleParam(key)}
-                        className="ml-0.5 hover:text-teal-100 transition-colors"
-                      >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </span>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Chart Content */}
         <div className="flex-1 p-6 min-w-0">
           <Card title={`${chartTitle} | ${avgLabel}`}>
             {chartLoading ? (
-              <div className="h-[500px] flex items-center justify-center">
+              <div className="h-[650px] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-8 h-8 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
                   <span className="text-teal-400 text-sm">
@@ -484,7 +249,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
             ) : chartError ? (
-              <div className="h-[500px] flex items-center justify-center">
+              <div className="h-[650px] flex items-center justify-center">
                 <div className="text-red-400">{chartError}</div>
               </div>
             ) : chartData.length === 0 ? (
@@ -493,21 +258,13 @@ export default function AnalyticsPage() {
                 message="Try adjusting your date range or parameters"
               />
             ) : (
-              <div className="h-[500px]">
+              <div className="h-[650px]">
                 <AnalyticsChart data={chartData} params={selectedParams} />
               </div>
             )}
           </Card>
         </div>
       </div>
-
-      {/* Click outside to close parameter dropdown */}
-      {isParamDropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsParamDropdownOpen(false)}
-        />
-      )}
     </div>
   );
 }

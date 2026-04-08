@@ -20,6 +20,8 @@
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "dom-to-image-more": "^3.7.2",
+    "html2canvas": "^1.4.1",
     "leaflet": "^1.9.4",
     "leaflet-defaulticon-compatibility": "^0.1.2",
     "lucide-react": "^0.553.0",
