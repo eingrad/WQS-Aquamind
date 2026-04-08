@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import DateRangePicker from "./DateRangePicker";
 import api from "../../services/api";
-import { getStorageItem, STORAGE_KEYS } from "../../utils/storage";
 
 interface Device {
   id: string;

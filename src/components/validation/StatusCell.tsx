@@ -24,6 +24,7 @@ interface StatusCellProps {
   value: number | null;
   status: ValidationStatus;
   validatedByHuman?: boolean;
+  flaggedByHuman?: boolean;
   pendingAdminApproval?: boolean;
   humanValidation?: HumanValidation | null;
   selectedCells: Set<string>;

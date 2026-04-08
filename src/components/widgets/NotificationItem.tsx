@@ -84,7 +84,6 @@ const getRelativeTime = (timestamp: string): string => {
 export default function NotificationItem({
   notification,
   onClick,
-  isFirst = false,
   isLast = false,
 }: NotificationItemProps) {
   const config = severityConfig[notification.type] || severityConfig.warning;
