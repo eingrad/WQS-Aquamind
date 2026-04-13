@@ -45,4 +45,24 @@ router.post(
   liveDataController.updatePollutionRose,
 );
 
+/**
+ * @route   GET /api/live/realtime-params
+ * @desc    Get latest real-time sensor readings (5-10s updates via MQTT)
+ * @access  Private (JWT)
+ * @query   deviceId - Device UUID
+ */
+router.get("/realtime-params", authenticate, liveDataController.getRealtimeParams);
+
+/**
+ * @route   POST /api/live/realtime-params/update
+ * @desc    Update real-time sensor readings (called by MQTT subscriber)
+ * @access  Internal only — requires X-Internal-Secret header
+ * @body    { deviceId, timestamp, readings }
+ */
+router.post(
+  "/realtime-params/update",
+  requireInternalSecret,
+  liveDataController.updateRealtimeParams,
+);
+
 export default router;

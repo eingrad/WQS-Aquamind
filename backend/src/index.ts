@@ -121,6 +121,16 @@ const server = app.listen(PORT, async () => {
     logger.error("Failed to start aggregation worker:", error);
   }
 
+  // Start MQTT subscriber (for live sensor data ingestion)
+  try {
+    const { startMqttSubscriber } = await import("./services/mqtt.service");
+    startMqttSubscriber();
+    logger.info("✅ MQTT subscriber started");
+  } catch (error) {
+    logger.error("Failed to start MQTT subscriber:", error);
+    logger.warn("📝 System will continue without MQTT — no live data ingestion");
+  }
+
   // Start revoked-token cleanup job
   await runTokenCleanup(); // run once immediately on startup
   cleanupTimer = setInterval(runTokenCleanup, CLEANUP_INTERVAL_MS);

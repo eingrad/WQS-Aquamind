@@ -191,6 +191,7 @@ export default function OverviewPage() {
                 <WindRoseOverlay
                   lat={selectedDevice.lat}
                   lng={selectedDevice.lng}
+                  deviceId={selectedDevice.id}
                   onClose={() => setShowWindRose(false)}
                 />
               )}

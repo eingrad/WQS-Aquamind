@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { PARAMETERS } from "../../data/constants";
 import { formatPollutantValue } from "../../utils/numberFormat";
 import { useUnits } from "../../context/UnitContext";
+import { getRealTimeParams } from "../../services/liveData.service";
+import { getLatestReadings } from "../../services/telemetry.service";
+import EmptyState from "../common/EmptyState";
 
 interface RealTimeParametersProps {
   deviceId: string;
@@ -17,28 +20,33 @@ export default function RealTimeParameters({
   useEffect(() => {
     if (!deviceId) return;
 
-    // Fetch live parameter data every 10 seconds
     const fetchLiveData = async () => {
       try {
-        // Mock data for now - replace with actual API call
-        const mockData: Record<string, number> = {
-          so2: Math.random() * 50,
-          h2s: Math.random() * 10,
-          no2: Math.random() * 30,
-          btex: Math.random() * 20,
-          solar: Math.random() * 800 + 200,
-          temperature: Math.random() * 10 + 25,
-          humidity: Math.random() * 30 + 50,
-          pressure: Math.random() * 20 + 1000,
-          rain: Math.random() * 5,
-          windSpeed: Math.random() * 10,
-          windDirection: Math.random() * 360,
-        };
-
-        setLiveData(mockData);
+        // Try live data from Redis (pushed by MQTT subscriber)
+        const data = await getRealTimeParams(deviceId);
+        setLiveData(data.readings);
         setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch live data:", error);
+      } catch {
+        // Fallback: get latest reading from database
+        try {
+          const readings = await getLatestReadings(deviceId, 1);
+          if (readings.length > 0) {
+            const latest = readings[0];
+            const mapped: Record<string, number> = {};
+            if (latest.so2Value) mapped.so2 = parseFloat(latest.so2Value);
+            if (latest.h2sValue) mapped.h2s = parseFloat(latest.h2sValue);
+            if (latest.no2Value) mapped.no2 = parseFloat(latest.no2Value);
+            if (latest.btexValue) mapped.btex = parseFloat(latest.btexValue);
+            if (latest.tempValue) mapped.temperature = parseFloat(latest.tempValue);
+            if (latest.humidityValue) mapped.humidity = parseFloat(latest.humidityValue);
+            if (latest.wsValue) mapped.windSpeed = parseFloat(latest.wsValue);
+            if (latest.wdValue) mapped.windDirection = parseFloat(latest.wdValue);
+            if (latest.solarValue) mapped.solar = parseFloat(latest.solarValue);
+            setLiveData(mapped);
+          }
+        } catch (dbErr) {
+          console.error("Failed to fetch fallback data:", dbErr);
+        }
         setLoading(false);
       }
     };
@@ -50,9 +58,19 @@ export default function RealTimeParameters({
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center text-gray-400">
-        Loading live data...
+      <div className="h-full flex items-center justify-center">
+        <div className="text-teal-400">Loading...</div>
       </div>
+    );
+  }
+
+  if (Object.keys(liveData).length === 0) {
+    return (
+      <EmptyState
+        compact
+        title="No Live Data"
+        message="The device may be offline or no data has been recorded yet."
+      />
     );
   }
 

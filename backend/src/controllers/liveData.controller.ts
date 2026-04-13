@@ -1,22 +1,20 @@
 import { Request, Response, NextFunction } from "express";
+import redis from "../services/redis.service";
 
 /**
- * In-Memory Cache for Live Data
- * Generator scripts write here, GET endpoints read from here
- * TODO: Replace with Redis when available
+ * Live Data Cache using Redis
+ * Generator scripts write via POST endpoints, GET endpoints read from Redis
+ * Data auto-expires after 5 minutes (300s TTL) if generator stops pushing
  */
-const liveDataCache: {
-  windRose: Map<string, any>;
-  pollutionRose: Map<string, any>;
-} = {
-  windRose: new Map(),
-  pollutionRose: new Map(),
-};
+
+const WIND_ROSE_TTL = 300; // 5 minutes
+const POLLUTION_ROSE_TTL = 300; // 5 minutes
+const REALTIME_PARAMS_TTL = 30; // 30 seconds (updates every 5-10s from MQTT)
 
 /**
  * Get latest wind rose data
  * GET /api/live/wind-rose
- * Returns data from generator script only (no fallback)
+ * Returns data from Redis (populated by generator script)
  */
 export const getWindRose = async (
   req: Request,
@@ -34,10 +32,19 @@ export const getWindRose = async (
       return;
     }
 
-    // Get from cache (populated by generator script)
-    const data = liveDataCache.windRose.get(deviceId as string);
+    if (!redis.isRedisAvailable()) {
+      res.status(503).json({
+        success: false,
+        error: "Cache service unavailable",
+      });
+      return;
+    }
 
-    if (!data) {
+    // Get from Redis (populated by generator script)
+    const key = `live:windrose:${deviceId}`;
+    const cached = await redis.get(key);
+
+    if (!cached) {
       res.status(404).json({
         success: false,
         error: "No live data available",
@@ -47,7 +54,7 @@ export const getWindRose = async (
 
     res.status(200).json({
       success: true,
-      data,
+      data: JSON.parse(cached),
     });
   } catch (error) {
     next(error);
@@ -57,7 +64,7 @@ export const getWindRose = async (
 /**
  * Get latest pollution rose data
  * GET /api/live/pollution-rose
- * Returns data from generator script only (no fallback)
+ * Returns data from Redis (populated by generator script)
  */
 export const getPollutionRose = async (
   req: Request,
@@ -75,11 +82,19 @@ export const getPollutionRose = async (
       return;
     }
 
-    // Get from cache (populated by generator script)
-    const cacheKey = `${deviceId}:${parameter}`;
-    const data = liveDataCache.pollutionRose.get(cacheKey);
+    if (!redis.isRedisAvailable()) {
+      res.status(503).json({
+        success: false,
+        error: "Cache service unavailable",
+      });
+      return;
+    }
 
-    if (!data) {
+    // Get from Redis (populated by generator script)
+    const key = `live:pollutionrose:${deviceId}:${(parameter as string).toUpperCase()}`;
+    const cached = await redis.get(key);
+
+    if (!cached) {
       res.status(404).json({
         success: false,
         error: "No live data available.",
@@ -89,7 +104,7 @@ export const getPollutionRose = async (
 
     res.status(200).json({
       success: true,
-      data,
+      data: JSON.parse(cached),
     });
   } catch (error) {
     next(error);
@@ -99,6 +114,7 @@ export const getPollutionRose = async (
 /**
  * Update wind rose data (called by generator script)
  * POST /api/live/wind-rose/update
+ * Stores in Redis with 5-minute TTL
  */
 export const updateWindRose = async (
   req: Request,
@@ -116,12 +132,23 @@ export const updateWindRose = async (
       return;
     }
 
-    // Store in cache
-    liveDataCache.windRose.set(deviceId, {
+    const data = {
       timestamp: timestamp || new Date().toISOString(),
       deviceId,
       directions,
-    });
+    };
+
+    // Store in Redis with TTL
+    const key = `live:windrose:${deviceId}`;
+    const stored = await redis.setWithTTL(key, JSON.stringify(data), WIND_ROSE_TTL);
+
+    if (!stored) {
+      res.status(503).json({
+        success: false,
+        error: "Failed to store data — cache service unavailable",
+      });
+      return;
+    }
 
     res.status(200).json({
       success: true,
@@ -135,6 +162,7 @@ export const updateWindRose = async (
 /**
  * Update pollution rose data (called by generator script)
  * POST /api/live/pollution-rose/update
+ * Stores in Redis with 5-minute TTL
  */
 export const updatePollutionRose = async (
   req: Request,
@@ -152,18 +180,124 @@ export const updatePollutionRose = async (
       return;
     }
 
-    // Store in cache (key includes parameter)
-    const cacheKey = `${deviceId}:${parameter}`;
-    liveDataCache.pollutionRose.set(cacheKey, {
+    const data = {
       timestamp: timestamp || new Date().toISOString(),
       deviceId,
       parameter: parameter.toUpperCase(),
       directions,
-    });
+    };
+
+    // Store in Redis with TTL (key includes parameter)
+    const key = `live:pollutionrose:${deviceId}:${parameter.toUpperCase()}`;
+    const stored = await redis.setWithTTL(key, JSON.stringify(data), POLLUTION_ROSE_TTL);
+
+    if (!stored) {
+      res.status(503).json({
+        success: false,
+        error: "Failed to store data — cache service unavailable",
+      });
+      return;
+    }
 
     res.status(200).json({
       success: true,
       message: "Pollution rose data updated",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get latest real-time parameter readings
+ * GET /api/live/realtime-params
+ * Returns the most recent sensor readings from Redis (pushed by MQTT subscriber)
+ */
+export const getRealtimeParams = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { deviceId } = req.query;
+
+    if (!deviceId) {
+      res.status(400).json({
+        success: false,
+        error: "deviceId is required",
+      });
+      return;
+    }
+
+    if (!redis.isRedisAvailable()) {
+      res.status(503).json({
+        success: false,
+        error: "Cache service unavailable",
+      });
+      return;
+    }
+
+    const key = `live:realtime:${deviceId}`;
+    const cached = await redis.get(key);
+
+    if (!cached) {
+      res.status(404).json({
+        success: false,
+        error: "No live data available",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: JSON.parse(cached),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update real-time parameter readings (called by MQTT subscriber)
+ * POST /api/live/realtime-params/update
+ * Stores latest readings in Redis with 30s TTL
+ */
+export const updateRealtimeParams = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { deviceId, timestamp, readings } = req.body;
+
+    if (!deviceId || !readings) {
+      res.status(400).json({
+        success: false,
+        error: "deviceId and readings are required",
+      });
+      return;
+    }
+
+    const data = {
+      timestamp: timestamp || new Date().toISOString(),
+      deviceId,
+      readings,
+    };
+
+    const key = `live:realtime:${deviceId}`;
+    const stored = await redis.setWithTTL(key, JSON.stringify(data), REALTIME_PARAMS_TTL);
+
+    if (!stored) {
+      res.status(503).json({
+        success: false,
+        error: "Failed to store data — cache service unavailable",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Realtime params updated",
     });
   } catch (error) {
     next(error);

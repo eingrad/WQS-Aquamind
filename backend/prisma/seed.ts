@@ -48,9 +48,9 @@ async function main() {
     create: {
       deviceCode: "PETRONAS-STATION-01",
       name: "PETRONAS Air Quality Monitoring Station 1",
-      location: "PETRONAS Refinery Complex",
-      latitude: 4.2105,
-      longitude: 101.9758,
+      location: "SK Pengerang, Johor",
+      latitude: 1.3668593813920302,
+      longitude: 104.10786207528017,
       status: "active",
     },
   });

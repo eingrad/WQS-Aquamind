@@ -1,21 +1,26 @@
 import { useEffect, useState } from "react";
 import { useMap } from "react-leaflet";
 import WindRoseChart from "../charts/WindRoseChart";
-import { X } from "lucide-react";
+import { X, Wind } from "lucide-react";
+import { getWindRoseData } from "../../services/liveData.service";
 
 interface WindRoseOverlayProps {
   lat: number;
   lng: number;
+  deviceId: string;
   onClose: () => void;
 }
 
 export default function WindRoseOverlay({
   lat,
   lng,
+  deviceId,
   onClose,
 }: WindRoseOverlayProps) {
   const map = useMap();
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [windData, setWindData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const updatePosition = () => {
@@ -35,6 +40,27 @@ export default function WindRoseOverlay({
       map.off("zoom", updatePosition);
     };
   }, [map, lat, lng]);
+
+  // Fetch wind rose data from Redis
+  useEffect(() => {
+    if (!deviceId) return;
+
+    const fetchData = async () => {
+      try {
+        const data = await getWindRoseData(deviceId);
+        setWindData(data);
+      } catch {
+        // No live data available — chart will show empty state
+        setWindData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 10000); // Refresh every 10s
+    return () => clearInterval(interval);
+  }, [deviceId]);
 
   // Calculate offset to center the wind rose chart (not the entire container) at marker
   // Title bar is ~48px (py-2 = 8px top + 8px bottom + content ~32px)
@@ -64,9 +90,24 @@ export default function WindRoseOverlay({
           <X className="w-4 h-4" />
         </button>
 
-        <div className="w-full h-full opacity-70">
-          <WindRoseChart labelColor="#000000ff" />
-        </div>
+        {/* Show a visible card when no data, or transparent chart when data exists */}
+        {!loading && !windData?.directions ? (
+          <div className="w-full h-full flex items-center justify-center rounded-xl bg-[#0f1a1a]/95 backdrop-blur-md border border-teal-500/30 shadow-2xl">
+            <div className="text-center px-8">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                <Wind className="w-8 h-8 text-teal-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">No Wind Data</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                The device may be offline or no wind<br />data has been recorded yet.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full h-full opacity-70">
+            <WindRoseChart data={windData} loading={loading} labelColor="#000000ff" />
+          </div>
+        )}
       </div>
     </div>
   );

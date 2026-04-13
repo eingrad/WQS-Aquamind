@@ -56,3 +56,23 @@ export const getPollutionRoseData = async (
   });
   return response.data.data;
 };
+
+export interface RealTimeParamsData {
+  timestamp: string;
+  deviceId: string;
+  readings: Record<string, number>;
+}
+
+/**
+ * Fetch latest real-time sensor readings
+ * @param deviceId - Device UUID
+ * @returns Latest readings from Redis (pushed by MQTT subscriber every 5-10s)
+ */
+export const getRealTimeParams = async (
+  deviceId: string
+): Promise<RealTimeParamsData> => {
+  const response = await api.get(`/live/realtime-params`, {
+    params: { deviceId },
+  });
+  return response.data.data;
+};

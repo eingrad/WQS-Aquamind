@@ -1,5 +1,6 @@
 import Plot from "react-plotly.js";
 import type { Layout, PlotData } from "plotly.js";
+import EmptyState from "../common/EmptyState";
 
 const directionSet = {
   N: true,
@@ -33,14 +34,6 @@ const SPEED_RANGES = [
 
 type WindMapLayer = Record<Dir, number>;
 
-const initDummyData = (): WindMapLayer[] =>
-  SPEED_RANGES.map(() =>
-    DIRECTIONS.reduce((acc, dir) => {
-      acc[dir] = Math.floor(Math.random() * 10); // dummy values
-      return acc;
-    }, {} as WindMapLayer)
-  );
-
 /**
  * Convert backend data format to Wind Rose chart format
  * Backend: { "N": { "0-1": 5, "1-2": 10, ... }, "NNE": {...}, ... }
@@ -62,7 +55,7 @@ function convertBackendToWindMap(backendData: any): WindMapLayer[] {
     DIRECTIONS.reduce((acc, dir) => {
       acc[dir] = 0;
       return acc;
-    }, {} as WindMapLayer)
+    }, {} as WindMapLayer),
   );
 
   // Aggregate backend bins into chart layers
@@ -90,26 +83,40 @@ export default function WindRoseChart({
   loading = false,
   labelColor = "#ffffff",
 }: WindRoseChartProps = {}) {
-  // Convert live backend data to Wind Rose format, or use dummy data
-  const windMap = data?.directions
-    ? convertBackendToWindMap(data.directions)
-    : initDummyData();
-
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <div className="text-gray-400">Loading wind data...</div>
+        <div className="text-teal-400">Loading...</div>
       </div>
     );
   }
 
+  // No data provided — show empty state instead of dummy data
+  if (!data?.directions) {
+    return (
+      <EmptyState
+        compact
+        title="No Wind Data"
+        message="The device may be offline or no wind data has been recorded."
+      />
+    );
+  }
+
+  const windMap = convertBackendToWindMap(data.directions);
+
   const totalCount = windMap.reduce(
     (sum, layer) => sum + DIRECTIONS.reduce((s, d) => s + layer[d], 0),
-    0
+    0,
   );
 
   if (totalCount === 0) {
-    return <div className="py-8 text-center">No wind data available</div>;
+    return (
+      <EmptyState
+        compact
+        title="No Wind Data"
+        message="No wind readings in the current time window."
+      />
+    );
   }
 
   const traces: Partial<PlotData>[] = windMap.map((layer, i) => ({

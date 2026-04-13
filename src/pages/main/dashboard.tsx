@@ -708,7 +708,7 @@ export default function DashboardPage() {
               <div className="col-span-1 md:col-span-5 xl:col-span-3">
                 <Card title="Solar Radiation">
                   <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem]">
-                    <SolarRadiationChart />
+                    <SolarRadiationChart deviceId={device} />
                   </div>
                 </Card>
               </div>

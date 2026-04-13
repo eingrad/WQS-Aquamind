@@ -1,23 +1,93 @@
 // src/components/charts/SolarRadiationChart.tsx
+import { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
+import { getTimeSeriesData } from "../../services/telemetry.service";
+import EmptyState from "../common/EmptyState";
 
-export default function SolarRadiationChart() {
-  const data = [
-    { time: "06:00", value: 0 },
-    { time: "07:00", value: 50 },
-    { time: "08:00", value: 150 },
-    { time: "09:00", value: 300 },
-    { time: "10:00", value: 500 },
-    { time: "11:00", value: 700 },
-    { time: "12:00", value: 900 },
-    { time: "13:00", value: 850 },
-    { time: "14:00", value: 700 },
-    { time: "15:00", value: 500 },
-    { time: "16:00", value: 300 },
-    { time: "17:00", value: 100 },
-    { time: "18:00", value: 20 },
-    { time: "19:00", value: 0 },
-  ];
+interface SolarRadiationChartProps {
+  deviceId?: string;
+}
+
+export default function SolarRadiationChart({
+  deviceId,
+}: SolarRadiationChartProps) {
+  const [data, setData] = useState<{ time: string; value: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!deviceId) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchSolarData = async () => {
+      try {
+        setLoading(true);
+
+        // Get last 12 hours of solar data at 1-minute intervals
+        const now = new Date();
+        const twelveHoursAgo = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+
+        const result = await getTimeSeriesData({
+          deviceId,
+          startDate: twelveHoursAgo.toISOString(),
+          endDate: now.toISOString(),
+          interval: "30m", // 30-min buckets for a clean solar curve
+          parameters: "solar",
+        });
+
+        const transformed = result.timeSeries
+          .map((item: any) => {
+            const val =
+              item.solar_avg !== null && item.solar_avg !== undefined
+                ? parseFloat(item.solar_avg)
+                : null;
+            if (val === null) return null;
+
+            const date = new Date(item.bucket);
+            const timeStr = date.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            });
+
+            return { time: timeStr, value: val };
+          })
+          .filter(Boolean) as { time: string; value: number }[];
+
+        setData(transformed);
+      } catch (error) {
+        console.error("Failed to fetch solar radiation data:", error);
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSolarData();
+
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchSolarData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [deviceId]);
+
+  if (loading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-teal-400">Loading...</div>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <EmptyState
+        compact
+        title="No Solar Data"
+        message="The device may be offline or no solar radiation data has been recorded."
+      />
+    );
+  }
 
   return (
     <Plot
@@ -30,7 +100,8 @@ export default function SolarRadiationChart() {
           fill: "tozeroy",
           name: "Solar Radiation",
           line: { color: "#facc15", width: 3 },
-          marker: { color: "#facc15" },
+          marker: { color: "#facc15", size: 4 },
+          fillcolor: "rgba(250, 204, 21, 0.1)",
         },
       ]}
       layout={{
@@ -38,7 +109,7 @@ export default function SolarRadiationChart() {
         xaxis: { title: { text: "Time" }, tickfont: { color: "#cbd5e1" } },
         yaxis: {
           title: { text: "Radiation (W/m²)" },
-          range: [0, 1000],
+          rangemode: "tozero",
           tickfont: { color: "#cbd5e1" },
         },
         plot_bgcolor: "#0f1a1a",
