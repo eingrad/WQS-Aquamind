@@ -22,6 +22,16 @@ type UserRole = "admin" | "qa_qc" | "technician" | "user";
 
 const ALL_ROLES: UserRole[] = ["admin", "qa_qc", "technician", "user"];
 
+/** Map display names (roleName) to roleId for resilient matching */
+const ROLE_NAME_MAP: Record<string, UserRole> = {
+  administrator: "admin",
+  admin: "admin",
+  "qa/qc": "qa_qc",
+  qa_qc: "qa_qc",
+  technician: "technician",
+  user: "user",
+};
+
 interface MenuItem {
   label: string;
   href: string;
@@ -33,15 +43,35 @@ interface MenuItem {
 }
 
 /**
- * Read the current user's roleId from localStorage.
+ * Read the current user's role from localStorage.
+ * Checks roleId first, then falls back to matching roleName.
  * Falls back to "user" (most restrictive) if unavailable.
  */
 const getUserRole = (): UserRole => {
   try {
     const parsed = getStorageItem<Record<string, any>>(STORAGE_KEYS.USER);
     if (!parsed) return "user";
-    const role = parsed?.role || parsed?.userRole?.roleId;
-    if (role && ALL_ROLES.includes(role)) return role as UserRole;
+
+    // Try direct roleId match first
+    const roleId = parsed?.role || parsed?.userRole?.roleId;
+    if (roleId && ALL_ROLES.includes(roleId)) return roleId as UserRole;
+
+    // Fallback: match by roleName (handles cases where roleId differs from expected values)
+    const roleName = parsed?.roleName || parsed?.userRole?.role?.roleName;
+    if (roleName) {
+      const mapped = ROLE_NAME_MAP[roleName.toLowerCase()];
+      if (mapped) return mapped;
+    }
+
+    // Also try matching roleId through the name map (e.g. if roleId is a display name)
+    if (roleId) {
+      const mapped = ROLE_NAME_MAP[roleId.toLowerCase()];
+      if (mapped) return mapped;
+    }
+
+    if (roleId || roleName) {
+      console.warn(`[Sidebar] Unrecognized role: roleId="${roleId}", roleName="${roleName}". Falling back to "user".`);
+    }
     return "user";
   } catch {
     return "user";
