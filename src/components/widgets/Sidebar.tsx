@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { getStorageItem, STORAGE_KEYS } from "../../utils/storage";
 import logoSrc from "../../assets/petronas-logo-dark-whiteText.svg";
 import {
   CircleGauge,
@@ -16,6 +17,37 @@ import {
   BookOpen,
 } from "lucide-react";
 
+/** All known role IDs — matches backend seed.ts */
+type UserRole = "admin" | "qa_qc" | "technician" | "user";
+
+const ALL_ROLES: UserRole[] = ["admin", "qa_qc", "technician", "user"];
+
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: JSX.Element;
+  /** Which roles may see this item. Omit (or use ALL_ROLES) for universal access. */
+  allowedRoles: UserRole[];
+  /** Optional section divider rendered before this item */
+  sectionTitle?: string;
+}
+
+/**
+ * Read the current user's roleId from localStorage.
+ * Falls back to "user" (most restrictive) if unavailable.
+ */
+const getUserRole = (): UserRole => {
+  try {
+    const parsed = getStorageItem<Record<string, any>>(STORAGE_KEYS.USER);
+    if (!parsed) return "user";
+    const role = parsed?.role || parsed?.userRole?.roleId;
+    if (role && ALL_ROLES.includes(role)) return role as UserRole;
+    return "user";
+  } catch {
+    return "user";
+  }
+};
+
 export default function Sidebar({
   active = "Dashboard",
   isOpen: isOpenProp,
@@ -28,6 +60,40 @@ export default function Sidebar({
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = isOpenProp !== undefined ? isOpenProp : internalOpen;
   const setIsOpen = onToggle || setInternalOpen;
+
+  const userRole = getUserRole();
+
+  /**
+   * Menu items with role-based visibility:
+   *  - admin & qa_qc  → all items
+   *  - technician      → all except Data Approval
+   *  - user            → all except Analytics, Data Validation, Data Approval
+   */
+  const menuItems: MenuItem[] = useMemo(
+    () => [
+      // ── MAIN MENU ──
+      { label: "Overview",         href: "/overview",          icon: <MapPin className="w-5 h-5" />,                    allowedRoles: ALL_ROLES },
+      { label: "Dashboard",        href: "/dashboard",         icon: <CircleGauge className="w-5 h-5" />,               allowedRoles: ALL_ROLES },
+      { label: "Analytics",        href: "/analytics",         icon: <BarChart3 className="w-5 h-5" />,                 allowedRoles: ["admin", "qa_qc", "technician"] },
+      { label: "Report",           href: "/reports",           icon: <ClipboardList className="w-5 h-5" />,             allowedRoles: ALL_ROLES },
+      { label: "Data Validation",  href: "/data-validation",   icon: <Flag className="w-5 h-5" />,                      allowedRoles: ["admin", "qa_qc", "technician"] },
+      { label: "Data Approval",    href: "/data-approval",     icon: <CheckCircle className="w-5 h-5" />,               allowedRoles: ["admin", "qa_qc"] },
+      { label: "Alert Thresholds", href: "/alert-thresholds",  icon: <Bell className="w-5 h-5" />,                      allowedRoles: ALL_ROLES },
+      { label: "Alert History",    href: "/alert-history",     icon: <History className="w-5 h-5" />,                   allowedRoles: ALL_ROLES },
+      { label: "Knowledge Center", href: "/parameters",        icon: <BookOpen className="w-5 h-5" />,                  allowedRoles: ALL_ROLES },
+
+      // ── SYSTEM ──
+      { label: "Settings",         href: "/settings",          icon: <Settings className="w-5 h-5" />,                  allowedRoles: ALL_ROLES, sectionTitle: "SYSTEM" },
+      { label: "Help",             href: "#",                  icon: <MessageCircleQuestionMark className="w-5 h-5" />, allowedRoles: ALL_ROLES },
+    ],
+    [],
+  );
+
+  /** Items visible to the current user */
+  const visibleItems = useMemo(
+    () => menuItems.filter((item) => item.allowedRoles.includes(userRole)),
+    [menuItems, userRole],
+  );
 
   const Item = ({
     label,
@@ -99,69 +165,18 @@ export default function Sidebar({
         {/* Menu Title */}
         <div className="px-2 pb-2 text-[11px] text-gray-400">MAIN MENU</div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items — filtered by role */}
         <nav className="space-y-2">
-          <Item
-            label="Overview"
-            href="/overview"
-            icon={<MapPin className="w-5 h-5" />}
-          />
-          <Item
-            label="Dashboard"
-            href="/dashboard"
-            icon={<CircleGauge className="w-5 h-5" />}
-          />
-          <Item
-            label="Analytics"
-            href="/analytics"
-            icon={<BarChart3 className="w-5 h-5" />}
-          />
-
-          <Item
-            label="Report"
-            href="/reports"
-            icon={<ClipboardList className="w-5 h-5" />}
-          />
-          <Item
-            label="Data Validation"
-            href="/data-validation"
-            icon={<Flag className="w-5 h-5" />}
-          />
-          <Item
-            label="Data Approval"
-            href="/data-approval"
-            icon={<CheckCircle className="w-5 h-5" />}
-          />
-
-          {/* Alert Management Section */}
-          <Item
-            label="Alert Thresholds"
-            href="/alert-thresholds"
-            icon={<Bell className="w-5 h-5" />}
-          />
-          <Item
-            label="Alert History"
-            href="/alert-history"
-            icon={<History className="w-5 h-5" />}
-          />
-
-          <Item
-            label="Knowledge Center"
-            href="/parameters"
-            icon={<BookOpen className="w-5 h-5" />}
-          />
-
-          <div className="px-2 pt-4 pb-2 text-[11px] text-gray-400">SYSTEM</div>
-          <Item
-            label="Settings"
-            href="/settings"
-            icon={<Settings className="w-5 h-5" />}
-          />
-          <Item
-            label="Help"
-            href="#"
-            icon={<MessageCircleQuestionMark className="w-5 h-5" />}
-          />
+          {visibleItems.map((item) => (
+            <div key={item.label}>
+              {item.sectionTitle && (
+                <div className="px-2 pt-4 pb-2 text-[11px] text-gray-400">
+                  {item.sectionTitle}
+                </div>
+              )}
+              <Item label={item.label} href={item.href} icon={item.icon} />
+            </div>
+          ))}
         </nav>
       </aside>
     </>

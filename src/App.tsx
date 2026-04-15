@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { type ReactElement } from "react";
 import { UnitProvider } from "./context/UnitContext";
 import { isAuthenticated } from "./services/auth.service";
+import { getStorageItem, STORAGE_KEYS } from "./utils/storage";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 import PetronasLogin from "./pages/auth/login";
 import DashboardPage from "./pages/main/dashboard";
@@ -17,9 +18,41 @@ import AlertHistoryPage from "./pages/alerts/AlertHistoryPage";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ParameterInfoPage from "./pages/parameters/ParameterInfoPage";
 
+/** Known role IDs — mirrors backend seed.ts */
+type UserRole = "admin" | "qa_qc" | "technician" | "user";
+
+const ALL_ROLES: UserRole[] = ["admin", "qa_qc", "technician", "user"];
+
+/** Read the current user's role from storage (falls back to most restrictive) */
+function getUserRole(): UserRole {
+  try {
+    const parsed = getStorageItem<Record<string, any>>(STORAGE_KEYS.USER);
+    if (!parsed) return "user";
+    const role = parsed?.role || parsed?.userRole?.roleId;
+    if (role && ALL_ROLES.includes(role)) return role as UserRole;
+    return "user";
+  } catch {
+    return "user";
+  }
+}
+
 /** Redirects unauthenticated users to /login */
 function PrivateRoute({ element }: { element: ReactElement }) {
   return isAuthenticated() ? element : <Navigate to="/login" replace />;
+}
+
+/** Redirects authenticated but unauthorized users to /dashboard */
+function RoleRoute({
+  element,
+  allowedRoles,
+}: {
+  element: ReactElement;
+  allowedRoles: UserRole[];
+}) {
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  if (!allowedRoles.includes(getUserRole()))
+    return <Navigate to="/dashboard" replace />;
+  return element;
 }
 
 export default function App() {
@@ -30,11 +63,11 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<PetronasLogin />} />
             <Route path="/dashboard" element={<PrivateRoute element={<DashboardPage />} />} />
-            <Route path="/analytics" element={<PrivateRoute element={<AnalyticsPage />} />} />
+            <Route path="/analytics" element={<RoleRoute element={<AnalyticsPage />} allowedRoles={["admin", "qa_qc", "technician"]} />} />
             <Route path="/overview" element={<PrivateRoute element={<OverviewPage />} />} />
             <Route path="/reports" element={<PrivateRoute element={<ReportsPage />} />} />
-            <Route path="/data-validation" element={<PrivateRoute element={<DataValidationPage />} />} />
-            <Route path="/data-approval" element={<PrivateRoute element={<DataValidationApprovalPage />} />} />
+            <Route path="/data-validation" element={<RoleRoute element={<DataValidationPage />} allowedRoles={["admin", "qa_qc", "technician"]} />} />
+            <Route path="/data-approval" element={<RoleRoute element={<DataValidationApprovalPage />} allowedRoles={["admin", "qa_qc"]} />} />
             <Route path="/alert-thresholds" element={<PrivateRoute element={<ThresholdManagementPage />} />} />
             <Route path="/alert-history" element={<PrivateRoute element={<AlertHistoryPage />} />} />
             <Route path="/parameters" element={<PrivateRoute element={<ParameterInfoPage />} />} />
@@ -48,3 +81,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+

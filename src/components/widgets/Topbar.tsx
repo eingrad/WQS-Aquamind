@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import NotificationDropdown from "./NotificationDropdown";
 import * as notificationService from "../../services/notification.service";
 import { logout } from "../../services/auth.service";
+import { getStorageItem, STORAGE_KEYS } from "../../utils/storage";
 
 export default function Topbar({
   title = "",
@@ -18,15 +19,8 @@ export default function Topbar({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Get user info from localStorage
-  const storedUser = (() => {
-    try {
-      const raw = localStorage.getItem("user");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  })();
+  // Get user info from storage (supports both localStorage and sessionStorage)
+  const storedUser = getStorageItem<Record<string, any>>(STORAGE_KEYS.USER);
 
   const userName = storedUser?.fullName || storedUser?.name || "User";
   const userRole = storedUser?.role || "Admin";

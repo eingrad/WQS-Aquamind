@@ -18,7 +18,7 @@ export default function PetronasLogin() {
     setLoading(true);
 
     try {
-      const res = await login({ email, password });
+      const res = await login({ email, password }, remember);
 
       // Login successful - tokens stored automatically by auth service
       console.log("Login successful:", res.data.user);

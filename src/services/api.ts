@@ -1,4 +1,10 @@
 import axios from "axios";
+import {
+  getStorageItem,
+  setStorageItem,
+  removeStorageItem,
+  STORAGE_KEYS,
+} from "../utils/storage";
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -12,7 +18,7 @@ const api = axios.create({
 // Request interceptor - Add auth token to all requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    const token = getStorageItem<string>(STORAGE_KEYS.ACCESS_TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,7 +39,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true; // Prevent infinite loops
 
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken = getStorageItem<string>(STORAGE_KEYS.REFRESH_TOKEN);
 
       if (refreshToken && !window.location.pathname.includes("/login")) {
         try {
@@ -46,17 +52,17 @@ api.interceptors.response.use(
           );
 
           const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("refreshToken", newRefreshToken);
+          setStorageItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
+          setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
 
           // Retry the original request
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return axios(originalRequest);
         } catch (refreshError) {
           // Refresh failed - clear tokens and redirect to login
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
+          removeStorageItem(STORAGE_KEYS.ACCESS_TOKEN);
+          removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+          removeStorageItem(STORAGE_KEYS.USER);
 
           // Only redirect if not already on login page
           if (!window.location.pathname.includes("/login")) {
@@ -65,9 +71,9 @@ api.interceptors.response.use(
         }
       } else if (!window.location.pathname.includes("/login")) {
         // No refresh token or already on login - redirect once
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        removeStorageItem(STORAGE_KEYS.ACCESS_TOKEN);
+        removeStorageItem(STORAGE_KEYS.REFRESH_TOKEN);
+        removeStorageItem(STORAGE_KEYS.USER);
         window.location.href = "/login";
       }
     }
@@ -77,3 +83,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+

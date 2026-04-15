@@ -3,6 +3,7 @@ import axios from "axios";
 import {
   getStorageItem,
   setStorageItem,
+  setStorageMode,
   removeStorageItem,
   STORAGE_KEYS,
 } from "../utils/storage";
@@ -28,12 +29,18 @@ export interface User {
 /**
  * Login user and store tokens
  */
-export const login = async (credentials: LoginCredentials) => {
+export const login = async (
+  credentials: LoginCredentials,
+  rememberMe: boolean = true,
+) => {
   const response = await api.post("/auth/login", credentials);
   const { accessToken, refreshToken } = response.data.data.tokens;
   const user = response.data.data.user;
 
-  // Store tokens
+  // Set storage mode BEFORE writing tokens
+  setStorageMode(rememberMe);
+
+  // Store tokens in the chosen storage
   setStorageItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
   setStorageItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
   setStorageItem(STORAGE_KEYS.USER, user);
