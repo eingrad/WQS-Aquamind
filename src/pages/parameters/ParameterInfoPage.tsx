@@ -289,7 +289,7 @@ export default function ParameterInfoPage() {
   return (
     <div className="flex bg-[#050b0b] min-h-screen text-gray-100 overflow-x-hidden min-w-0 font-sans selection:bg-teal-500/30">
       <Sidebar
-        active="Parameters"
+        active="Knowledge Center"
         isOpen={sidebarOpen}
         onToggle={setSidebarOpen}
       />
