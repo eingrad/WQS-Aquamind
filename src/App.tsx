@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import DynamicTitle from "./components/common/DynamicTitle";
 import { type ReactElement } from "react";
 import { UnitProvider } from "./context/UnitContext";
 import { isAuthenticated } from "./services/auth.service";
@@ -89,6 +90,7 @@ export default function App() {
     <ErrorBoundary>
       <UnitProvider>
         <BrowserRouter>
+          <DynamicTitle />
           <Routes>
             <Route path="/login" element={<PetronasLogin />} />
             <Route path="/dashboard" element={<PrivateRoute element={<DashboardPage />} />} />
