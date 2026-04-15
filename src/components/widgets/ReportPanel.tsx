@@ -46,7 +46,9 @@ export default function ReportPanel({ onClose }: { onClose: () => void }) {
     filename: string,
   ) => {
     const response = await api.post(path, body, { responseType: "blob" });
-    const blob = new Blob([response.data]);
+    const contentType =
+      response.headers["content-type"] || "application/octet-stream";
+    const blob = new Blob([response.data], { type: contentType });
     const downloadUrl = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = downloadUrl;

@@ -66,7 +66,10 @@ export default function ReportTable() {
         responseType: "blob",
       });
 
-      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const contentType =
+        response.headers["content-type"] || "application/octet-stream";
+      const blob = new Blob([response.data], { type: contentType });
+      const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
       link.setAttribute("download", report.fileName);
@@ -89,11 +92,21 @@ export default function ReportTable() {
     setPreviewing(reportId);
 
     try {
+      const report = reports.find((r) => r.id === reportId);
       const response = await api.get(`/reports/${reportId}/download`, {
         responseType: "blob",
       });
 
-      const previewUrl = window.URL.createObjectURL(new Blob([response.data]));
+      // Determine MIME type from response or file format
+      const contentType =
+        response.headers["content-type"] ||
+        (report?.fileFormat === "PDF"
+          ? "application/pdf"
+          : report?.fileFormat === "CSV"
+            ? "text/csv"
+            : "text/plain");
+      const blob = new Blob([response.data], { type: contentType });
+      const previewUrl = window.URL.createObjectURL(blob);
       window.open(previewUrl, "_blank");
     } catch (error) {
       console.error("Preview error:", error);
