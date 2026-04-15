@@ -65,12 +65,12 @@ export default function ConfirmDialog({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 z-[1000] backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 z-[1100] backdrop-blur-sm"
         onClick={handleBackdropClick}
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[1101] flex items-center justify-center p-4">
         <div className="bg-[#0f1a1a] border border-white/10 rounded-lg shadow-2xl max-w-md w-full p-6 animate-scale-in">
           {/* Icon */}
           <div className="flex items-center justify-center mb-4">
