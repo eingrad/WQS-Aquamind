@@ -24,6 +24,7 @@ export interface AuthResponse {
     email: string;
     fullName: string;
     role: string;
+    roleName: string;
   };
   tokens: {
     accessToken: string;
@@ -98,6 +99,7 @@ export const register = async (input: RegisterInput): Promise<AuthResponse> => {
       email: user.email,
       fullName: user.fullName,
       role: role,
+      roleName: roleExists.roleName,
     },
     tokens: {
       accessToken,
@@ -177,6 +179,7 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
   });
 
   const role = user.userRole?.roleId || "user";
+  const roleName = user.userRole?.role?.roleName || role;
 
   // Generate tokens
   const tokenPayload = {
@@ -194,6 +197,7 @@ export const login = async (input: LoginInput): Promise<AuthResponse> => {
       email: user.email,
       fullName: user.fullName,
       role: role,
+      roleName: roleName,
     },
     tokens: {
       accessToken,

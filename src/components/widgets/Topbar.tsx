@@ -23,7 +23,7 @@ export default function Topbar({
   const storedUser = getStorageItem<Record<string, any>>(STORAGE_KEYS.USER);
 
   const userName = storedUser?.fullName || storedUser?.name || "User";
-  const userRole = storedUser?.role || "Admin";
+  const userRole = storedUser?.roleName || storedUser?.userRole?.role?.roleName || storedUser?.role || "Admin";
   const userInitials = userName
     .split(" ")
     .map((n: string) => n[0])
