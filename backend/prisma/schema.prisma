@@ -133,12 +133,12 @@ model TelemetryProcessed {
   observedAt      DateTime @map("observed_at") @db.Timestamptz
   
   // Air Quality Parameters
-  so2Value        Decimal? @map("so2_value") @db.Decimal(10, 2)
-  h2sValue        Decimal? @map("h2s_value") @db.Decimal(10, 2)
-  no2Value        Decimal? @map("no2_value") @db.Decimal(10, 2)
-  noValue         Decimal? @map("no_value") @db.Decimal(10, 2)
-  noxValue        Decimal? @map("nox_value") @db.Decimal(10, 2)
-  btexValue       Decimal? @map("btex_value") @db.Decimal(10, 2)
+  so2Value        Decimal? @map("so2_value") @db.Decimal(10, 6)
+  h2sValue        Decimal? @map("h2s_value") @db.Decimal(10, 6)
+  no2Value        Decimal? @map("no2_value") @db.Decimal(10, 6)
+  noValue         Decimal? @map("no_value") @db.Decimal(10, 6)
+  noxValue        Decimal? @map("nox_value") @db.Decimal(10, 6)
+  btexValue       Decimal? @map("btex_value") @db.Decimal(10, 6)
   
   // Meteorological Parameters
   tempValue       Decimal? @map("temp_value") @db.Decimal(5, 2)
