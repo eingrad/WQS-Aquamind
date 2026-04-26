@@ -54,6 +54,10 @@ export default function DashboardPage() {
   const [windRoseLoading, setWindRoseLoading] = useState(true);
   const [pollutionRoseLoading, setPollutionRoseLoading] = useState(true);
 
+  // Direction mode: "from" = wind blowing FROM, "to" = wind blowing TO
+  const [windDirMode, setWindDirMode] = useState<"from" | "to">("from");
+  const [pollutionDirMode, setPollutionDirMode] = useState<"from" | "to">("from");
+
   // Fetch devices from backend
   useEffect(() => {
     const fetchDevices = async () => {
@@ -477,7 +481,7 @@ export default function DashboardPage() {
                     : "text-gray-400 hover:text-white"
                 }`}
               >
-                Graph View
+                Widget View
               </button>
               <button
                 onClick={() => setView("table")}
@@ -613,9 +617,13 @@ export default function DashboardPage() {
                   title="Wind Rose"
                   right={
                     <div className="relative group">
-                      <select className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none">
-                        <option>Direction From</option>
-                        <option>Direction To</option>
+                      <select
+                        value={windDirMode}
+                        onChange={(e) => setWindDirMode(e.target.value as "from" | "to")}
+                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                      >
+                        <option value="from" className="bg-[#0d1717] text-white">Direction From</option>
+                        <option value="to" className="bg-[#0d1717] text-white">Direction To</option>
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg
@@ -650,6 +658,7 @@ export default function DashboardPage() {
                       <WindRoseChart
                         data={windRoseData}
                         loading={windRoseLoading}
+                        directionMode={windDirMode}
                       />
                     )}
                   </div>
@@ -662,9 +671,13 @@ export default function DashboardPage() {
                   title="Pollution Rose"
                   right={
                     <div className="relative group">
-                      <select className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none">
-                        <option>Direction From</option>
-                        <option>Direction To</option>
+                      <select
+                        value={pollutionDirMode}
+                        onChange={(e) => setPollutionDirMode(e.target.value as "from" | "to")}
+                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                      >
+                        <option value="from" className="bg-[#0d1717] text-white">Direction From</option>
+                        <option value="to" className="bg-[#0d1717] text-white">Direction To</option>
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg
@@ -699,6 +712,7 @@ export default function DashboardPage() {
                       <PollutionRoseChart
                         data={pollutionRoseData}
                         loading={pollutionRoseLoading}
+                        directionMode={pollutionDirMode}
                       />
                     )}
                   </div>

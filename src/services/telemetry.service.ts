@@ -1,6 +1,7 @@
 import api from "./api";
 
 export interface SensorReading {
+  [key: string]: any;
   recordId: string;
   deviceId: string;
   observedAt: string;
@@ -13,6 +14,8 @@ export interface SensorReading {
   wsValue: string | null;
   wdValue: string | null;
   solarValue: string | null;
+  pressureValue: string | null;
+  rainValue: string | null;
   dataQuality: string;
   device?: {
     name: string;
