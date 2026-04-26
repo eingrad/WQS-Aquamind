@@ -206,18 +206,24 @@ export const startWorker = (): void => {
   // Comment this out in production to wait for first minute
   // runAggregation();
 
-  // Run every minute at :00 seconds
+  // Run every minute at :15 seconds (15s delay after minute boundary)
+  // This gives MQTT data time to arrive before processing the previous minute
+  const WORKER_DELAY_SECONDS = 15;
   const now = new Date();
-  const secondsUntilNextMinute = 60 - now.getSeconds();
+  const currentSeconds = now.getSeconds();
+  const secondsUntilNextRun =
+    currentSeconds < WORKER_DELAY_SECONDS
+      ? WORKER_DELAY_SECONDS - currentSeconds
+      : 60 - currentSeconds + WORKER_DELAY_SECONDS;
 
-  // Wait until next minute, then start interval
+  // Wait until next :15, then start interval
   setTimeout(() => {
     runAggregation(); // Run first time
     workerInterval = setInterval(runAggregation, 60 * 1000); // Then every minute
-  }, secondsUntilNextMinute * 1000);
+  }, secondsUntilNextRun * 1000);
 
   console.log(
-    `⏰ Next aggregation in ${secondsUntilNextMinute} seconds (at :00)`,
+    `⏰ Next aggregation in ${secondsUntilNextRun} seconds (at :${WORKER_DELAY_SECONDS})`,
   );
 };
 
