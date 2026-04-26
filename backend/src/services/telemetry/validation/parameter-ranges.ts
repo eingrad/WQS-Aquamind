@@ -7,6 +7,8 @@ export const INSTRUMENT_RANGES = {
   so2: { min: 0, max: 20, unit: "ppm" },
   h2s: { min: 0, max: 2, unit: "ppm" },
   no2: { min: 0, max: 20, unit: "ppm" },
+  no: { min: 0, max: 20, unit: "ppm" },
+  nox: { min: 0, max: 40, unit: "ppm" },
   btex: { min: 0.3, max: 20, unit: "ppb" },
   temperature: { min: -40, max: 85, unit: "°C" },
   humidity: { min: 0, max: 100, unit: "%" },
@@ -45,6 +47,14 @@ export const OPERATIONAL_RANGES = {
   // Malaysia Ambient Air Quality Standard (1-hour average): 0.149 ppm (280 µg/m³)
   // Using conservative limit of 0.17 ppm from RMAQG for operational monitoring
   no2: { min: 0, max: 0.17, unit: "ppm" },
+
+  // NO: No specific Malaysian ambient standard — using WHO guideline
+  // Conservative limit aligned with NO2 for operational monitoring
+  no: { min: 0, max: 0.17, unit: "ppm" },
+
+  // NOx (NO + NO2): Combined nitrogen oxides
+  // Using sum of individual limits as conservative threshold
+  nox: { min: 0, max: 0.32, unit: "ppm" },
 
   // EU guideline: 5 µg/m³ annual average (benzene)
   // Using 10 ppb as conservative hourly threshold

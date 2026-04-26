@@ -33,7 +33,7 @@ const CONCENTRATION_COLORS = [
  * Backend: { "N": { "0-10": 5, "10-20": 8, ... }, ...}
  * Plotly needs: Array of traces, one per concentration bin
  */
-function convertBackendToPollutionRose(backendData: any): Partial<PlotData>[] {
+function convertBackendToPollutionRose(backendData: any, displayDirections: string[]): Partial<PlotData>[] {
   if (!backendData) return [];
 
   // Get all unique bins from first direction
@@ -44,7 +44,7 @@ function convertBackendToPollutionRose(backendData: any): Partial<PlotData>[] {
   return bins.map((bin, index) => ({
     type: "barpolar",
     r: DIRECTIONS.map((dir) => Number(backendData[dir]?.[bin]) || 0),
-    theta: DIRECTIONS,
+    theta: displayDirections,
     name: bin,
     marker: {
       color: CONCENTRATION_COLORS[index % CONCENTRATION_COLORS.length],
@@ -52,14 +52,26 @@ function convertBackendToPollutionRose(backendData: any): Partial<PlotData>[] {
   }));
 }
 
+/**
+ * Shift a 16-point compass direction by 180°
+ */
+const OPPOSITE_DIR: Record<string, string> = {
+  N: "S", NNE: "SSW", NE: "SW", ENE: "WSW",
+  E: "W", ESE: "WNW", SE: "NW", SSE: "NNW",
+  S: "N", SSW: "NNE", SW: "NE", WSW: "ENE",
+  W: "E", WNW: "ESE", NW: "SE", NNW: "SSE",
+};
+
 interface PollutionRoseChartProps {
   data?: any | null;
   loading?: boolean;
+  directionMode?: "from" | "to";
 }
 
 export default function PollutionRoseChart({
   data,
   loading = false,
+  directionMode = "from",
 }: PollutionRoseChartProps = {}) {
   if (loading) {
     return (
@@ -69,9 +81,14 @@ export default function PollutionRoseChart({
     );
   }
 
+  // Apply direction shift for "Direction To" mode
+  const displayDirections = directionMode === "to"
+    ? DIRECTIONS.map((d) => OPPOSITE_DIR[d] || d)
+    : DIRECTIONS;
+
   // Convert backend data or use dummy data
   const traces = data?.directions
-    ? convertBackendToPollutionRose(data.directions)
+    ? convertBackendToPollutionRose(data.directions, displayDirections)
     : generateDummyTraces();
 
   const layout: Partial<Layout> = {

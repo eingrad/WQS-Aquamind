@@ -37,6 +37,7 @@ model User {
   createdThresholds        AlertThreshold[] @relation("ThresholdCreator")
   acknowledgedAlerts       AlertHistory[] @relation("AlertAcknowledger")
   notificationPreference   UserNotificationPreference?
+  customDisplays           CustomDisplay[]
 
   @@index([isActive], name: "idx_users_active")
   @@map("users")
@@ -77,10 +78,11 @@ model UserRole {
 // 4. DEVICES TABLE
 // ============================================================================
 model Device {
-  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  deviceCode String   @unique @map("device_code") @db.VarChar(50)
-  name       String   @db.VarChar(255)
-  location   String   @db.VarChar(255)
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  deviceCode     String   @unique @map("device_code") @db.VarChar(50)
+  mqttIdentifier String?  @unique @map("mqtt_identifier") @db.VarChar(255)
+  name           String   @db.VarChar(255)
+  location       String   @db.VarChar(255)
   latitude   Decimal? @db.Decimal(10, 8)
   longitude  Decimal? @db.Decimal(11, 8)
   status     String   @default("active") @db.VarChar(50)
@@ -95,6 +97,7 @@ model Device {
   maintenanceLogs     MaintenanceLog[]
   alertThresholds     AlertThreshold[]
   alertHistory        AlertHistory[]
+  customDisplays      CustomDisplay[]
 
   @@map("devices")
 }
@@ -133,6 +136,8 @@ model TelemetryProcessed {
   so2Value        Decimal? @map("so2_value") @db.Decimal(10, 2)
   h2sValue        Decimal? @map("h2s_value") @db.Decimal(10, 2)
   no2Value        Decimal? @map("no2_value") @db.Decimal(10, 2)
+  noValue         Decimal? @map("no_value") @db.Decimal(10, 2)
+  noxValue        Decimal? @map("nox_value") @db.Decimal(10, 2)
   btexValue       Decimal? @map("btex_value") @db.Decimal(10, 2)
   
   // Meteorological Parameters
@@ -448,4 +453,28 @@ model RevokedToken {
   @@index([jti], name: "idx_revoked_token_jti")
   @@index([expiresAt], name: "idx_revoked_token_expires")
   @@map("revoked_tokens")
+}
+
+// ============================================================================
+// 17. CUSTOM_DISPLAYS TABLE
+// ============================================================================
+model CustomDisplay {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique @db.VarChar(100)
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  deviceId    String   @map("device_id") @db.Uuid
+  config      Json     @db.JsonB
+  isPublic    Boolean  @default(true) @map("is_public")
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  device  Device @relation(fields: [deviceId], references: [id])
+  creator User   @relation(fields: [createdBy], references: [id])
+
+  @@index([slug], name: "idx_display_slug")
+  @@index([createdBy], name: "idx_display_creator")
+  @@map("custom_displays")
 }

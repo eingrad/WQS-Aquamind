@@ -76,12 +76,25 @@ interface WindRoseChartProps {
   data?: any | null;
   loading?: boolean;
   labelColor?: string;
+  directionMode?: "from" | "to";
 }
+
+/**
+ * Shift a 16-point compass direction by 180°
+ * N→S, NE→SW, E→W, etc.
+ */
+const OPPOSITE_DIR: Record<string, string> = {
+  N: "S", NNE: "SSW", NE: "SW", ENE: "WSW",
+  E: "W", ESE: "WNW", SE: "NW", SSE: "NNW",
+  S: "N", SSW: "NNE", SW: "NE", WSW: "ENE",
+  W: "E", WNW: "ESE", NW: "SE", NNW: "SSE",
+};
 
 export default function WindRoseChart({
   data,
   loading = false,
   labelColor = "#ffffff",
+  directionMode = "from",
 }: WindRoseChartProps = {}) {
   if (loading) {
     return (
@@ -119,10 +132,15 @@ export default function WindRoseChart({
     );
   }
 
+  // If "Direction To", shift each direction's data to the opposite compass point
+  const displayDirections = directionMode === "to"
+    ? DIRECTIONS.map((d) => OPPOSITE_DIR[d] || d)
+    : DIRECTIONS;
+
   const traces: Partial<PlotData>[] = windMap.map((layer, i) => ({
     type: "barpolar",
     r: DIRECTIONS.map((d) => (layer[d] / totalCount) * 100),
-    theta: DIRECTIONS,
+    theta: displayDirections,
     name: SPEED_RANGES[i].label,
     marker: { color: SPEED_RANGES[i].color },
     hovertemplate:

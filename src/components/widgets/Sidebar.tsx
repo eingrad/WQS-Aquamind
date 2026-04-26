@@ -15,6 +15,7 @@ import {
   History,
   BarChart3,
   BookOpen,
+  Monitor,
 } from "lucide-react";
 
 /** All known role IDs — matches backend seed.ts */
@@ -106,6 +107,7 @@ export default function Sidebar({
       { label: "Dashboard",        href: "/dashboard",         icon: <CircleGauge className="w-5 h-5" />,               allowedRoles: ALL_ROLES },
       { label: "Analytics",        href: "/analytics",         icon: <BarChart3 className="w-5 h-5" />,                 allowedRoles: ["admin", "qa_qc", "technician"] },
       { label: "Report",           href: "/reports",           icon: <ClipboardList className="w-5 h-5" />,             allowedRoles: ALL_ROLES },
+      { label: "Displays",          href: "/displays",          icon: <Monitor className="w-5 h-5" />,                   allowedRoles: ["admin", "qa_qc"] },
       { label: "Data Validation",  href: "/data-validation",   icon: <Flag className="w-5 h-5" />,                      allowedRoles: ["admin", "qa_qc", "technician"] },
       { label: "Data Approval",    href: "/data-approval",     icon: <CheckCircle className="w-5 h-5" />,               allowedRoles: ["admin", "qa_qc"] },
       { label: "Alert Thresholds", href: "/alert-thresholds",  icon: <Bell className="w-5 h-5" />,                      allowedRoles: ALL_ROLES },

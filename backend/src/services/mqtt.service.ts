@@ -2,36 +2,61 @@ import mqtt from "mqtt";
 import { convertSensorTimestampToUTC } from "../utils/timezone";
 import * as bufferService from "./telemetry/buffer/buffer.service";
 import redis from "./redis.service";
+import prisma from "../config/database";
 import logger from "../config/logger";
 
 /**
  * MQTT Subscriber Service
  *
- * Connects to the Mosquitto broker and subscribes to sensor data topics.
- * When a message arrives (every 5 seconds per device), it:
- *   1. Parses the JSON payload
- *   2. Stores the reading in the Redis buffer (via bufferService)
- *   3. Updates wind rose / pollution rose data in Redis for live charts
+ * Connects to the HiveMQ Cloud broker and subscribes to sensor data topics.
+ * When a message arrives (every 1 minute per device), it:
+ *   1. Translates channelId numbers to internal parameter names
+ *   2. Resolves the device identifier to an internal UUID
+ *   3. Stores the reading in the Redis buffer (via bufferService)
+ *   4. Updates wind rose / pollution rose data in Redis for live charts
  *
  * The existing aggregation worker (aggregation.worker.ts) then picks up
  * the buffered readings every 60 seconds and writes 1-minute averages
  * to PostgreSQL.
  *
  * Data flow:
- *   MQTT Broker → this service → Redis buffer → aggregation worker → PostgreSQL
+ *   HiveMQ Broker → this service → Redis buffer → aggregation worker → PostgreSQL
  */
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 
-const BROKER_URL = process.env.MQTT_BROKER_URL || "mqtt://localhost:1883";
+const BROKER_URL = process.env.MQTT_BROKER_URL || "mqtts://localhost:8883";
 const MQTT_USERNAME = process.env.MQTT_USERNAME || "";
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || "";
 
 /**
- * Topic structure: sensors/{deviceCode}/data
- * The "+" wildcard matches any device code
+ * Topic structure: congrego/{stationCode}
+ * The "+" wildcard matches any station code (e.g., S40, S51)
  */
-const SENSOR_DATA_TOPIC = "sensors/+/data";
+const SENSOR_DATA_TOPIC = process.env.MQTT_TOPIC || "congrego/+";
+
+/**
+ * Channel ID → internal parameter name mapping
+ *
+ * These IDs are assigned by the analyzer/data logger.
+ * When new channels are added, update this map.
+ */
+const CHANNEL_MAP: Record<number, string> = {
+  13: "no",        // Nitric Oxide (NO)
+  14: "nox",       // Nitrogen Oxides (NOx = NO + NO2)
+  15: "no2",       // Nitrogen Dioxide (NO2)
+  22: "so2",       // Sulfur Dioxide (SO2)
+  23: "h2s",       // Hydrogen Sulfide (H2S)
+  // Meteorological channels will be added later:
+  // ??: "temperature",
+  // ??: "humidity",
+  // ??: "windSpeed",
+  // ??: "windDirection",
+  // ??: "solar",
+  // ??: "pressure",
+  // ??: "rain",
+  // ??: "btex",
+};
 
 /**
  * Wind rose configuration
@@ -55,13 +80,56 @@ const pollutionAccumulator: Map<string, Array<{ value: number; direction: number
 // How long to keep readings in the accumulator (10 minutes in ms)
 const ACCUMULATOR_WINDOW = 10 * 60 * 1000;
 
+// ─── Device Identifier Cache ────────────────────────────────────────────────
+
+/**
+ * In-memory cache: MQTT identifier → device UUID
+ * Avoids hitting the database on every message (messages arrive every 60s per device)
+ */
+const deviceIdCache: Map<string, string> = new Map();
+
+/**
+ * Resolve an MQTT identifier to the internal device UUID
+ * Uses in-memory cache, falls back to database lookup
+ *
+ * @param mqttIdentifier - The identifier string from the MQTT payload
+ * @returns Device UUID or null if not found
+ */
+const resolveDeviceId = async (mqttIdentifier: string): Promise<string | null> => {
+  // Check cache first
+  if (deviceIdCache.has(mqttIdentifier)) {
+    return deviceIdCache.get(mqttIdentifier)!;
+  }
+
+  // Database lookup
+  try {
+    const device = await prisma.device.findUnique({
+      where: { mqttIdentifier },
+      select: { id: true },
+    });
+
+    if (device) {
+      // Cache for future lookups
+      deviceIdCache.set(mqttIdentifier, device.id);
+      logger.info(`📡 MQTT: Resolved identifier to device ${device.id}`);
+      return device.id;
+    }
+
+    logger.warn(`⚠️ MQTT: No device found for identifier: ${mqttIdentifier}`);
+    return null;
+  } catch (err) {
+    logger.error(`❌ MQTT: Failed to resolve device identifier:`, err);
+    return null;
+  }
+};
+
 // ─── MQTT Client ────────────────────────────────────────────────────────────
 
 let client: mqtt.MqttClient | null = null;
 
 /**
  * Start the MQTT subscriber
- * Connects to the broker and begins listening for sensor data
+ * Connects to the HiveMQ Cloud broker via TLS and begins listening for sensor data
  */
 export const startMqttSubscriber = (): void => {
   try {
@@ -74,6 +142,8 @@ export const startMqttSubscriber = (): void => {
       connectTimeout: 10000,       // 10 second connection timeout
       clean: true,                 // Don't persist session on broker
       clientId: `petronas-backend-${process.pid}`, // Unique client ID
+      // TLS options for HiveMQ Cloud (mqtts://)
+      rejectUnauthorized: true,    // Verify server certificate
     });
 
     // ── Connection Events ───────────────────────────────────────────────
@@ -133,67 +203,141 @@ export const stopMqttSubscriber = (): void => {
   }
 };
 
+// ─── Payload Translation ──────────────────────────────────────────────────
+
+/**
+ * Expected MQTT payload format from the analyzer/data logger:
+ *
+ * {
+ *   "identifier": "qtz3IiXLlxg2XXH_5G_tUMRIgOdZQltYwwcuxJXw-Zo",
+ *   "report": "1min S40",
+ *   "reportId": 1,
+ *   "timestamp": "2026-04-26T13:20:00.0000000Z",
+ *   "values": [
+ *     { "channelId": 13, "unit": null, "function": "Average", "parameter": 0.0, "value": 7.4e-05 },
+ *     { "channelId": 14, "unit": null, "function": "Average", "parameter": 0.0, "value": 0.00135 },
+ *     { "channelId": 15, "unit": null, "function": "Average", "parameter": 0.0, "value": 0.00128 },
+ *     { "channelId": 22, "unit": null, "function": "Average", "parameter": 0.0, "value": 0.00045 },
+ *     { "channelId": 23, "unit": null, "function": "Average", "parameter": 0.0, "value": 0.00012 }
+ *   ]
+ * }
+ */
+
+interface MqttValueEntry {
+  channelId: number;
+  unit: string | null;
+  function: string;
+  parameter: number;
+  value: number;
+}
+
+interface MqttPayload {
+  identifier: string;
+  report: string;
+  reportId: number;
+  timestamp: string;
+  values: MqttValueEntry[];
+}
+
+/**
+ * Translate the MQTT payload into our internal format
+ *
+ * @param payload - Parsed MQTT JSON payload
+ * @returns Translated readings object with parameter names as keys, or null if no known channels
+ */
+const translatePayload = (payload: MqttPayload): Record<string, number> | null => {
+  const readings: Record<string, number> = {};
+  let translatedCount = 0;
+
+  for (const entry of payload.values) {
+    const paramName = CHANNEL_MAP[entry.channelId];
+
+    if (paramName) {
+      readings[paramName] = entry.value;
+      translatedCount++;
+    } else {
+      // Unknown channel — log at debug level (don't spam)
+      logger.debug(`📥 MQTT: Unknown channelId ${entry.channelId}, skipping`);
+    }
+  }
+
+  if (translatedCount === 0) {
+    return null;
+  }
+
+  return readings;
+};
+
 // ─── Message Processing ───────────────────────────────────────────────────
 
 /**
  * Handle an incoming sensor data message
- *
- * Expected payload format:
- * {
- *   "deviceId": "uuid",
- *   "timestamp": "2026-04-10T10:45:00+08:00",
- *   "readings": {
- *     "so2": 0.045,
- *     "no2": 0.012,
- *     "windSpeed": 5.3,
- *     "windDirection": 225,
- *     ...
- *   }
- * }
+ * Translates the channel-based payload and feeds it into the existing pipeline
  */
 const handleSensorMessage = async (topic: string, payload: Buffer): Promise<void> => {
   // Parse JSON payload
-  const message = JSON.parse(payload.toString());
+  const message: MqttPayload = JSON.parse(payload.toString());
 
   // Validate required fields
-  const { deviceId, timestamp, readings } = message;
+  const { identifier, timestamp, values } = message;
 
-  if (!deviceId || !timestamp || !readings) {
+  if (!identifier || !timestamp || !values) {
     logger.warn(`⚠️ MQTT: Invalid message on ${topic} — missing required fields`);
     return;
   }
 
-  if (typeof readings !== "object" || Object.keys(readings).length === 0) {
-    logger.warn(`⚠️ MQTT: Empty readings on ${topic}`);
+  if (!Array.isArray(values) || values.length === 0) {
+    logger.warn(`⚠️ MQTT: Empty values array on ${topic}`);
     return;
   }
 
-  // Convert timestamp to UTC
+  // ── Step 1: Resolve device identifier to UUID ─────────────────────
+
+  const deviceId = await resolveDeviceId(identifier);
+
+  if (!deviceId) {
+    // Device not registered — skip silently after first warning (already logged in resolveDeviceId)
+    return;
+  }
+
+  // ── Step 2: Translate channelIds to parameter names ───────────────
+
+  const readings = translatePayload(message);
+
+  if (!readings) {
+    logger.warn(`⚠️ MQTT: No known channels in message from ${topic}`);
+    return;
+  }
+
+  // ── Step 3: Parse timestamp ───────────────────────────────────────
+  // The analyzer sends ISO 8601 with high precision: "2026-04-26T13:20:00.0000000Z"
+  // Convert to UTC Date object
+
   const utcTimestamp = convertSensorTimestampToUTC(timestamp);
 
-  // ── Step 1: Store in Redis buffer (for 1-minute aggregation) ──────
+  // ── Step 4: Store in Redis buffer (for 1-minute aggregation) ──────
 
   const stored = await bufferService.storeRawReading(deviceId, utcTimestamp, readings);
 
   if (stored) {
-    logger.debug(`📥 MQTT: Buffered reading from ${deviceId} at ${timestamp}`);
+    logger.debug(`📥 MQTT: Buffered reading from ${deviceId} at ${timestamp} (${Object.keys(readings).join(", ")})`);
   } else {
     logger.warn(`⚠️ MQTT: Failed to buffer reading (Redis unavailable?)`);
   }
 
-  // ── Step 2: Update wind rose data ─────────────────────────────────
+  // ── Step 5: Update wind rose data ─────────────────────────────────
 
   if (readings.windSpeed !== undefined && readings.windDirection !== undefined) {
     updateWindRose(deviceId, readings.windSpeed, readings.windDirection);
   }
 
-  // ── Step 3: Update pollution rose data (SO₂ by default) ───────────
+  // ── Step 6: Update pollution rose data (SO₂ by default) ───────────
 
   if (readings.so2 !== undefined && readings.windDirection !== undefined) {
     updatePollutionRose(deviceId, "SO2", readings.so2, readings.windDirection);
   }
 
-  // ── Step 4: Update realtime parameters in Redis ───────────────────
+  // ── Step 7: Update realtime parameters in Redis ───────────────────
   //    Stores the latest reading directly for the dashboard widget
 
   await updateRealtimeParams(deviceId, timestamp, readings);

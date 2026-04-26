@@ -77,6 +77,10 @@ export const createReading = async (input: ReadingInput) => {
         readings.h2s !== undefined ? new Prisma.Decimal(readings.h2s) : null,
       no2Value:
         readings.no2 !== undefined ? new Prisma.Decimal(readings.no2) : null,
+      noValue:
+        readings.no !== undefined ? new Prisma.Decimal(readings.no) : null,
+      noxValue:
+        readings.nox !== undefined ? new Prisma.Decimal(readings.nox) : null,
       btexValue:
         readings.btex !== undefined ? new Prisma.Decimal(readings.btex) : null,
       tempValue:
