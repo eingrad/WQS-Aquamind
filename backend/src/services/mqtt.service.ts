@@ -42,19 +42,21 @@ const SENSOR_DATA_TOPIC = process.env.MQTT_TOPIC || "congrego/+";
  * When new channels are added, update this map.
  */
 const CHANNEL_MAP: Record<number, string> = {
-  13: "no",        // Nitric Oxide (NO)
-  14: "nox",       // Nitrogen Oxides (NOx = NO + NO2)
-  15: "no2",       // Nitrogen Dioxide (NO2)
-  22: "so2",       // Sulfur Dioxide (SO2)
-  23: "h2s",       // Hydrogen Sulfide (H2S)
-  // Meteorological channels will be added later:
-  // ??: "temperature",
-  // ??: "humidity",
-  // ??: "windSpeed",
-  // ??: "windDirection",
-  // ??: "solar",
-  // ??: "pressure",
-  // ??: "rain",
+  // Gas analyzers (congrego/S40, congrego/S51)
+  13: "no",           // Nitric Oxide (NO)
+  14: "nox",          // Nitrogen Oxides (NOx = NO + NO2)
+  15: "no2",          // Nitrogen Dioxide (NO2)
+  22: "so2",          // Sulfur Dioxide (SO2)
+  23: "h2s",          // Hydrogen Sulfide (H2S)
+  // Meteorological sensors (congrego/MS)
+  33: "temperature",  // Temperature (°C)
+  53: "windSpeed",    // Wind Speed (m/s)
+  54: "windDirection", // Wind Direction (°)
+  55: "humidity",     // Relative Humidity (%)
+  56: "pressure",     // Atmospheric Pressure (hPa)
+  57: "rain",         // Rainfall (mm)
+  58: "solar",        // Solar Radiation (W/m²)
+  // BTEX channel will be added later:
   // ??: "btex",
 };
 
