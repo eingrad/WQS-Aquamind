@@ -11,7 +11,7 @@
  */
 export const formatSensorValue = (
   value: number | null | undefined,
-  decimals: number = 2
+  decimals: number = 2,
 ): string => {
   if (value === null || value === undefined) {
     return "–";
@@ -23,11 +23,14 @@ export const formatSensorValue = (
  * Decimal places configuration for each parameter type
  */
 const PARAMETER_DECIMALS: Record<string, number> = {
-  // Pollutants (concentrations)
-  so2: 2, // µg/m³
-  h2s: 2, // ppm
-  no2: 2, // ppm
-  btx: 2, // ppb (BTEX)
+  // Pollutants (concentrations) — all gases stored in ppb
+  so2: 2, // ppb
+  h2s: 2, // ppb
+  no2: 2, // ppb
+  no: 2, // ppb
+  nox: 2, // ppb
+  btex: 2, // ppb
+  btx: 2, // ppb (legacy alias for BTEX, used in some table columns)
 
   // Meteorological
   solar: 2, // W/m²
@@ -38,7 +41,8 @@ const PARAMETER_DECIMALS: Record<string, number> = {
 
   // Wind
   windSpeed: 2, // m/s
-  windDir: 0, // degrees (no decimals for direction)
+  windDirection: 0, // degrees (no decimals for direction)
+  windDir: 0, // legacy alias
 };
 
 /**
@@ -49,7 +53,7 @@ const PARAMETER_DECIMALS: Record<string, number> = {
  */
 export const formatPollutantValue = (
   value: number | null | undefined,
-  parameter: string
+  parameter: string,
 ): string => {
   const decimals = PARAMETER_DECIMALS[parameter] ?? 2;
   return formatSensorValue(value, decimals);
@@ -63,7 +67,7 @@ export const formatPollutantValue = (
  */
 export const formatCoordinate = (
   value: number,
-  decimals: number = 4
+  decimals: number = 4,
 ): string => {
   return value.toFixed(decimals);
 };

@@ -7,9 +7,11 @@ export const DEVICES = [{ id: "PRG01", name: "Pengerang" }];
 
 // Measurement parameters (static base units — used for keys/labels reference)
 export const PARAMETERS = [
-  { key: "so2", label: "SO₂", unit: "ppm" },
-  { key: "h2s", label: "H₂S", unit: "ppm" },
-  { key: "no2", label: "NO₂", unit: "ppm" },
+  { key: "so2", label: "SO₂", unit: "ppb" },
+  { key: "h2s", label: "H₂S", unit: "ppb" },
+  { key: "no2", label: "NO₂", unit: "ppb" },
+  { key: "no", label: "NO", unit: "ppb" },
+  { key: "nox", label: "NOx", unit: "ppb" },
   { key: "btex", label: "BTEX", unit: "ppb" },
   { key: "solar", label: "Solar Radiation", unit: "W/m²" },
   { key: "temperature", label: "Temperature", unit: "°C" },
@@ -33,7 +35,7 @@ export function useParametersWithUnits() {
         ...p,
         unit: getUnit(p.key),
       })),
-    [getUnit]
+    [getUnit],
   );
 }
 

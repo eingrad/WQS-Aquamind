@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import DeviceImage from "../../assets/pengerang.jpg";
 import { getDeviceById } from "../../services/device.service";
 import { getTimeSeriesData } from "../../services/telemetry.service";
+import { useUnits } from "../../context/UnitContext";
 
 // Convert decimal degrees to DMS format
 function toDMS(decimal: number, isLat: boolean): string {
@@ -35,6 +36,7 @@ export default function DeviceInfoPanel({
   const [deviceDetails, setDeviceDetails] = useState<any>(null);
   const [latestReading, setLatestReading] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { convert, getUnit } = useUnits();
 
   useEffect(() => {
     if (!device?.id) return;
@@ -189,55 +191,105 @@ export default function DeviceInfoPanel({
                 <div className="text-sm space-y-5">
                   <div className="flex justify-between">
                     <span>SO₂</span>
-                    <span>{formatValue(latestReading.so2_avg, "µg/m³")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.so2_avg, "so2"),
+                        getUnit("so2"),
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>H₂S</span>
-                    <span>{formatValue(latestReading.h2s_avg, "ppm")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.h2s_avg, "h2s"),
+                        getUnit("h2s"),
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>NO₂</span>
-                    <span>{formatValue(latestReading.no2_avg, "ppm")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.no2_avg, "no2"),
+                        getUnit("no2"),
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>BTEX</span>
-                    <span>{formatValue(latestReading.btex_avg, "ppm")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.btex_avg, "btex"),
+                        getUnit("btex"),
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Wind Speed</span>
                     <span>
-                      {formatValue(latestReading.windspeed_avg, "m/s")}
+                      {formatValue(
+                        convert(latestReading.windspeed_avg, "windSpeed"),
+                        getUnit("windSpeed"),
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Wind Direction</span>
                     <span>
-                      {formatValue(latestReading.winddirection_avg, "°")}
+                      {formatValue(
+                        convert(
+                          latestReading.winddirection_avg,
+                          "windDirection",
+                        ),
+                        getUnit("windDirection"),
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Rain</span>
-                    <span>{formatValue(latestReading.rain_avg, "mm")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.rain_avg, "rain"),
+                        getUnit("rain"),
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Pressure</span>
                     <span>
-                      {formatValue(latestReading.pressure_avg, "hPa")}
+                      {formatValue(
+                        convert(latestReading.pressure_avg, "pressure"),
+                        getUnit("pressure"),
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Humidity</span>
-                    <span>{formatValue(latestReading.humidity_avg, "%")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.humidity_avg, "humidity"),
+                        getUnit("humidity"),
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Temperature</span>
                     <span>
-                      {formatValue(latestReading.temperature_avg, "°C")}
+                      {formatValue(
+                        convert(latestReading.temperature_avg, "temperature"),
+                        getUnit("temperature"),
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Solar Radiation</span>
-                    <span>{formatValue(latestReading.solar_avg, "W/m²")}</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.solar_avg, "solar"),
+                        getUnit("solar"),
+                      )}
+                    </span>
                   </div>
                 </div>
               ) : (

@@ -43,19 +43,19 @@ const SENSOR_DATA_TOPIC = process.env.MQTT_TOPIC || "congrego/+";
  */
 const CHANNEL_MAP: Record<number, string> = {
   // Gas analyzers (congrego/S40, congrego/S51)
-  13: "no",           // Nitric Oxide (NO)
-  14: "nox",          // Nitrogen Oxides (NOx = NO + NO2)
-  15: "no2",          // Nitrogen Dioxide (NO2)
-  22: "so2",          // Sulfur Dioxide (SO2)
-  23: "h2s",          // Hydrogen Sulfide (H2S)
+  13: "no", // Nitric Oxide (NO)
+  14: "nox", // Nitrogen Oxides (NOx = NO + NO2)
+  15: "no2", // Nitrogen Dioxide (NO2)
+  22: "so2", // Sulfur Dioxide (SO2)
+  23: "h2s", // Hydrogen Sulfide (H2S)
   // Meteorological sensors (congrego/MS)
-  33: "temperature",  // Temperature (°C)
-  53: "windSpeed",    // Wind Speed (m/s)
+  33: "temperature", // Temperature (°C)
+  53: "windSpeed", // Wind Speed (m/s)
   54: "windDirection", // Wind Direction (°)
-  55: "humidity",     // Relative Humidity (%)
-  56: "pressure",     // Atmospheric Pressure (hPa)
-  57: "rain",         // Rainfall (mm)
-  58: "solar",        // Solar Radiation (W/m²)
+  55: "humidity", // Relative Humidity (%)
+  56: "pressure", // Atmospheric Pressure (hPa)
+  57: "rain", // Rainfall (mm)
+  58: "solar", // Solar Radiation (W/m²)
   // BTEX channel will be added later:
   // ??: "btex",
 };
@@ -65,8 +65,22 @@ const CHANNEL_MAP: Record<number, string> = {
  * 16 compass directions split into speed bins
  */
 const COMPASS_DIRECTIONS = [
-  "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
-  "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW",
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
 ];
 
 const WIND_SPEED_BINS = ["0-2", "2-5", "5-10", "10-15", "15+"];
@@ -76,8 +90,14 @@ const POLLUTION_BINS = ["low", "moderate", "high", "very_high"];
 const ROSE_TTL = 300;
 
 // Accumulator for wind rose computation (keeps last 10 minutes of data per device)
-const windAccumulator: Map<string, Array<{ speed: number; direction: number; timestamp: number }>> = new Map();
-const pollutionAccumulator: Map<string, Array<{ value: number; direction: number; timestamp: number }>> = new Map();
+const windAccumulator: Map<
+  string,
+  Array<{ speed: number; direction: number; timestamp: number }>
+> = new Map();
+const pollutionAccumulator: Map<
+  string,
+  Array<{ value: number; direction: number; timestamp: number }>
+> = new Map();
 
 // How long to keep readings in the accumulator (10 minutes in ms)
 const ACCUMULATOR_WINDOW = 10 * 60 * 1000;
@@ -97,7 +117,9 @@ const deviceIdCache: Map<string, string> = new Map();
  * @param mqttIdentifier - The identifier string from the MQTT payload
  * @returns Device UUID or null if not found
  */
-const resolveDeviceId = async (mqttIdentifier: string): Promise<string | null> => {
+const resolveDeviceId = async (
+  mqttIdentifier: string,
+): Promise<string | null> => {
   // Check cache first
   if (deviceIdCache.has(mqttIdentifier)) {
     return deviceIdCache.get(mqttIdentifier)!;
@@ -140,12 +162,12 @@ export const startMqttSubscriber = (): void => {
     client = mqtt.connect(BROKER_URL, {
       username: MQTT_USERNAME || undefined,
       password: MQTT_PASSWORD || undefined,
-      reconnectPeriod: 5000,       // Retry every 5 seconds if disconnected
-      connectTimeout: 10000,       // 10 second connection timeout
-      clean: true,                 // Don't persist session on broker
+      reconnectPeriod: 5000, // Retry every 5 seconds if disconnected
+      connectTimeout: 10000, // 10 second connection timeout
+      clean: true, // Don't persist session on broker
       clientId: `petronas-backend-${process.pid}`, // Unique client ID
       // TLS options for HiveMQ Cloud (mqtts://)
-      rejectUnauthorized: true,    // Verify server certificate
+      rejectUnauthorized: true, // Verify server certificate
     });
 
     // ── Connection Events ───────────────────────────────────────────────
@@ -190,7 +212,9 @@ export const startMqttSubscriber = (): void => {
     });
   } catch (err) {
     logger.error("❌ Failed to start MQTT subscriber:", err);
-    logger.warn("📝 System will continue without MQTT — no live data ingestion");
+    logger.warn(
+      "📝 System will continue without MQTT — no live data ingestion",
+    );
   }
 };
 
@@ -247,7 +271,9 @@ interface MqttPayload {
  * @param payload - Parsed MQTT JSON payload
  * @returns Translated readings object with parameter names as keys, or null if no known channels
  */
-const translatePayload = (payload: MqttPayload): Record<string, number> | null => {
+const translatePayload = (
+  payload: MqttPayload,
+): Record<string, number> | null => {
   const readings: Record<string, number> = {};
   let translatedCount = 0;
 
@@ -276,7 +302,10 @@ const translatePayload = (payload: MqttPayload): Record<string, number> | null =
  * Handle an incoming sensor data message
  * Translates the channel-based payload and feeds it into the existing pipeline
  */
-const handleSensorMessage = async (topic: string, payload: Buffer): Promise<void> => {
+const handleSensorMessage = async (
+  topic: string,
+  payload: Buffer,
+): Promise<void> => {
   // Parse JSON payload
   const message: MqttPayload = JSON.parse(payload.toString());
 
@@ -284,7 +313,9 @@ const handleSensorMessage = async (topic: string, payload: Buffer): Promise<void
   const { identifier, timestamp, values } = message;
 
   if (!identifier || !timestamp || !values) {
-    logger.warn(`⚠️ MQTT: Invalid message on ${topic} — missing required fields`);
+    logger.warn(
+      `⚠️ MQTT: Invalid message on ${topic} — missing required fields`,
+    );
     return;
   }
 
@@ -319,17 +350,26 @@ const handleSensorMessage = async (topic: string, payload: Buffer): Promise<void
 
   // ── Step 4: Store in Redis buffer (for 1-minute aggregation) ──────
 
-  const stored = await bufferService.storeRawReading(deviceId, utcTimestamp, readings);
+  const stored = await bufferService.storeRawReading(
+    deviceId,
+    utcTimestamp,
+    readings,
+  );
 
   if (stored) {
-    logger.debug(`📥 MQTT: Buffered reading from ${deviceId} at ${timestamp} (${Object.keys(readings).join(", ")})`);
+    logger.debug(
+      `📥 MQTT: Buffered reading from ${deviceId} at ${timestamp} (${Object.keys(readings).join(", ")})`,
+    );
   } else {
     logger.warn(`⚠️ MQTT: Failed to buffer reading (Redis unavailable?)`);
   }
 
   // ── Step 5: Update wind rose data ─────────────────────────────────
 
-  if (readings.windSpeed !== undefined && readings.windDirection !== undefined) {
+  if (
+    readings.windSpeed !== undefined &&
+    readings.windDirection !== undefined
+  ) {
     updateWindRose(deviceId, readings.windSpeed, readings.windDirection);
   }
 
@@ -356,7 +396,7 @@ const handleSensorMessage = async (topic: string, payload: Buffer): Promise<void
 const updateWindRose = async (
   deviceId: string,
   speed: number,
-  direction: number
+  direction: number,
 ): Promise<void> => {
   const now = Date.now();
 
@@ -415,7 +455,7 @@ const updatePollutionRose = async (
   deviceId: string,
   parameter: string,
   value: number,
-  windDirection: number
+  windDirection: number,
 ): Promise<void> => {
   const now = Date.now();
   const accKey = `${deviceId}:${parameter}`;
@@ -473,7 +513,7 @@ const updatePollutionRose = async (
 const updateRealtimeParams = async (
   deviceId: string,
   timestamp: string,
-  readings: Record<string, number>
+  readings: Record<string, number>,
 ): Promise<void> => {
   const data = {
     timestamp,
@@ -519,10 +559,10 @@ const getSpeedBin = (speed: number): string => {
  * Thresholds based on typical SO₂ ambient levels
  */
 const getConcentrationBin = (value: number): string => {
-  if (value < 0.02) return "low";          // < 20 ppb
-  if (value < 0.05) return "moderate";     // 20-50 ppb
-  if (value < 0.1) return "high";          // 50-100 ppb
-  return "very_high";                       // > 100 ppb
+  if (value < 0.02) return "low"; // < 20 ppb
+  if (value < 0.05) return "moderate"; // 20-50 ppb
+  if (value < 0.1) return "high"; // 50-100 ppb
+  return "very_high"; // > 100 ppb
 };
 
 export default {

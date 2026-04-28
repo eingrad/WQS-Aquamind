@@ -4,12 +4,15 @@
  * Flag: exceeding_range (Yellow)
  */
 export const INSTRUMENT_RANGES = {
-  so2: { min: 0, max: 20, unit: "ppm" },
-  h2s: { min: 0, max: 2, unit: "ppm" },
-  no2: { min: 0, max: 20, unit: "ppm" },
-  no: { min: 0, max: 20, unit: "ppm" },
-  nox: { min: 0, max: 40, unit: "ppm" },
-  btex: { min: 0.3, max: 20, unit: "ppb" },
+  // Serinus 51 (combined H2S/SO2 UV fluorescence): 0-2 ppm = 0-2000 ppb
+  so2: { min: 0, max: 2000, unit: "ppb" },
+  h2s: { min: 0, max: 2000, unit: "ppb" },
+  // NOx analyzer: 0-20 ppm autoranging = 0-20000 ppb per channel
+  no2: { min: 0, max: 20000, unit: "ppb" },
+  no: { min: 0, max: 20000, unit: "ppb" },
+  nox: { min: 0, max: 40000, unit: "ppb" },
+  // Synspec GC955 BTEX (PID): 0-20 ppb standard, up to 300 ppb extended config
+  btex: { min: 0, max: 300, unit: "ppb" },
   temperature: { min: -40, max: 85, unit: "°C" },
   humidity: { min: 0, max: 100, unit: "%" },
   windSpeed: { min: 0, max: 60, unit: "m/s" },
@@ -36,29 +39,29 @@ export const INSTRUMENT_RANGES = {
  * - Malaysia Meteorological Department climate data
  */
 export const OPERATIONAL_RANGES = {
-  // Malaysia Ambient Air Quality Standard (1-hour average): 0.095 ppm (250 µg/m³)
-  // Using conservative limit of 0.13 ppm from RMAQG for operational monitoring
-  so2: { min: 0, max: 0.13, unit: "ppm" },
+  // Malaysia Ambient Air Quality Standard (1-hour average): 95 ppb (250 µg/m³)
+  // Using conservative limit of 130 ppb from RMAQG for operational monitoring
+  so2: { min: 0, max: 130, unit: "ppb" },
 
-  // DOE industrial emission limit: ~5.38 ppm (7.5 mg/m³)
-  // Using 0.05 ppm as ambient safety threshold (well below industrial limit)
-  h2s: { min: 0, max: 0.05, unit: "ppm" },
+  // DOE industrial emission limit: ~5380 ppb (7.5 mg/m³)
+  // Using 50 ppb as ambient safety threshold (well below industrial limit)
+  h2s: { min: 0, max: 50, unit: "ppb" },
 
-  // Malaysia Ambient Air Quality Standard (1-hour average): 0.149 ppm (280 µg/m³)
-  // Using conservative limit of 0.17 ppm from RMAQG for operational monitoring
-  no2: { min: 0, max: 0.17, unit: "ppm" },
+  // Malaysia Ambient Air Quality Standard (1-hour average): 149 ppb (280 µg/m³)
+  // Using conservative limit of 170 ppb from RMAQG for operational monitoring
+  no2: { min: 0, max: 170, unit: "ppb" },
 
   // NO: No specific Malaysian ambient standard — using WHO guideline
   // Conservative limit aligned with NO2 for operational monitoring
-  no: { min: 0, max: 0.17, unit: "ppm" },
+  no: { min: 0, max: 170, unit: "ppb" },
 
   // NOx (NO + NO2): Combined nitrogen oxides
   // Using sum of individual limits as conservative threshold
-  nox: { min: 0, max: 0.32, unit: "ppm" },
+  nox: { min: 0, max: 320, unit: "ppb" },
 
   // EU guideline: 5 µg/m³ annual average (benzene)
   // Using 10 ppb as conservative hourly threshold
-  btex: { min: 0.3, max: 10, unit: "ppb" },
+  btex: { min: 0, max: 10, unit: "ppb" },
 
   // Malaysia tropical climate: 21-32°C typical range
   // Allow 20-35°C for operational monitoring (accounts for daily variation)

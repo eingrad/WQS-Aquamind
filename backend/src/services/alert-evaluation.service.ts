@@ -103,26 +103,10 @@ export const batchEvaluateParameters = async (
 ) => {
   const results: EvaluationResult[] = [];
 
-  // Parameter mapping (aggregated field name to parameter code)
-  const parameterMapping: Record<string, string> = {
-    so2Value: "so2",
-    h2sValue: "h2s",
-    no2Value: "no2",
-    btexValue: "btex",
-    tempValue: "temp",
-    humidityValue: "humidity",
-    wsValue: "ws",
-    wdValue: "wd",
-    solarValue: "solar",
-    pressureValue: "pressure",
-    rainValue: "rain",
-  };
-
-  for (const [fieldName, value] of Object.entries(aggregatedData)) {
+  // aggregatedData keys are already the canonical parameter names
+  // (so2, h2s, no2, no, nox, btex, temperature, windSpeed, windDirection, …)
+  for (const [parameter, value] of Object.entries(aggregatedData)) {
     if (value === null || value === undefined) continue;
-
-    const parameter = parameterMapping[fieldName];
-    if (!parameter) continue;
 
     const result = await evaluateMinuteData({
       deviceId,

@@ -1,15 +1,17 @@
 /**
  * Unit Conversion Utility
  *
- * Backend base units:
- *   SO₂: ppm, H₂S: ppm, NO₂: ppm, BTEX: ppb
+ * Backend base units (all gases stored in ppb):
+ *   SO₂: ppb, H₂S: ppb, NO₂: ppb, NO: ppb, NOx: ppb, BTEX: ppb
  *   Temperature: °C, Humidity: %, Wind Speed: m/s, Wind Direction: °
  *   Solar Radiation: W/m², Pressure: hPa, Rain: mm/h
  *
  * Molecular weights (for µg/m³ conversion at 25°C, 1 atm):
  *   SO₂ = 64.07 g/mol
  *   H₂S = 34.08 g/mol
+ *   NO  = 30.01 g/mol
  *   NO₂ = 46.01 g/mol
+ *   NOx = 46.01 g/mol (reported as NO₂-equivalent)
  *   BTEX ≈ 78.11 g/mol (using benzene as reference)
  *
  * Conversion factor: µg/m³ = ppm × (MW × 1000) / 24.45
@@ -18,10 +20,11 @@
 
 // Supported unit options per parameter
 export const UNIT_OPTIONS: Record<string, string[]> = {
-  so2: ["ppm", "ppb", "µg/m³"],
-  h2s: ["ppm", "ppb", "µg/m³"],
-  no2: ["ppm", "ppb", "µg/m³"],
-  btex: ["ppb", "ppm", "µg/m³"],
+  so2: ["ppb", "ppm", "µg/m³"],
+  h2s: ["ppb", "ppm", "µg/m³"],
+  no2: ["ppb", "ppm", "µg/m³"],
+  no: ["ppb", "ppm", "µg/m³"],
+  nox: ["ppb", "ppm", "µg/m³"],
   temperature: ["°C", "°F"],
   humidity: ["%", "g/m³"],
   windSpeed: ["m/s", "km/h", "mph"],
@@ -31,12 +34,13 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
   rain: ["mm/h", "in/h"],
 };
 
-// Default base units from backend
+// Default base units from backend (all gases stored in ppb)
 export const BASE_UNITS: Record<string, string> = {
-  so2: "ppm",
-  h2s: "ppm",
-  no2: "ppm",
-  btex: "ppb",
+  so2: "ppb",
+  h2s: "ppb",
+  no2: "ppb",
+  no: "ppb",
+  nox: "ppb",
   temperature: "°C",
   humidity: "%",
   windSpeed: "m/s",
@@ -54,6 +58,8 @@ const MOLECULAR_WEIGHTS: Record<string, number> = {
   so2: 64.07,
   h2s: 34.08,
   no2: 46.01,
+  no: 30.01,
+  nox: 46.01,
   btex: 78.11, // benzene reference
 };
 
@@ -74,7 +80,7 @@ export function convertValue(
   if (!baseUnit || baseUnit === targetUnit) return value;
 
   // Gas parameters: ppm <-> ppb <-> µg/m³
-  if (["so2", "h2s", "no2", "btex"].includes(parameter)) {
+  if (["so2", "h2s", "no2", "no", "nox", "btex"].includes(parameter)) {
     return convertGas(value, parameter, baseUnit, targetUnit);
   }
 
@@ -119,7 +125,7 @@ export function convertValue(
 
 /**
  * Convert gas concentration values
- * Base units: SO₂/H₂S/NO₂ = ppm, BTEX = ppb
+ * Base units: all gases stored in ppb
  */
 function convertGas(
   value: number,

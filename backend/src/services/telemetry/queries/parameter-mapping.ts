@@ -5,6 +5,8 @@ export const PARAMETER_DB_MAP: Record<string, string> = {
   so2: "so2_value",
   h2s: "h2s_value",
   no2: "no2_value",
+  no: "no_value",
+  nox: "nox_value",
   btex: "btex_value",
   temperature: "temp_value",
   humidity: "humidity_value",
@@ -19,10 +21,12 @@ export const PARAMETER_DB_MAP: Record<string, string> = {
  * Map parameter names to their units
  */
 export const PARAMETER_UNITS: Record<string, string> = {
-  so2: "ppm",
-  h2s: "ppm",
-  no2: "ppm",
+  so2: "ppb",
+  h2s: "ppb",
+  no2: "ppb",
   btex: "ppb",
+  no: "ppb",
+  nox: "ppb",
   temperature: "°C",
   humidity: "%",
   windSpeed: "m/s",
