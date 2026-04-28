@@ -9,7 +9,12 @@ interface DataRow {
   so2: number;
   h2s: number;
   no2: number;
-  btx: number;
+  // BTEX components — Synspec GC955 channels 34/35/36/37/38, all in ppb
+  benzene: number;
+  toluene: number;
+  ethylbenzene: number;
+  mp_xylene: number;
+  o_xylene: number;
   solar: number;
   temperature: number;
   humidity: number;
@@ -80,47 +85,93 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>SO₂</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("so2")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("so2")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>H₂S</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("h2s")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("h2s")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>NO₂</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("no2")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("no2")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>BTEX</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("btex")}</div>
+                  <div>Benzene</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("benzene")}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
+                  <div>Toluene</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("toluene")}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
+                  <div>Ethylbenzene</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("ethylbenzene")}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[130px]">
+                  <div>m,p-Xylene</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("mp_xylene")}
+                  </div>
+                </th>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
+                  <div>o-Xylene</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("o_xylene")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
                   <div>Solar Radiation</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("solar")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("solar")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>Temperature</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("temperature")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("temperature")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>Humidity</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("humidity")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("humidity")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>Pressure</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("pressure")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("pressure")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>Rain</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("rain")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("rain")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>Wind Speed</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("windSpeed")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("windSpeed")}
+                  </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold min-w-[120px]">
                   <div>Wind Direction</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("windDirection")}</div>
+                  <div className="text-xs font-normal text-gray-400">
+                    {getUnit("windDirection")}
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -146,13 +197,46 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                     {formatPollutantValue(convert(row.no2, "no2") ?? 0, "no2")}
                   </td>
                   <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.btx, "btex") ?? 0, "btx")}
+                    {formatPollutantValue(
+                      convert(row.benzene, "benzene") ?? 0,
+                      "benzene",
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.solar, "solar") ?? 0, "solar")}
+                    {formatPollutantValue(
+                      convert(row.toluene, "toluene") ?? 0,
+                      "toluene",
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.temperature, "temperature") ?? 0, "temperature")}
+                    {formatPollutantValue(
+                      convert(row.ethylbenzene, "ethylbenzene") ?? 0,
+                      "ethylbenzene",
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center ">
+                    {formatPollutantValue(
+                      convert(row.mp_xylene, "mp_xylene") ?? 0,
+                      "mp_xylene",
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center ">
+                    {formatPollutantValue(
+                      convert(row.o_xylene, "o_xylene") ?? 0,
+                      "o_xylene",
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center ">
+                    {formatPollutantValue(
+                      convert(row.solar, "solar") ?? 0,
+                      "solar",
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-center ">
+                    {formatPollutantValue(
+                      convert(row.temperature, "temperature") ?? 0,
+                      "temperature",
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center ">
                     {formatPollutantValue(row.humidity, "humidity")}
@@ -164,7 +248,10 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                     {formatPollutantValue(row.rain, "rain")}
                   </td>
                   <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.windSpeed, "windSpeed") ?? 0, "windSpeed")}
+                    {formatPollutantValue(
+                      convert(row.windSpeed, "windSpeed") ?? 0,
+                      "windSpeed",
+                    )}
                   </td>
                   <td className="px-4 py-3 text-center">
                     {formatPollutantValue(row.windDir, "windDir")}

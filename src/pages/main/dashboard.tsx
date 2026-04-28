@@ -226,7 +226,7 @@ export default function DashboardPage() {
           endDate: endTime.toISOString(),
           interval: average === "raw" ? "1m" : average, // Map "raw" to 1m interval
           parameters:
-            "so2,h2s,no2,btex,solar,temperature,humidity,windSpeed,windDirection,pressure,rain",
+            "so2,h2s,no2,benzene,toluene,ethylbenzene,mp_xylene,o_xylene,solar,temperature,humidity,windSpeed,windDirection,pressure,rain",
         });
 
         const transformed = data.timeSeries.map((item: any) => ({
@@ -234,7 +234,11 @@ export default function DashboardPage() {
           so2: item.so2_avg ?? null,
           h2s: item.h2s_avg ?? null,
           no2: item.no2_avg ?? null,
-          btx: item.btex_avg ?? null,
+          benzene: item.benzene_avg ?? null,
+          toluene: item.toluene_avg ?? null,
+          ethylbenzene: item.ethylbenzene_avg ?? null,
+          mp_xylene: item.mp_xylene_avg ?? null,
+          o_xylene: item.o_xylene_avg ?? null,
           solar: item.solar_avg ?? null,
           temperature: item.temperature_avg ?? null,
           humidity: item.humidity_avg ?? null,
