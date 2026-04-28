@@ -15,7 +15,10 @@ interface ParamHistory {
   timestamps: number[];
 }
 
-export default function ParameterCardsWidget({ deviceId, parameters }: ParameterCardsWidgetProps) {
+export default function ParameterCardsWidget({
+  deviceId,
+  parameters,
+}: ParameterCardsWidgetProps) {
   const [liveData, setLiveData] = useState<Record<string, number>>({});
   const [prevData, setPrevData] = useState<Record<string, number>>({});
   const [history, setHistory] = useState<Record<string, ParamHistory>>({});
@@ -30,16 +33,22 @@ export default function ParameterCardsWidget({ deviceId, parameters }: Parameter
     const fetchData = async () => {
       try {
         const data = await getRealTimeParams(deviceId);
+        // Flatten { value, at } entries to plain numbers for this widget's internal state
+        const flat: Record<string, number> = {};
+        for (const [key, entry] of Object.entries(data.readings)) {
+          if (entry) flat[key] = entry.value;
+        }
         setPrevData((prev) => ({ ...prev, ...liveData }));
-        setLiveData(data.readings);
+        setLiveData(flat);
 
         // Update sparkline history
         const now = Date.now();
         const newHistory = { ...historyRef.current };
         for (const key of parameters) {
-          if (data.readings[key] !== undefined) {
-            if (!newHistory[key]) newHistory[key] = { values: [], timestamps: [] };
-            newHistory[key].values.push(data.readings[key]);
+          if (flat[key] !== undefined) {
+            if (!newHistory[key])
+              newHistory[key] = { values: [], timestamps: [] };
+            newHistory[key].values.push(flat[key]);
             newHistory[key].timestamps.push(now);
             // Keep last 60 data points (10 minutes at 10s interval)
             if (newHistory[key].values.length > 60) {
@@ -56,14 +65,21 @@ export default function ParameterCardsWidget({ deviceId, parameters }: Parameter
             const latest = readings[0];
             const mapped: Record<string, number> = {};
             const keyMap: Record<string, string> = {
-              so2: "so2Value", h2s: "h2sValue", no2: "no2Value",
-              btex: "btexValue", temperature: "tempValue",
-              humidity: "humidityValue", windSpeed: "wsValue",
-              windDirection: "wdValue", solar: "solarValue",
-              pressure: "pressureValue", rain: "rainValue",
+              so2: "so2Value",
+              h2s: "h2sValue",
+              no2: "no2Value",
+              btex: "btexValue",
+              temperature: "tempValue",
+              humidity: "humidityValue",
+              windSpeed: "wsValue",
+              windDirection: "wdValue",
+              solar: "solarValue",
+              pressure: "pressureValue",
+              rain: "rainValue",
             };
             for (const p of parameters) {
-              if (keyMap[p] && latest[keyMap[p]]) mapped[p] = parseFloat(latest[keyMap[p]]);
+              if (keyMap[p] && latest[keyMap[p]])
+                mapped[p] = parseFloat(latest[keyMap[p]]);
             }
             setLiveData(mapped);
           }
@@ -135,7 +151,10 @@ export default function ParameterCardsWidget({ deviceId, parameters }: Parameter
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {parameters.map((p) => (
-          <div key={p} className="bg-[#0d1717] border border-white/10 rounded-xl p-5 animate-pulse h-[140px]" />
+          <div
+            key={p}
+            className="bg-[#0d1717] border border-white/10 rounded-xl p-5 animate-pulse h-[140px]"
+          />
         ))}
       </div>
     );
@@ -146,8 +165,12 @@ export default function ParameterCardsWidget({ deviceId, parameters }: Parameter
       {parameters.map((key) => {
         const meta = PARAMETERS.find((p) => p.key === key);
         const rawValue = liveData[key];
-        const displayValue = rawValue !== undefined ? convert(rawValue, key) ?? rawValue : null;
-        const formatted = displayValue !== null ? formatPollutantValue(displayValue, key) : "--";
+        const displayValue =
+          rawValue !== undefined ? (convert(rawValue, key) ?? rawValue) : null;
+        const formatted =
+          displayValue !== null
+            ? formatPollutantValue(displayValue, key)
+            : "--";
         const unit = getUnit(key);
         const trend = getTrend(key);
 
@@ -165,7 +188,9 @@ export default function ParameterCardsWidget({ deviceId, parameters }: Parameter
                   {meta?.label || key}
                 </span>
                 {trend && (
-                  <span className={`text-xs ${trend === "up" ? "text-red-400" : trend === "down" ? "text-green-400" : "text-white/30"}`}>
+                  <span
+                    className={`text-xs ${trend === "up" ? "text-red-400" : trend === "down" ? "text-green-400" : "text-white/30"}`}
+                  >
                     {trend === "up" ? "▲" : trend === "down" ? "▼" : "━"}
                   </span>
                 )}

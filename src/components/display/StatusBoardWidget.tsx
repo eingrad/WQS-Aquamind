@@ -11,7 +11,10 @@ interface StatusBoardWidgetProps {
 }
 
 // Default thresholds for status coloring
-const DEFAULT_THRESHOLDS: Record<string, { warning: number; critical: number }> = {
+const DEFAULT_THRESHOLDS: Record<
+  string,
+  { warning: number; critical: number }
+> = {
   so2: { warning: 0.2, critical: 0.5 },
   h2s: { warning: 0.02, critical: 0.05 },
   no2: { warning: 0.2, critical: 0.5 },
@@ -25,7 +28,10 @@ const DEFAULT_THRESHOLDS: Record<string, { warning: number; critical: number }> 
   windDirection: { warning: 999, critical: 999 }, // no threshold for direction
 };
 
-export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardWidgetProps) {
+export default function StatusBoardWidget({
+  deviceId,
+  parameters,
+}: StatusBoardWidgetProps) {
   const [liveData, setLiveData] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const { convert, getUnit } = useUnits();
@@ -36,7 +42,12 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
     const fetchData = async () => {
       try {
         const data = await getRealTimeParams(deviceId);
-        setLiveData(data.readings);
+        // Flatten { value, at } entries to plain numbers for this widget
+        const flat: Record<string, number> = {};
+        for (const [key, entry] of Object.entries(data.readings)) {
+          if (entry) flat[key] = entry.value;
+        }
+        setLiveData(flat);
       } catch {
         try {
           const readings = await getLatestReadings(deviceId, 1);
@@ -44,14 +55,21 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
             const latest = readings[0];
             const mapped: Record<string, number> = {};
             const keyMap: Record<string, string> = {
-              so2: "so2Value", h2s: "h2sValue", no2: "no2Value",
-              btex: "btexValue", temperature: "tempValue",
-              humidity: "humidityValue", windSpeed: "wsValue",
-              windDirection: "wdValue", solar: "solarValue",
-              pressure: "pressureValue", rain: "rainValue",
+              so2: "so2Value",
+              h2s: "h2sValue",
+              no2: "no2Value",
+              btex: "btexValue",
+              temperature: "tempValue",
+              humidity: "humidityValue",
+              windSpeed: "wsValue",
+              windDirection: "wdValue",
+              solar: "solarValue",
+              pressure: "pressureValue",
+              rain: "rainValue",
             };
             for (const p of parameters) {
-              if (keyMap[p] && latest[keyMap[p]]) mapped[p] = parseFloat(latest[keyMap[p]]);
+              if (keyMap[p] && latest[keyMap[p]])
+                mapped[p] = parseFloat(latest[keyMap[p]]);
             }
             setLiveData(mapped);
           }
@@ -68,10 +86,13 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
   }, [deviceId, parameters.join(",")]);
 
   const getStatus = (key: string, value: number | undefined) => {
-    if (value === undefined) return { color: "#374151", label: "No Data", bg: "bg-gray-800/30" };
+    if (value === undefined)
+      return { color: "#374151", label: "No Data", bg: "bg-gray-800/30" };
     const thresholds = DEFAULT_THRESHOLDS[key] || { warning: 50, critical: 80 };
-    if (value >= thresholds.critical) return { color: "#ef4444", label: "Critical", bg: "bg-red-500/10" };
-    if (value >= thresholds.warning) return { color: "#f59e0b", label: "Warning", bg: "bg-amber-500/10" };
+    if (value >= thresholds.critical)
+      return { color: "#ef4444", label: "Critical", bg: "bg-red-500/10" };
+    if (value >= thresholds.warning)
+      return { color: "#f59e0b", label: "Warning", bg: "bg-amber-500/10" };
     return { color: "#10b981", label: "Normal", bg: "bg-emerald-500/10" };
   };
 
@@ -79,7 +100,10 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {parameters.map((p) => (
-          <div key={p} className="bg-[#0d1717] border border-white/10 rounded-xl p-4 animate-pulse h-[100px]" />
+          <div
+            key={p}
+            className="bg-[#0d1717] border border-white/10 rounded-xl p-4 animate-pulse h-[100px]"
+          />
         ))}
       </div>
     );
@@ -87,13 +111,21 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
 
   return (
     <div className="bg-[#0d1717] border border-white/10 rounded-xl p-6">
-      <h3 className="text-white/70 text-sm font-medium mb-4">Parameter Status</h3>
+      <h3 className="text-white/70 text-sm font-medium mb-4">
+        Parameter Status
+      </h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {parameters.map((key) => {
           const meta = PARAMETERS.find((p) => p.key === key);
           const rawValue = liveData[key];
-          const displayValue = rawValue !== undefined ? convert(rawValue, key) ?? rawValue : null;
-          const formatted = displayValue !== null ? formatPollutantValue(displayValue, key) : "--";
+          const displayValue =
+            rawValue !== undefined
+              ? (convert(rawValue, key) ?? rawValue)
+              : null;
+          const formatted =
+            displayValue !== null
+              ? formatPollutantValue(displayValue, key)
+              : "--";
           const unit = getUnit(key);
           const status = getStatus(key, rawValue);
 
@@ -112,7 +144,10 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
                     className="w-2 h-2 rounded-full animate-pulse"
                     style={{ backgroundColor: status.color }}
                   />
-                  <span className="text-[10px] uppercase tracking-wider" style={{ color: status.color }}>
+                  <span
+                    className="text-[10px] uppercase tracking-wider"
+                    style={{ color: status.color }}
+                  >
                     {status.label}
                   </span>
                 </div>
@@ -126,7 +161,10 @@ export default function StatusBoardWidget({ deviceId, parameters }: StatusBoardW
               </div>
 
               {/* Bottom accent bar */}
-              <div className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full opacity-50" style={{ backgroundColor: status.color }} />
+              <div
+                className="absolute bottom-0 left-3 right-3 h-[2px] rounded-full opacity-50"
+                style={{ backgroundColor: status.color }}
+              />
             </div>
           );
         })}
