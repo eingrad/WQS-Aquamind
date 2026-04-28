@@ -84,8 +84,6 @@ export default function RealTimeParameters({
             set("so2", latest.so2Value);
             set("h2s", latest.h2sValue);
             set("no2", latest.no2Value);
-            set("no", latest.noValue);
-            set("nox", latest.noxValue);
             // BTEX components (Synspec GC955)
             set("benzene", latest.benzeneValue);
             set("toluene", latest.tolueneValue);

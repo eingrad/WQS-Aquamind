@@ -66,9 +66,7 @@ export default function DashboardPage() {
   const [pollutionParam, setPollutionParam] = useState<
     | "SO2"
     | "H2S"
-    | "NO"
     | "NO2"
-    | "NOX"
     | "BENZENE"
     | "TOLUENE"
     | "ETHYLBENZENE"
@@ -710,9 +708,7 @@ export default function DashboardPage() {
                               e.target.value as
                                 | "SO2"
                                 | "H2S"
-                                | "NO"
                                 | "NO2"
-                                | "NOX"
                                 | "BENZENE"
                                 | "TOLUENE"
                                 | "ETHYLBENZENE"
