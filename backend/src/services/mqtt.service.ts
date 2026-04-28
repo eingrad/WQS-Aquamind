@@ -102,6 +102,12 @@ const pollutionAccumulator: Map<
 // How long to keep readings in the accumulator (10 minutes in ms)
 const ACCUMULATOR_WINDOW = 10 * 60 * 1000;
 
+// Latest wind direction per device — used to correlate gas readings (S40/S51)
+// with met readings (MS) that arrive in separate MQTT messages
+const latestWindDirection: Map<string, { value: number; timestamp: number }> =
+  new Map();
+const WIND_DIRECTION_VALIDITY = 10 * 60 * 1000; // 10 min
+
 // ─── Device Identifier Cache ────────────────────────────────────────────────
 
 /**
@@ -373,10 +379,39 @@ const handleSensorMessage = async (
     updateWindRose(deviceId, readings.windSpeed, readings.windDirection);
   }
 
-  // ── Step 6: Update pollution rose data (SO₂ by default) ───────────
+  // Cache latest wind direction (even if windSpeed missing) so a separate
+  // gas message can use it to update the pollution rose.
+  if (readings.windDirection !== undefined) {
+    latestWindDirection.set(deviceId, {
+      value: readings.windDirection,
+      timestamp: Date.now(),
+    });
+  }
 
-  if (readings.so2 !== undefined && readings.windDirection !== undefined) {
-    updatePollutionRose(deviceId, "SO2", readings.so2, readings.windDirection);
+  // ── Step 6: Update pollution rose data for every gas in the message ──
+  // Gas readings (S40/S51) and wind direction (MS) arrive in separate MQTT
+  // reports, so look up the most recent cached wind direction instead of
+  // requiring both in the same payload.
+
+  const POLLUTION_GASES = ["so2", "h2s", "no", "no2", "nox", "btex"] as const;
+  const cached = latestWindDirection.get(deviceId);
+  const windFresh =
+    cached && Date.now() - cached.timestamp < WIND_DIRECTION_VALIDITY;
+
+  for (const gas of POLLUTION_GASES) {
+    if (readings[gas] === undefined) continue;
+    if (!windFresh) {
+      logger.debug(
+        `📥 MQTT: ${gas.toUpperCase()} from ${deviceId} but no fresh wind direction, skipping pollution rose`,
+      );
+      continue;
+    }
+    updatePollutionRose(
+      deviceId,
+      gas.toUpperCase(),
+      readings[gas],
+      cached!.value,
+    );
   }
 
   // ── Step 7: Update realtime parameters in Redis ───────────────────
@@ -488,7 +523,7 @@ const updatePollutionRose = async (
 
   for (const reading of readings) {
     const compassDir = degreesToCompass(reading.direction);
-    const concBin = getConcentrationBin(reading.value);
+    const concBin = getConcentrationBin(parameter, reading.value);
     directions[compassDir][concBin]++;
   }
 
@@ -507,22 +542,51 @@ const updatePollutionRose = async (
 // ─── Realtime Parameters ──────────────────────────────────────────────────
 
 /**
- * Store the latest sensor readings in Redis for the realtime widget
- * Simply overwrites the previous reading — dashboard always shows the latest
+ * Store the latest sensor readings in Redis for the realtime widget.
+ *
+ * Each parameter is stored as { value, at } so the frontend can show a
+ * per-parameter freshness indicator. Gas messages (S40/S51) and met messages
+ * (MS) arrive in separate MQTT reports — merging by parameter avoids the
+ * flicker that overwriting would cause.
  */
+type RealtimeReading = { value: number; at: string };
+
 const updateRealtimeParams = async (
   deviceId: string,
   timestamp: string,
   readings: Record<string, number>,
 ): Promise<void> => {
+  const key = `live:realtime:${deviceId}`;
+  const REALTIME_TTL = 60; // seconds — long enough to bridge between gas/met reports
+
+  // Build per-parameter entries from this message
+  const incoming: Record<string, RealtimeReading> = {};
+  for (const [param, value] of Object.entries(readings)) {
+    incoming[param] = { value, at: timestamp };
+  }
+
+  // Read existing cached payload (if any) and merge new readings on top
+  let mergedReadings: Record<string, RealtimeReading> = incoming;
+  try {
+    const existing = await redis.get(key);
+    if (existing) {
+      const parsed = JSON.parse(existing);
+      mergedReadings = { ...(parsed.readings ?? {}), ...incoming };
+    }
+  } catch (err) {
+    logger.warn(
+      `⚠️ MQTT: Failed to read existing realtime cache, overwriting:`,
+      err,
+    );
+  }
+
   const data = {
-    timestamp,
+    timestamp, // most recent message time (informational)
     deviceId,
-    readings,
+    readings: mergedReadings,
   };
 
-  const key = `live:realtime:${deviceId}`;
-  await redis.setWithTTL(key, JSON.stringify(data), 30); // 30s TTL
+  await redis.setWithTTL(key, JSON.stringify(data), REALTIME_TTL);
 };
 
 // ─── Helper Functions ─────────────────────────────────────────────────────
@@ -555,14 +619,33 @@ const getSpeedBin = (speed: number): string => {
 };
 
 /**
- * Classify pollutant concentration (ppm) into bins
- * Thresholds based on typical SO₂ ambient levels
+ * Per-parameter pollution rose bin thresholds (all values in ppb)
+ * Tuple format: [moderateMin, highMin, veryHighMin]
+ *
+ * Tuned to typical Pengerang ambient ranges so each gas distributes across all 4 bins
+ * rather than collapsing into "low" or "very_high" with shared thresholds.
  */
-const getConcentrationBin = (value: number): string => {
-  if (value < 0.02) return "low"; // < 20 ppb
-  if (value < 0.05) return "moderate"; // 20-50 ppb
-  if (value < 0.1) return "high"; // 50-100 ppb
-  return "very_high"; // > 100 ppb
+const CONCENTRATION_BINS: Record<string, [number, number, number]> = {
+  so2: [20, 50, 100],
+  h2s: [3, 30, 100],
+  no: [50, 100, 200],
+  no2: [50, 100, 200],
+  nox: [100, 200, 400],
+  btex: [1, 5, 20],
+};
+
+/**
+ * Classify pollutant concentration (ppb) into a 4-tier bin for the parameter
+ */
+const getConcentrationBin = (parameter: string, value: number): string => {
+  const thresholds = CONCENTRATION_BINS[parameter.toLowerCase()] ?? [
+    20, 50, 100,
+  ];
+  const [mod, high, vhigh] = thresholds;
+  if (value < mod) return "low";
+  if (value < high) return "moderate";
+  if (value < vhigh) return "high";
+  return "very_high";
 };
 
 export default {

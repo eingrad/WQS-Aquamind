@@ -33,7 +33,7 @@ export interface PollutionRoseData {
  * @returns Wind rose data for all 16 directions with speed bins
  */
 export const getWindRoseData = async (
-  deviceId: string
+  deviceId: string,
 ): Promise<WindRoseData> => {
   const response = await api.get(`/live/wind-rose`, {
     params: { deviceId },
@@ -49,7 +49,7 @@ export const getWindRoseData = async (
  */
 export const getPollutionRoseData = async (
   deviceId: string,
-  parameter: string = "SO2"
+  parameter: string = "SO2",
 ): Promise<PollutionRoseData> => {
   const response = await api.get(`/live/pollution-rose`, {
     params: { deviceId, parameter },
@@ -57,10 +57,15 @@ export const getPollutionRoseData = async (
   return response.data.data;
 };
 
+export interface RealtimeReading {
+  value: number;
+  at: string; // ISO timestamp of when this parameter was last updated
+}
+
 export interface RealTimeParamsData {
   timestamp: string;
   deviceId: string;
-  readings: Record<string, number>;
+  readings: Record<string, RealtimeReading>;
 }
 
 /**
@@ -69,7 +74,7 @@ export interface RealTimeParamsData {
  * @returns Latest readings from Redis (pushed by MQTT subscriber every 5-10s)
  */
 export const getRealTimeParams = async (
-  deviceId: string
+  deviceId: string,
 ): Promise<RealTimeParamsData> => {
   const response = await api.get(`/live/realtime-params`, {
     params: { deviceId },

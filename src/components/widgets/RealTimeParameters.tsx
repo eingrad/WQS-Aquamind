@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { PARAMETERS } from "../../data/constants";
 import { formatPollutantValue } from "../../utils/numberFormat";
 import { useUnits } from "../../context/UnitContext";
-import { getRealTimeParams } from "../../services/liveData.service";
+import {
+  getRealTimeParams,
+  type RealtimeReading,
+} from "../../services/liveData.service";
 import { getLatestReadings } from "../../services/telemetry.service";
 import EmptyState from "../common/EmptyState";
 
@@ -10,11 +13,45 @@ interface RealTimeParametersProps {
   deviceId: string;
 }
 
+/**
+ * Format an ISO timestamp as a relative "Xs ago" / "Xm ago" string,
+ * relative to the current time at render. Returns "" when the value
+ * is missing / unparseable.
+ */
+function formatAgo(at: string | undefined, now: number): string {
+  if (!at) return "";
+  const t = Date.parse(at);
+  if (isNaN(t)) return "";
+  const ageMs = Math.max(0, now - t);
+  const ageS = Math.floor(ageMs / 1000);
+  if (ageS < 60) return `${ageS}s ago`;
+  const ageM = Math.floor(ageS / 60);
+  if (ageM < 60) return `${ageM}m ago`;
+  const ageH = Math.floor(ageM / 60);
+  return `${ageH}h ago`;
+}
+
+/**
+ * Color the "Xs ago" label by staleness:
+ * - fresh (<30s) → muted gray (looks normal)
+ * - aging (30s–2min) → yellow (something may be off)
+ * - stale (>2min) → red (parameter is not being updated)
+ */
+function freshnessColor(at: string | undefined, now: number): string {
+  if (!at) return "text-gray-500";
+  const ageMs = now - Date.parse(at);
+  if (isNaN(ageMs)) return "text-gray-500";
+  if (ageMs < 30_000) return "text-gray-500";
+  if (ageMs < 120_000) return "text-yellow-400";
+  return "text-red-400";
+}
+
 export default function RealTimeParameters({
   deviceId,
 }: RealTimeParametersProps) {
-  const [liveData, setLiveData] = useState<Record<string, number>>({});
+  const [liveData, setLiveData] = useState<Record<string, RealtimeReading>>({});
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
   const { convert, getUnit } = useUnits();
 
   useEffect(() => {
@@ -27,21 +64,34 @@ export default function RealTimeParameters({
         setLiveData(data.readings);
         setLoading(false);
       } catch {
-        // Fallback: get latest reading from database
+        // Fallback: get latest reading from database — single shared timestamp
         try {
           const readings = await getLatestReadings(deviceId, 1);
           if (readings.length > 0) {
             const latest = readings[0];
-            const mapped: Record<string, number> = {};
-            if (latest.so2Value) mapped.so2 = parseFloat(latest.so2Value);
-            if (latest.h2sValue) mapped.h2s = parseFloat(latest.h2sValue);
-            if (latest.no2Value) mapped.no2 = parseFloat(latest.no2Value);
-            if (latest.btexValue) mapped.btex = parseFloat(latest.btexValue);
-            if (latest.tempValue) mapped.temperature = parseFloat(latest.tempValue);
-            if (latest.humidityValue) mapped.humidity = parseFloat(latest.humidityValue);
-            if (latest.wsValue) mapped.windSpeed = parseFloat(latest.wsValue);
-            if (latest.wdValue) mapped.windDirection = parseFloat(latest.wdValue);
-            if (latest.solarValue) mapped.solar = parseFloat(latest.solarValue);
+            const at = latest.observedAt ?? new Date().toISOString();
+            const mapped: Record<string, RealtimeReading> = {};
+            const set = (
+              key: string,
+              raw: string | number | null | undefined,
+            ) => {
+              if (raw === null || raw === undefined || raw === "") return;
+              const num = typeof raw === "string" ? parseFloat(raw) : raw;
+              if (!isNaN(num)) mapped[key] = { value: num, at };
+            };
+            set("so2", latest.so2Value);
+            set("h2s", latest.h2sValue);
+            set("no2", latest.no2Value);
+            set("no", latest.noValue);
+            set("nox", latest.noxValue);
+            set("btex", latest.btexValue);
+            set("temperature", latest.tempValue);
+            set("humidity", latest.humidityValue);
+            set("windSpeed", latest.wsValue);
+            set("windDirection", latest.wdValue);
+            set("solar", latest.solarValue);
+            set("pressure", latest.pressureValue);
+            set("rain", latest.rainValue);
             setLiveData(mapped);
           }
         } catch (dbErr) {
@@ -55,6 +105,12 @@ export default function RealTimeParameters({
     const interval = setInterval(fetchLiveData, 10000); // 10 seconds
     return () => clearInterval(interval);
   }, [deviceId]);
+
+  // Tick every second so the "Xs ago" labels update without re-fetching.
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, []);
 
   if (loading) {
     return (
@@ -99,10 +155,17 @@ export default function RealTimeParameters({
       <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
         <div className="space-y-2">
           {PARAMETERS.map((param) => {
-            const rawValue = liveData[param.key] ?? 0;
+            const entry = liveData[param.key];
+            const rawValue = entry?.value ?? 0;
+            const at = entry?.at;
             const convertedValue = convert(rawValue, param.key) ?? rawValue;
-            const formattedValue = formatPollutantValue(convertedValue, param.key);
+            const formattedValue = formatPollutantValue(
+              convertedValue,
+              param.key,
+            );
             const displayUnit = getUnit(param.key);
+            const ago = formatAgo(at, now);
+            const agoColor = freshnessColor(at, now);
 
             // Calculate bar width based on parameter range
             let maxValue = 100;
@@ -117,11 +180,18 @@ export default function RealTimeParameters({
               <div key={param.key} className="space-y-1">
                 {/* Parameter label and value */}
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-300 font-medium">
-                    {param.label}
+                  <span className="flex items-baseline gap-2">
+                    <span className="text-gray-300 font-medium">
+                      {param.label}
+                    </span>
+                    {ago && entry && (
+                      <span className={`text-[10px] ${agoColor}`} title={at}>
+                        {ago}
+                      </span>
+                    )}
                   </span>
                   <span className="text-white font-mono">
-                    {formattedValue}{" "}
+                    {entry ? formattedValue : "–"}{" "}
                     <span className="text-gray-400 text-xs">{displayUnit}</span>
                   </span>
                 </div>

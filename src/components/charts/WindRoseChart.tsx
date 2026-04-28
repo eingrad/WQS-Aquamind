@@ -40,15 +40,13 @@ type WindMapLayer = Record<Dir, number>;
  * Chart needs: Array of 6 layers (one per speed range)
  */
 function convertBackendToWindMap(backendData: any): WindMapLayer[] {
+  // Bin keys must match backend WIND_SPEED_BINS in mqtt.service.ts
   const speedBinMapping: Record<string, number> = {
-    "0-1": 0,
-    "1-2": 0, // 0-2 m/s
-    "2-3": 1,
-    "3-4": 1,
-    "4-5": 1, // 2-5 m/s
-    "5-6": 2,
-    "6-7": 2, // 5-8 m/s
-    "7+": 3, // 8+ m/s (split into remaining ranges)
+    "0-2": 0,
+    "2-5": 1,
+    "5-10": 2,
+    "10-15": 3,
+    "15+": 4,
   };
 
   const layers: WindMapLayer[] = SPEED_RANGES.map(() =>
@@ -84,10 +82,22 @@ interface WindRoseChartProps {
  * N→S, NE→SW, E→W, etc.
  */
 const OPPOSITE_DIR: Record<string, string> = {
-  N: "S", NNE: "SSW", NE: "SW", ENE: "WSW",
-  E: "W", ESE: "WNW", SE: "NW", SSE: "NNW",
-  S: "N", SSW: "NNE", SW: "NE", WSW: "ENE",
-  W: "E", WNW: "ESE", NW: "SE", NNW: "SSE",
+  N: "S",
+  NNE: "SSW",
+  NE: "SW",
+  ENE: "WSW",
+  E: "W",
+  ESE: "WNW",
+  SE: "NW",
+  SSE: "NNW",
+  S: "N",
+  SSW: "NNE",
+  SW: "NE",
+  WSW: "ENE",
+  W: "E",
+  WNW: "ESE",
+  NW: "SE",
+  NNW: "SSE",
 };
 
 export default function WindRoseChart({
@@ -133,9 +143,10 @@ export default function WindRoseChart({
   }
 
   // If "Direction To", shift each direction's data to the opposite compass point
-  const displayDirections = directionMode === "to"
-    ? DIRECTIONS.map((d) => OPPOSITE_DIR[d] || d)
-    : DIRECTIONS;
+  const displayDirections =
+    directionMode === "to"
+      ? DIRECTIONS.map((d) => OPPOSITE_DIR[d] || d)
+      : DIRECTIONS;
 
   const traces: Partial<PlotData>[] = windMap.map((layer, i) => ({
     type: "barpolar",
