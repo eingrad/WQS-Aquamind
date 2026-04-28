@@ -56,7 +56,25 @@ export default function DashboardPage() {
 
   // Direction mode: "from" = wind blowing FROM, "to" = wind blowing TO
   const [windDirMode, setWindDirMode] = useState<"from" | "to">("from");
-  const [pollutionDirMode, setPollutionDirMode] = useState<"from" | "to">("from");
+  const [pollutionDirMode, setPollutionDirMode] = useState<"from" | "to">(
+    "from",
+  );
+
+  // Selected gas for the pollution rose (matches keys written by the backend).
+  // BTEX channels are exposed as 5 separate isomers; the total Xylene sum is
+  // only computed when the user generates a report.
+  const [pollutionParam, setPollutionParam] = useState<
+    | "SO2"
+    | "H2S"
+    | "NO"
+    | "NO2"
+    | "NOX"
+    | "BENZENE"
+    | "TOLUENE"
+    | "ETHYLBENZENE"
+    | "MP_XYLENE"
+    | "O_XYLENE"
+  >("SO2");
 
   // Fetch devices from backend
   useEffect(() => {
@@ -298,8 +316,7 @@ export default function DashboardPage() {
     const fetchPollutionRose = async () => {
       try {
         setPollutionRoseLoading(true);
-        // Use SO2 as default parameter
-        const data = await getPollutionRoseData(device, "SO2");
+        const data = await getPollutionRoseData(device, pollutionParam);
         setPollutionRoseData(data);
       } catch (error) {
         console.error("Failed to fetch pollution rose data:", error);
@@ -314,7 +331,7 @@ export default function DashboardPage() {
     // Auto-refresh every 10 seconds
     const interval = setInterval(fetchPollutionRose, 10000);
     return () => clearInterval(interval);
-  }, [device]);
+  }, [device, pollutionParam]);
 
   // Get metadata for selected parameters
   const selectedParamsMeta = params.map(
@@ -619,11 +636,20 @@ export default function DashboardPage() {
                     <div className="relative group">
                       <select
                         value={windDirMode}
-                        onChange={(e) => setWindDirMode(e.target.value as "from" | "to")}
+                        onChange={(e) =>
+                          setWindDirMode(e.target.value as "from" | "to")
+                        }
                         className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
                       >
-                        <option value="from" className="bg-[#0d1717] text-white">Direction From</option>
-                        <option value="to" className="bg-[#0d1717] text-white">Direction To</option>
+                        <option
+                          value="from"
+                          className="bg-[#0d1717] text-white"
+                        >
+                          Direction From
+                        </option>
+                        <option value="to" className="bg-[#0d1717] text-white">
+                          Direction To
+                        </option>
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg
@@ -670,29 +696,143 @@ export default function DashboardPage() {
                 <Card
                   title="Pollution Rose"
                   right={
-                    <div className="relative group">
-                      <select
-                        value={pollutionDirMode}
-                        onChange={(e) => setPollutionDirMode(e.target.value as "from" | "to")}
-                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
-                      >
-                        <option value="from" className="bg-[#0d1717] text-white">Direction From</option>
-                        <option value="to" className="bg-[#0d1717] text-white">Direction To</option>
-                      </select>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg
-                          className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                    <div className="flex items-center gap-2">
+                      {/* Gas selector */}
+                      <div className="relative group">
+                        <select
+                          value={pollutionParam}
+                          onChange={(e) =>
+                            setPollutionParam(
+                              e.target.value as
+                                | "SO2"
+                                | "H2S"
+                                | "NO"
+                                | "NO2"
+                                | "NOX"
+                                | "BENZENE"
+                                | "TOLUENE"
+                                | "ETHYLBENZENE"
+                                | "MP_XYLENE"
+                                | "O_XYLENE",
+                            )
+                          }
+                          className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[160px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
+                          <option
+                            value="SO2"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            SO₂
+                          </option>
+                          <option
+                            value="H2S"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            H₂S
+                          </option>
+                          <option
+                            value="NO"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            NO
+                          </option>
+                          <option
+                            value="NO2"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            NO₂
+                          </option>
+                          <option
+                            value="NOX"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            NOₓ
+                          </option>
+                          <option
+                            value="BENZENE"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Benzene
+                          </option>
+                          <option
+                            value="TOLUENE"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Toluene
+                          </option>
+                          <option
+                            value="ETHYLBENZENE"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Ethylbenzene
+                          </option>
+                          <option
+                            value="MP_XYLENE"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            m,p-Xylene
+                          </option>
+                          <option
+                            value="O_XYLENE"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            o-Xylene
+                          </option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg
+                            className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Direction selector */}
+                      <div className="relative group">
+                        <select
+                          value={pollutionDirMode}
+                          onChange={(e) =>
+                            setPollutionDirMode(e.target.value as "from" | "to")
+                          }
+                          className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[160px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                        >
+                          <option
+                            value="from"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Direction From
+                          </option>
+                          <option
+                            value="to"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Direction To
+                          </option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg
+                            className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   }

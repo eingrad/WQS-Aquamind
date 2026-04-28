@@ -56,8 +56,12 @@ const CHANNEL_MAP: Record<number, string> = {
   56: "pressure", // Atmospheric Pressure (hPa)
   57: "rain", // Rainfall (mm)
   58: "solar", // Solar Radiation (W/m²)
-  // BTEX channel will be added later:
-  // ??: "btex",
+  // Synspec GC955 BTEX (5s reports, all values in ppb)
+  34: "benzene", // Benzene
+  35: "toluene", // Toluene
+  36: "ethylbenzene", // Ethylbenzene
+  37: "mp_xylene", // m,p-Xylene (co-eluting isomers)
+  38: "o_xylene", // o-Xylene
 };
 
 /**
@@ -393,7 +397,18 @@ const handleSensorMessage = async (
   // reports, so look up the most recent cached wind direction instead of
   // requiring both in the same payload.
 
-  const POLLUTION_GASES = ["so2", "h2s", "no", "no2", "nox", "btex"] as const;
+  const POLLUTION_GASES = [
+    "so2",
+    "h2s",
+    "no",
+    "no2",
+    "nox",
+    "benzene",
+    "toluene",
+    "ethylbenzene",
+    "mp_xylene",
+    "o_xylene",
+  ] as const;
   const cached = latestWindDirection.get(deviceId);
   const windFresh =
     cached && Date.now() - cached.timestamp < WIND_DIRECTION_VALIDITY;
@@ -631,7 +646,13 @@ const CONCENTRATION_BINS: Record<string, [number, number, number]> = {
   no: [50, 100, 200],
   no2: [50, 100, 200],
   nox: [100, 200, 400],
-  btex: [1, 5, 20],
+  // BTEX components — bins tuned to Canadian AAQC 24-hr limits
+  benzene: [0.5, 1.0, 2.3],
+  toluene: [50, 200, 400],
+  ethylbenzene: [50, 200, 460],
+  mp_xylene: [50, 200, 350],
+  o_xylene: [25, 100, 175],
+  xylene: [100, 350, 700], // total (m,p + o), aligned with AAQC 700 ppb 24-hr
 };
 
 /**

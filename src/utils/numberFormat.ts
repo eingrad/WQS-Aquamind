@@ -29,8 +29,11 @@ const PARAMETER_DECIMALS: Record<string, number> = {
   no2: 2, // ppb
   no: 2, // ppb
   nox: 2, // ppb
-  btex: 2, // ppb
-  btx: 2, // ppb (legacy alias for BTEX, used in some table columns)
+  benzene: 2, // ppb
+  toluene: 2, // ppb
+  ethylbenzene: 2, // ppb
+  mp_xylene: 2, // ppb
+  o_xylene: 2, // ppb
 
   // Meteorological
   solar: 2, // W/m²

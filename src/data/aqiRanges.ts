@@ -100,45 +100,45 @@ export const EXPOSURE_RANGES: Record<string, ExposureRangeData | null> = {
       },
     ],
   },
-  // NO2 - 1-hour average (Official Malaysian API, converted to ppm: 1 ppm = 1880 µg/m³)
+  // NO2 - 1-hour average (Official Malaysian API, in ppb)
   no2: {
-    unit: "ppm",
+    unit: "ppb",
     ranges: [
       {
         category: "Good",
-        range: "0 - 0.05",
+        range: "0 - 50",
         color: "#3b82f6",
         bgColor: "rgba(59, 130, 246, 0.1)",
       },
       {
         category: "Moderate",
-        range: "0.06 - 0.1",
+        range: "51 - 100",
         color: "#22c55e",
         bgColor: "rgba(34, 197, 94, 0.1)",
       },
       {
         category: "Unhealthy",
-        range: "0.11 - 0.65",
+        range: "101 - 650",
         color: "#eab308",
         bgColor: "rgba(234, 179, 8, 0.1)",
       },
       {
         category: "Very Unhealthy",
-        range: "0.66 - 1.25",
+        range: "651 - 1250",
         color: "#f97316",
         bgColor: "rgba(249, 115, 22, 0.1)",
       },
       {
         category: "Hazardous",
-        range: "> 1.26",
+        range: "> 1260",
         color: "#ef4444",
         bgColor: "rgba(239, 68, 68, 0.1)",
       },
     ],
   },
-  // BTEX - Environmental limits (Not part of Malaysian API, using EPA guidelines)
-  btx: {
-    unit: "ppm",
+  // Benzene — Ontario AAQC 24-hr = 2.3 ppb
+  benzene: {
+    unit: "ppb",
     ranges: [
       {
         category: "Good",
@@ -154,19 +154,163 @@ export const EXPOSURE_RANGES: Record<string, ExposureRangeData | null> = {
       },
       {
         category: "Unhealthy",
-        range: "1.1 - 2.0",
+        range: "1.1 - 2.3",
         color: "#eab308",
         bgColor: "rgba(234, 179, 8, 0.1)",
       },
       {
         category: "Very Unhealthy",
-        range: "2.1 - 5.0",
+        range: "2.4 - 5.0",
         color: "#f97316",
         bgColor: "rgba(249, 115, 22, 0.1)",
       },
       {
         category: "Hazardous",
         range: "> 5.0",
+        color: "#ef4444",
+        bgColor: "rgba(239, 68, 68, 0.1)",
+      },
+    ],
+  },
+  // Toluene — Alberta AAQC 24-hr = 400 ppb
+  toluene: {
+    unit: "ppb",
+    ranges: [
+      {
+        category: "Good",
+        range: "0 - 50",
+        color: "#3b82f6",
+        bgColor: "rgba(59, 130, 246, 0.1)",
+      },
+      {
+        category: "Moderate",
+        range: "51 - 200",
+        color: "#22c55e",
+        bgColor: "rgba(34, 197, 94, 0.1)",
+      },
+      {
+        category: "Unhealthy",
+        range: "201 - 400",
+        color: "#eab308",
+        bgColor: "rgba(234, 179, 8, 0.1)",
+      },
+      {
+        category: "Very Unhealthy",
+        range: "401 - 1000",
+        color: "#f97316",
+        bgColor: "rgba(249, 115, 22, 0.1)",
+      },
+      {
+        category: "Hazardous",
+        range: "> 1000",
+        color: "#ef4444",
+        bgColor: "rgba(239, 68, 68, 0.1)",
+      },
+    ],
+  },
+  // Ethylbenzene — Alberta AAQC 24-hr = 460 ppb
+  ethylbenzene: {
+    unit: "ppb",
+    ranges: [
+      {
+        category: "Good",
+        range: "0 - 50",
+        color: "#3b82f6",
+        bgColor: "rgba(59, 130, 246, 0.1)",
+      },
+      {
+        category: "Moderate",
+        range: "51 - 200",
+        color: "#22c55e",
+        bgColor: "rgba(34, 197, 94, 0.1)",
+      },
+      {
+        category: "Unhealthy",
+        range: "201 - 460",
+        color: "#eab308",
+        bgColor: "rgba(234, 179, 8, 0.1)",
+      },
+      {
+        category: "Very Unhealthy",
+        range: "461 - 1000",
+        color: "#f97316",
+        bgColor: "rgba(249, 115, 22, 0.1)",
+      },
+      {
+        category: "Hazardous",
+        range: "> 1000",
+        color: "#ef4444",
+        bgColor: "rgba(239, 68, 68, 0.1)",
+      },
+    ],
+  },
+  // m,p-Xylene — half-split of total xylene AAQC 24-hr (700 ppb / 2 = 350)
+  mp_xylene: {
+    unit: "ppb",
+    ranges: [
+      {
+        category: "Good",
+        range: "0 - 50",
+        color: "#3b82f6",
+        bgColor: "rgba(59, 130, 246, 0.1)",
+      },
+      {
+        category: "Moderate",
+        range: "51 - 175",
+        color: "#22c55e",
+        bgColor: "rgba(34, 197, 94, 0.1)",
+      },
+      {
+        category: "Unhealthy",
+        range: "176 - 350",
+        color: "#eab308",
+        bgColor: "rgba(234, 179, 8, 0.1)",
+      },
+      {
+        category: "Very Unhealthy",
+        range: "351 - 750",
+        color: "#f97316",
+        bgColor: "rgba(249, 115, 22, 0.1)",
+      },
+      {
+        category: "Hazardous",
+        range: "> 750",
+        color: "#ef4444",
+        bgColor: "rgba(239, 68, 68, 0.1)",
+      },
+    ],
+  },
+  // o-Xylene — same half-split as m,p
+  o_xylene: {
+    unit: "ppb",
+    ranges: [
+      {
+        category: "Good",
+        range: "0 - 50",
+        color: "#3b82f6",
+        bgColor: "rgba(59, 130, 246, 0.1)",
+      },
+      {
+        category: "Moderate",
+        range: "51 - 175",
+        color: "#22c55e",
+        bgColor: "rgba(34, 197, 94, 0.1)",
+      },
+      {
+        category: "Unhealthy",
+        range: "176 - 350",
+        color: "#eab308",
+        bgColor: "rgba(234, 179, 8, 0.1)",
+      },
+      {
+        category: "Very Unhealthy",
+        range: "351 - 750",
+        color: "#f97316",
+        bgColor: "rgba(249, 115, 22, 0.1)",
+      },
+      {
+        category: "Hazardous",
+        range: "> 750",
         color: "#ef4444",
         bgColor: "rgba(239, 68, 68, 0.1)",
       },

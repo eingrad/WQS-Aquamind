@@ -11,8 +11,13 @@ export const INSTRUMENT_RANGES = {
   no2: { min: 0, max: 20000, unit: "ppb" },
   no: { min: 0, max: 20000, unit: "ppb" },
   nox: { min: 0, max: 40000, unit: "ppb" },
-  // Synspec GC955 BTEX (PID): 0-20 ppb standard, up to 300 ppb extended config
-  btex: { min: 0, max: 300, unit: "ppb" },
+  // Synspec GC955 BTEX (PID): 0-20 ppb standard, up to 300 ppb extended config.
+  // Each compound shares the same instrument range (single PID detector).
+  benzene: { min: 0, max: 300, unit: "ppb" },
+  toluene: { min: 0, max: 300, unit: "ppb" },
+  ethylbenzene: { min: 0, max: 300, unit: "ppb" },
+  mp_xylene: { min: 0, max: 300, unit: "ppb" },
+  o_xylene: { min: 0, max: 300, unit: "ppb" },
   temperature: { min: -40, max: 85, unit: "°C" },
   humidity: { min: 0, max: 100, unit: "%" },
   windSpeed: { min: 0, max: 60, unit: "m/s" },
@@ -59,9 +64,16 @@ export const OPERATIONAL_RANGES = {
   // Using sum of individual limits as conservative threshold
   nox: { min: 0, max: 320, unit: "ppb" },
 
-  // EU guideline: 5 µg/m³ annual average (benzene)
-  // Using 10 ppb as conservative hourly threshold
-  btex: { min: 0, max: 10, unit: "ppb" },
+  // BTEX components — Canadian provincial AAQC 24-hr limits (ppb).
+  // Lower bound 0.1 ppb is the GC955 detection limit; values below are flagged
+  // as below-LOD (treated as out_of_range against the operational floor).
+  // Total Xylene AAQC 24-hr = 700 ppb; the per-isomer threshold is split half
+  // each so the per-column validator approximates the total-xylene limit.
+  benzene: { min: 0.1, max: 2.3, unit: "ppb" }, // Ontario AAQC 24-hr
+  toluene: { min: 0.1, max: 400, unit: "ppb" }, // Alberta AAQC 24-hr
+  ethylbenzene: { min: 0.1, max: 460, unit: "ppb" }, // Alberta AAQC 24-hr
+  mp_xylene: { min: 0.1, max: 350, unit: "ppb" },
+  o_xylene: { min: 0.1, max: 350, unit: "ppb" },
 
   // Malaysia tropical climate: 21-32°C typical range
   // Allow 20-35°C for operational monitoring (accounts for daily variation)

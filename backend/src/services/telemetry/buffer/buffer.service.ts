@@ -21,7 +21,7 @@ interface SensorReading {
 const getBufferKey = (
   deviceId: string,
   minute: string,
-  parameter: string
+  parameter: string,
 ): string => {
   return `sensor:${deviceId}:${minute}:${parameter}`;
 };
@@ -45,7 +45,7 @@ const getMinuteBucket = (timestamp: Date): string => {
 export const storeRawReading = async (
   deviceId: string,
   timestamp: Date,
-  readings: Record<string, number>
+  readings: Record<string, number>,
 ): Promise<boolean> => {
   // If Redis not available, log and return false (don't break)
   if (!redis.isRedisAvailable()) {
@@ -90,7 +90,7 @@ export const storeRawReading = async (
  */
 export const getMinuteBuffer = async (
   deviceId: string,
-  minuteBucket: string
+  minuteBucket: string,
 ): Promise<Record<string, SensorReading[]>> => {
   if (!redis.isRedisAvailable()) {
     return {};
@@ -106,7 +106,11 @@ export const getMinuteBuffer = async (
       "no2",
       "no",
       "nox",
-      "btex",
+      "benzene",
+      "toluene",
+      "ethylbenzene",
+      "mp_xylene",
+      "o_xylene",
       "temperature",
       "humidity",
       "windSpeed",
@@ -137,7 +141,7 @@ export const getMinuteBuffer = async (
  */
 export const clearMinuteBuffer = async (
   deviceId: string,
-  minuteBucket: string
+  minuteBucket: string,
 ): Promise<boolean> => {
   if (!redis.isRedisAvailable()) {
     return false;
@@ -150,7 +154,11 @@ export const clearMinuteBuffer = async (
       "no2",
       "no",
       "nox",
-      "btex",
+      "benzene",
+      "toluene",
+      "ethylbenzene",
+      "mp_xylene",
+      "o_xylene",
       "temperature",
       "humidity",
       "windSpeed",
@@ -177,7 +185,7 @@ export const clearMinuteBuffer = async (
  * Returns "insufficient_data" if < 75% of expected readings
  */
 export const assessBufferQuality = (
-  readings: SensorReading[]
+  readings: SensorReading[],
 ): "valid" | "insufficient_data" => {
   const count = readings.length;
   return count >= REQUIRED_POINTS_1M ? "valid" : "insufficient_data";
@@ -187,7 +195,7 @@ export const assessBufferQuality = (
  * Get reading counts per parameter
  */
 export const getReadingCounts = (
-  buffer: Record<string, SensorReading[]>
+  buffer: Record<string, SensorReading[]>,
 ): Record<string, number> => {
   const counts: Record<string, number> = {};
 
