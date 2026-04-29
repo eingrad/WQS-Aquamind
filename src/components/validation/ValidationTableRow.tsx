@@ -51,12 +51,56 @@ export default function ValidationTableRow({
       />
       <StatusCell
         rowId={row.id}
-        parameter="btex"
-        value={row.btex}
-        status={row.btexStatus}
-        validatedByHuman={row.btexValidatedByHuman}
-        flaggedByHuman={row.btexFlaggedByHuman}
-        pendingAdminApproval={row.btexPendingAdminApproval}
+        parameter="benzene"
+        value={row.benzene ?? null}
+        status={row.benzeneStatus ?? "no_data"}
+        validatedByHuman={row.benzeneValidatedByHuman}
+        flaggedByHuman={row.benzeneFlaggedByHuman}
+        pendingAdminApproval={row.benzenePendingAdminApproval}
+        selectedCells={selectedCells}
+        onCellClick={onCellClick}
+      />
+      <StatusCell
+        rowId={row.id}
+        parameter="toluene"
+        value={row.toluene ?? null}
+        status={row.tolueneStatus ?? "no_data"}
+        validatedByHuman={row.tolueneValidatedByHuman}
+        flaggedByHuman={row.tolueneFlaggedByHuman}
+        pendingAdminApproval={row.toluenePendingAdminApproval}
+        selectedCells={selectedCells}
+        onCellClick={onCellClick}
+      />
+      <StatusCell
+        rowId={row.id}
+        parameter="ethylbenzene"
+        value={row.ethylbenzene ?? null}
+        status={row.ethylbenzeneStatus ?? "no_data"}
+        validatedByHuman={row.ethylbenzeneValidatedByHuman}
+        flaggedByHuman={row.ethylbenzeneFlaggedByHuman}
+        pendingAdminApproval={row.ethylbenzenePendingAdminApproval}
+        selectedCells={selectedCells}
+        onCellClick={onCellClick}
+      />
+      <StatusCell
+        rowId={row.id}
+        parameter="mp_xylene"
+        value={row.mpXylene ?? null}
+        status={row.mpXyleneStatus ?? "no_data"}
+        validatedByHuman={row.mpXyleneValidatedByHuman}
+        flaggedByHuman={row.mpXyleneFlaggedByHuman}
+        pendingAdminApproval={row.mpXylenePendingAdminApproval}
+        selectedCells={selectedCells}
+        onCellClick={onCellClick}
+      />
+      <StatusCell
+        rowId={row.id}
+        parameter="o_xylene"
+        value={row.oXylene ?? null}
+        status={row.oXyleneStatus ?? "no_data"}
+        validatedByHuman={row.oXyleneValidatedByHuman}
+        flaggedByHuman={row.oXyleneFlaggedByHuman}
+        pendingAdminApproval={row.oXylenePendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />

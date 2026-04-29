@@ -731,22 +731,10 @@ export default function DashboardPage() {
                             H₂S
                           </option>
                           <option
-                            value="NO"
-                            className="bg-[#0d1717] text-white"
-                          >
-                            NO
-                          </option>
-                          <option
                             value="NO2"
                             className="bg-[#0d1717] text-white"
                           >
                             NO₂
-                          </option>
-                          <option
-                            value="NOX"
-                            className="bg-[#0d1717] text-white"
-                          >
-                            NOₓ
                           </option>
                           <option
                             value="BENZENE"

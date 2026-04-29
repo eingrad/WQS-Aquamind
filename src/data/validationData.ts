@@ -28,11 +28,34 @@ export interface ValidationDataRow {
   no2ValidatedByHuman?: boolean;
   no2FlaggedByHuman?: boolean;
   no2PendingAdminApproval?: boolean;
-  btex: number | null;
-  btexStatus: ValidationStatus;
-  btexValidatedByHuman?: boolean;
-  btexFlaggedByHuman?: boolean;
-  btexPendingAdminApproval?: boolean;
+  // BTEX components — Synspec GC955 channels 34/35/36/37/38, all in ppb.
+  // Marked optional so legacy/dev sample data without these populated still
+  // type-checks; live data from the API always populates them.
+  benzene?: number | null;
+  benzeneStatus?: ValidationStatus;
+  benzeneValidatedByHuman?: boolean;
+  benzeneFlaggedByHuman?: boolean;
+  benzenePendingAdminApproval?: boolean;
+  toluene?: number | null;
+  tolueneStatus?: ValidationStatus;
+  tolueneValidatedByHuman?: boolean;
+  tolueneFlaggedByHuman?: boolean;
+  toluenePendingAdminApproval?: boolean;
+  ethylbenzene?: number | null;
+  ethylbenzeneStatus?: ValidationStatus;
+  ethylbenzeneValidatedByHuman?: boolean;
+  ethylbenzeneFlaggedByHuman?: boolean;
+  ethylbenzenePendingAdminApproval?: boolean;
+  mpXylene?: number | null;
+  mpXyleneStatus?: ValidationStatus;
+  mpXyleneValidatedByHuman?: boolean;
+  mpXyleneFlaggedByHuman?: boolean;
+  mpXylenePendingAdminApproval?: boolean;
+  oXylene?: number | null;
+  oXyleneStatus?: ValidationStatus;
+  oXyleneValidatedByHuman?: boolean;
+  oXyleneFlaggedByHuman?: boolean;
+  oXylenePendingAdminApproval?: boolean;
   windSpeed: number | null;
   windSpeedStatus: ValidationStatus;
   windSpeedValidatedByHuman?: boolean;
@@ -82,8 +105,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.82,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 85.73,
     windSpeedStatus: "exceeding_range",
     windDirection: 85.73,
@@ -109,8 +130,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.82,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 85.73,
     windSpeedStatus: "exceeding_range",
     windDirection: 85.73,
@@ -136,8 +155,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: null,
     no2Status: "no_data",
-    btex: null,
-    btexStatus: "no_data",
     windSpeed: null,
     windSpeedStatus: "no_data",
     windDirection: 85.73,
@@ -163,8 +180,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: null,
     no2Status: "no_data",
-    btex: null,
-    btexStatus: "no_data",
     windSpeed: null,
     windSpeedStatus: "no_data",
     windDirection: 85.73,
@@ -190,8 +205,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "parameter_relation",
     no2: 6.82,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: null,
     windSpeedStatus: "no_data",
     windDirection: 85.73,
@@ -217,8 +230,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.82,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 85.73,
     windSpeedStatus: "valid",
     windDirection: 85.73,
@@ -244,8 +255,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.82,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 85.73,
     windSpeedStatus: "valid",
     windDirection: 85.73,
@@ -271,8 +280,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 5.21,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 72.15,
     windSpeedStatus: "valid",
     windDirection: 120.5,
@@ -298,8 +305,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "exceeding_range",
     no2: 7.35,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 95.22,
     windSpeedStatus: "exceeding_range",
     windDirection: 95.8,
@@ -325,8 +330,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "no_data",
     no2: 6.15,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 80.45,
     windSpeedStatus: "valid",
     windDirection: 88.95,
@@ -352,8 +355,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.95,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 88.15,
     windSpeedStatus: "exceeding_range",
     windDirection: 92.35,
@@ -379,8 +380,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: null,
     no2Status: "no_data",
-    btex: null,
-    btexStatus: "no_data",
     windSpeed: null,
     windSpeedStatus: "no_data",
     windDirection: 85.15,
@@ -406,8 +405,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "parameter_relation",
     no2: 7.12,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 82.95,
     windSpeedStatus: "valid",
     windDirection: 78.45,
@@ -433,8 +430,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.48,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 79.85,
     windSpeedStatus: "valid",
     windDirection: 86.75,
@@ -460,8 +455,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.87,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 84.35,
     windSpeedStatus: "valid",
     windDirection: 90.25,
@@ -487,8 +480,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 7.28,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 91.65,
     windSpeedStatus: "exceeding_range",
     windDirection: 94.15,
@@ -514,8 +505,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 6.23,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 77.45,
     windSpeedStatus: "valid",
     windDirection: 83.65,
@@ -541,8 +530,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: null,
     no2Status: "no_data",
-    btex: null,
-    btexStatus: "no_data",
     windSpeed: 86.25,
     windSpeedStatus: "valid",
     windDirection: null,
@@ -568,8 +555,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "valid",
     no2: 5.98,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 75.95,
     windSpeedStatus: "valid",
     windDirection: 81.45,
@@ -595,8 +580,6 @@ export const validationData: ValidationDataRow[] = [
     h2sStatus: "parameter_relation",
     no2: 7.45,
     no2Status: "valid",
-    btex: 6.82,
-    btexStatus: "valid",
     windSpeed: 89.75,
     windSpeedStatus: "exceeding_range",
     windDirection: 96.85,

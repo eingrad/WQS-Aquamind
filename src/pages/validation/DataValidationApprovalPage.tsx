@@ -18,7 +18,11 @@ const parameterDisplayNames: Record<string, string> = {
   so2: "SO₂",
   h2s: "H₂S",
   no2: "NO₂",
-  btex: "BTEX",
+  benzene: "Benzene",
+  toluene: "Toluene",
+  ethylbenzene: "Ethylbenzene",
+  mp_xylene: "m,p-Xylene",
+  o_xylene: "o-Xylene",
   windSpeed: "Wind Speed",
   windDirection: "Wind Direction",
   temperature: "Temperature",
@@ -209,7 +213,11 @@ export default function DataValidationApprovalPage() {
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden">
-      <Sidebar active="Data Approval" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
+      <Sidebar
+        active="Data Approval"
+        isOpen={sidebarOpen}
+        onToggle={setSidebarOpen}
+      />
 
       <div className="flex flex-col flex-1">
         <Topbar

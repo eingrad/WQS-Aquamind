@@ -192,12 +192,38 @@ export default function DataValidationPage() {
             "no_data") as ValidationStatus,
           no2PendingAdminApproval:
             !!record.parameters.no2?.pendingApproval?.isPending,
-          btex: record.parameters.btex?.value ?? null,
-          btexStatus: (record.parameters.btex?.humanValidation?.status ||
-            record.parameters.btex?.autoFlag ||
+          benzene: record.parameters.benzene?.value ?? null,
+          benzeneStatus: (record.parameters.benzene?.humanValidation?.status ||
+            record.parameters.benzene?.autoFlag ||
             "no_data") as ValidationStatus,
-          btexPendingAdminApproval:
-            !!record.parameters.btex?.pendingApproval?.isPending,
+          benzenePendingAdminApproval:
+            !!record.parameters.benzene?.pendingApproval?.isPending,
+          toluene: record.parameters.toluene?.value ?? null,
+          tolueneStatus: (record.parameters.toluene?.humanValidation?.status ||
+            record.parameters.toluene?.autoFlag ||
+            "no_data") as ValidationStatus,
+          toluenePendingAdminApproval:
+            !!record.parameters.toluene?.pendingApproval?.isPending,
+          ethylbenzene: record.parameters.ethylbenzene?.value ?? null,
+          ethylbenzeneStatus: (record.parameters.ethylbenzene?.humanValidation
+            ?.status ||
+            record.parameters.ethylbenzene?.autoFlag ||
+            "no_data") as ValidationStatus,
+          ethylbenzenePendingAdminApproval:
+            !!record.parameters.ethylbenzene?.pendingApproval?.isPending,
+          mpXylene: record.parameters.mp_xylene?.value ?? null,
+          mpXyleneStatus: (record.parameters.mp_xylene?.humanValidation
+            ?.status ||
+            record.parameters.mp_xylene?.autoFlag ||
+            "no_data") as ValidationStatus,
+          mpXylenePendingAdminApproval:
+            !!record.parameters.mp_xylene?.pendingApproval?.isPending,
+          oXylene: record.parameters.o_xylene?.value ?? null,
+          oXyleneStatus: (record.parameters.o_xylene?.humanValidation?.status ||
+            record.parameters.o_xylene?.autoFlag ||
+            "no_data") as ValidationStatus,
+          oXylenePendingAdminApproval:
+            !!record.parameters.o_xylene?.pendingApproval?.isPending,
           windSpeed: record.parameters.windSpeed?.value ?? null,
           windSpeedStatus: (record.parameters.windSpeed?.humanValidation
             ?.status ||
@@ -367,7 +393,11 @@ export default function DataValidationPage() {
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden min-w-0">
-      <Sidebar active="Data Validation" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
+      <Sidebar
+        active="Data Validation"
+        isOpen={sidebarOpen}
+        onToggle={setSidebarOpen}
+      />
 
       <div className="flex flex-col flex-1 min-w-0">
         <Topbar
