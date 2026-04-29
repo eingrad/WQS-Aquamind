@@ -146,7 +146,7 @@ export const buildRegularAggregationQuery = (options: {
       END as data_quality
     FROM time_buckets tb
     LEFT JOIN telemetry_processed tp
-      ON time_bucket($4::interval, tp.observed_at) = tb.bucket
+      ON ${timeBucketExpression} = tb.bucket
       AND tp.device_id = $1::uuid
       AND tp.observed_at >= $2::timestamptz
       AND tp.observed_at < $3::timestamptz
@@ -208,7 +208,7 @@ export const buildMovingAverageQuery = (options: {
         END as data_quality
       FROM time_buckets tb
       LEFT JOIN telemetry_processed tp
-        ON time_bucket($4::interval, tp.observed_at) = tb.bucket
+        ON ${timeBucketExpression} = tb.bucket
         AND tp.device_id = $1::uuid
         AND tp.observed_at >= $2::timestamptz
         AND tp.observed_at < $3::timestamptz
