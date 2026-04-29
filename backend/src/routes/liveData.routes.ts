@@ -17,7 +17,7 @@ router.get("/wind-rose", authenticate, liveDataController.getWindRose);
  * @desc    Get current pollution rose data (10s updates)
  * @access  Private (JWT)
  * @query   deviceId - Device UUID
- * @query   parameter - Pollutant (SO2, H2S, NO2, BTEX)
+ * @query   parameter - Pollutant (SO2, H2S, NO2, BENZENE, TOLUENE, ETHYLBENZENE, MP_XYLENE, O_XYLENE)
  */
 router.get("/pollution-rose", authenticate, liveDataController.getPollutionRose);
 

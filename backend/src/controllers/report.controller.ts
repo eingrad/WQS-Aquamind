@@ -113,7 +113,13 @@ export const exportPDF = async (req: Request, res: Response) => {
       avgSO2: reportData.summary.avgSO2?.toFixed(3) || "N/A",
       avgH2S: reportData.summary.avgH2S?.toFixed(3) || "N/A",
       avgNO2: reportData.summary.avgNO2?.toFixed(3) || "N/A",
-      avgBTEX: reportData.summary.avgBTEX?.toFixed(3) || "N/A",
+      // BTEX components — Synspec GC955 (ppb)
+      avgBenzene: reportData.summary.avgBenzene?.toFixed(3) || "N/A",
+      avgToluene: reportData.summary.avgToluene?.toFixed(3) || "N/A",
+      avgEthylbenzene: reportData.summary.avgEthylbenzene?.toFixed(3) || "N/A",
+      avgMpXylene: reportData.summary.avgMpXylene?.toFixed(3) || "N/A",
+      avgOXylene: reportData.summary.avgOXylene?.toFixed(3) || "N/A",
+      avgXyleneTotal: reportData.summary.avgXyleneTotal?.toFixed(3) || "N/A",
       avgSolar: reportData.summary.avgSolar?.toFixed(2) || "N/A",
       availability: reportData.summary.availability || {}, // Pass availability data
       incompletePeriods: reportData.summary.incompletePeriods || {}, // Pass incomplete periods

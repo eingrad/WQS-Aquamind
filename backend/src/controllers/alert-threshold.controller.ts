@@ -5,21 +5,34 @@ import * as thresholdService from "../services/alert-threshold.service";
 /**
  * Validation schemas
  */
+// Canonical parameter codes used across the alert pipeline.
+// MQTT ingest produces these names directly, the validator stores them in
+// validation_status.parameter, and alert-evaluation matches alert thresholds
+// against them. Keep this list in sync with backend/src/services/mqtt.service.ts
+// CHANNEL_MAP and the ranges in parameter-ranges.ts.
+const ALERT_PARAMETER_CODES = [
+  "so2",
+  "h2s",
+  "no2",
+  "no",
+  "nox",
+  "benzene",
+  "toluene",
+  "ethylbenzene",
+  "mp_xylene",
+  "o_xylene",
+  "temperature",
+  "humidity",
+  "windSpeed",
+  "windDirection",
+  "solar",
+  "pressure",
+  "rain",
+] as const;
+
 const createThresholdSchema = z.object({
   deviceId: z.string().uuid().optional(),
-  parameter: z.enum([
-    "so2",
-    "h2s",
-    "no2",
-    "btex",
-    "temp",
-    "humidity",
-    "ws",
-    "wd",
-    "solar",
-    "pressure",
-    "rain",
-  ]),
+  parameter: z.enum(ALERT_PARAMETER_CODES),
   thresholdType: z.enum(["warning", "critical", "emergency"]),
   operator: z.enum([">", "<", ">=", "<=", "=="]),
   value: z.number(),
@@ -28,21 +41,7 @@ const createThresholdSchema = z.object({
 
 const updateThresholdSchema = z.object({
   deviceId: z.string().uuid().optional(),
-  parameter: z
-    .enum([
-      "so2",
-      "h2s",
-      "no2",
-      "btex",
-      "temp",
-      "humidity",
-      "ws",
-      "wd",
-      "solar",
-      "pressure",
-      "rain",
-    ])
-    .optional(),
+  parameter: z.enum(ALERT_PARAMETER_CODES).optional(),
   thresholdType: z.enum(["warning", "critical", "emergency"]).optional(),
   operator: z.enum([">", "<", ">=", "<=", "=="]).optional(),
   value: z.number().optional(),

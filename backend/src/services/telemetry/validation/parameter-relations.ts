@@ -13,7 +13,14 @@ export interface TelemetryReadings {
   so2?: number;
   h2s?: number;
   no2?: number;
-  btex?: number;
+  no?: number;
+  nox?: number;
+  // BTEX components — Synspec GC955 (ppb)
+  benzene?: number;
+  toluene?: number;
+  ethylbenzene?: number;
+  mp_xylene?: number;
+  o_xylene?: number;
   temperature?: number;
   humidity?: number;
   windSpeed?: number;
@@ -113,22 +120,45 @@ const checkNO2_SO2Combustion = (
 };
 
 /**
- * Check BTEX-wind relationship
- * VOCs disperse with wind, accumulate in calm conditions
+ * Check BTEX-wind relationship.
+ * VOCs disperse with wind, accumulate in calm conditions. The Synspec GC955
+ * reports BTEX as 5 separate isomer channels — for this rule we sum them to
+ * get total BTEX and apply the same dispersal-violation threshold as before.
  */
 const checkBTEX_WindRelationship = (
   readings: TelemetryReadings
 ): RelationViolation | null => {
-  const { btex, windSpeed } = readings;
+  const {
+    benzene,
+    toluene,
+    ethylbenzene,
+    mp_xylene,
+    o_xylene,
+    windSpeed,
+  } = readings;
 
-  if (btex === undefined || windSpeed === undefined) return null;
+  if (windSpeed === undefined) return null;
 
-  // Very high BTEX with very high wind is unusual (should disperse)
-  if (btex > 5 && windSpeed > 15) {
+  // Need at least one BTEX component reading; otherwise skip the rule.
+  const components = [benzene, toluene, ethylbenzene, mp_xylene, o_xylene];
+  const present = components.filter((v) => v !== undefined) as number[];
+  if (present.length === 0) return null;
+
+  const totalBtex = present.reduce((a, b) => a + b, 0);
+
+  // Very high BTEX total with very high wind is unusual (should disperse)
+  if (totalBtex > 5 && windSpeed > 15) {
     return {
       name: "BTEX-Wind Relationship",
-      description: `High BTEX (${btex} ppb) despite strong wind (${windSpeed} m/s) dispersal`,
-      affectedParameters: ["btex", "windSpeed"],
+      description: `High total BTEX (${totalBtex.toFixed(2)} ppb) despite strong wind (${windSpeed} m/s) dispersal`,
+      affectedParameters: [
+        "benzene",
+        "toluene",
+        "ethylbenzene",
+        "mp_xylene",
+        "o_xylene",
+        "windSpeed",
+      ],
       severity: "critical",
     };
   }

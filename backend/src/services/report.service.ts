@@ -29,7 +29,14 @@ export interface ReportData {
     avgSO2: number | null;
     avgH2S: number | null;
     avgNO2: number | null;
-    avgBTEX: number | null;
+    // BTEX components — Synspec GC955 (ppb)
+    avgBenzene: number | null;
+    avgToluene: number | null;
+    avgEthylbenzene: number | null;
+    avgMpXylene: number | null;
+    avgOXylene: number | null;
+    // Total Xylene = mp + o, computed at report-generation time
+    avgXyleneTotal: number | null;
     avgSolar: number | null;
     availability: {
       [parameter: string]: number; // percentage 0-100
@@ -40,12 +47,18 @@ export interface ReportData {
   };
 }
 
-// Default parameters to include in reports
+// Default parameters to include in reports.
+// All gas units are ppb (storage unit) since the ppm→ppb migration.
 const DEFAULT_PARAMETERS = [
-  { key: "so2", label: "SO₂", unit: "ppm" },
-  { key: "h2s", label: "H₂S", unit: "ppm" },
-  { key: "no2", label: "NO₂", unit: "ppm" },
-  { key: "btex", label: "BTEX", unit: "ppb" },
+  { key: "so2", label: "SO₂", unit: "ppb" },
+  { key: "h2s", label: "H₂S", unit: "ppb" },
+  { key: "no2", label: "NO₂", unit: "ppb" },
+  { key: "benzene", label: "Benzene", unit: "ppb" },
+  { key: "toluene", label: "Toluene", unit: "ppb" },
+  { key: "ethylbenzene", label: "Ethylbenzene", unit: "ppb" },
+  { key: "mp_xylene", label: "m,p-Xylene", unit: "ppb" },
+  { key: "o_xylene", label: "o-Xylene", unit: "ppb" },
+  { key: "xylene", label: "Xylene (total)", unit: "ppb" },
   { key: "temperature", label: "Temperature", unit: "°C" },
   { key: "humidity", label: "Humidity", unit: "%" },
   { key: "pressure", label: "Pressure", unit: "hPa" },
@@ -212,7 +225,11 @@ const calculateAvailability = (
     so2: "so2_avg",
     h2s: "h2s_avg",
     no2: "no2_avg",
-    btex: "btex_avg",
+    benzene: "benzene_avg",
+    toluene: "toluene_avg",
+    ethylbenzene: "ethylbenzene_avg",
+    mp_xylene: "mp_xylene_avg",
+    o_xylene: "o_xylene_avg",
     temperature: "temperature_avg",
     humidity: "humidity_avg",
     pressure: "pressure_avg",
@@ -331,7 +348,12 @@ const calculateSummary = (
     avgSO2: null,
     avgH2S: null,
     avgNO2: null,
-    avgBTEX: null,
+    avgBenzene: null,
+    avgToluene: null,
+    avgEthylbenzene: null,
+    avgMpXylene: null,
+    avgOXylene: null,
+    avgXyleneTotal: null,
     avgSolar: null,
     availability,
     incompletePeriods,
@@ -394,15 +416,40 @@ const calculateSummary = (
     }
   }
 
-  // Calculate BTEX average
-  if (parameters.includes("btex")) {
-    const btexValues = data
-      .map((row) => row.btex_avg)
-      .filter((v) => v !== null)
+  // Calculate BTEX component averages.
+  // Each isomer is averaged independently from its dedicated column.
+  const avgOf = (column: string): number | null => {
+    const values = data
+      .map((row) => row[column])
+      .filter((v) => v !== null && v !== undefined)
       .map(Number);
-    if (btexValues.length > 0) {
-      summary.avgBTEX =
-        btexValues.reduce((a, b) => a + b, 0) / btexValues.length;
+    return values.length > 0
+      ? values.reduce((a, b) => a + b, 0) / values.length
+      : null;
+  };
+  if (parameters.includes("benzene")) summary.avgBenzene = avgOf("benzene_avg");
+  if (parameters.includes("toluene")) summary.avgToluene = avgOf("toluene_avg");
+  if (parameters.includes("ethylbenzene"))
+    summary.avgEthylbenzene = avgOf("ethylbenzene_avg");
+  if (parameters.includes("mp_xylene"))
+    summary.avgMpXylene = avgOf("mp_xylene_avg");
+  if (parameters.includes("o_xylene"))
+    summary.avgOXylene = avgOf("o_xylene_avg");
+
+  // Total Xylene = average of (mp_xylene + o_xylene) per row, then averaged.
+  // This is the report-only sum the user asked for; it is not stored.
+  if (parameters.includes("xylene")) {
+    const xyleneValues = data
+      .map((row) => {
+        const mp = row.mp_xylene_avg;
+        const o = row.o_xylene_avg;
+        if (mp === null && o === null) return null;
+        return Number(mp ?? 0) + Number(o ?? 0);
+      })
+      .filter((v): v is number => v !== null);
+    if (xyleneValues.length > 0) {
+      summary.avgXyleneTotal =
+        xyleneValues.reduce((a, b) => a + b, 0) / xyleneValues.length;
     }
   }
 
