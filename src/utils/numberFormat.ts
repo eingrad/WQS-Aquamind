@@ -24,14 +24,14 @@ export const formatSensorValue = (
  */
 const PARAMETER_DECIMALS: Record<string, number> = {
   // Pollutants (concentrations) — all gases stored in ppb
-  so2: 2, // ppb
-  h2s: 2, // ppb
-  no2: 2, // ppb
-  benzene: 2, // ppb
-  toluene: 2, // ppb
-  ethylbenzene: 2, // ppb
-  mp_xylene: 2, // ppb
-  o_xylene: 2, // ppb
+  so2: 4, // ppb
+  h2s: 4, // ppb
+  no2: 4, // ppb
+  benzene: 4, // ppb
+  toluene: 4, // ppb
+  ethylbenzene: 4, // ppb
+  mp_xylene: 4, // ppb
+  o_xylene: 4, // ppb
 
   // Meteorological
   solar: 2, // W/m²
