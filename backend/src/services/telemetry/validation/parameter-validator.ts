@@ -1,4 +1,8 @@
-import { INSTRUMENT_RANGES, OPERATIONAL_RANGES } from "./parameter-ranges";
+import {
+  INSTRUMENT_RANGES,
+  OPERATIONAL_RANGES_1H,
+  OPERATIONAL_RANGES_24H,
+} from "./parameter-ranges";
 import {
   checkParameterRelations,
   getAffectedParameters,
@@ -27,10 +31,17 @@ export interface ValidationResult {
 
 /**
  * Validation modes:
- * - 'full': Check both instrument ranges and operational/regulatory limits (for 1-hour aggregates)
+ * - 'full': Check both instrument ranges and operational/regulatory limits (for aggregates)
  * - 'instrument_only': Check only instrument sensor ranges (for 1-minute storage)
  */
 export type ValidationMode = "full" | "instrument_only";
+
+/**
+ * Averaging period selects which operational range table to apply.
+ * - '1h': Malaysia AAQS 1-hour limits (SO2, NO2) plus environmentals
+ * - '24h': Malaysia AAQS 24-hour limits (SO2, NO2, H2S, BTEX)
+ */
+export type AveragingPeriod = "1h" | "24h";
 
 /**
  * Validate parameter values with three-layer checking:
@@ -41,14 +52,19 @@ export type ValidationMode = "full" | "instrument_only";
  *
  * @param readings - Object with parameter values
  * @param mode - Validation mode: 'full' (default) or 'instrument_only'
+ * @param averagingPeriod - Operational range table to use ('1h' default, or '24h')
  */
 export const validateParameterValues = (
   readings: any,
-  mode: ValidationMode = "full"
+  mode: ValidationMode = "full",
+  averagingPeriod: AveragingPeriod = "1h"
 ): ValidationResult => {
   const flags: Record<string, ValidationFlag> = {};
   let hasIssues = false;
   const relationViolations: string[] = [];
+
+  const operationalTable =
+    averagingPeriod === "24h" ? OPERATIONAL_RANGES_24H : OPERATIONAL_RANGES_1H;
 
   // Priority 1 & 2: Individual parameter range checks
   Object.entries(readings).forEach(([param, value]) => {
@@ -57,9 +73,13 @@ export const validateParameterValues = (
     const instrumentRange =
       INSTRUMENT_RANGES[param as keyof typeof INSTRUMENT_RANGES];
     const operationalRange =
-      OPERATIONAL_RANGES[param as keyof typeof OPERATIONAL_RANGES];
+      operationalTable[param as keyof typeof operationalTable];
 
-    if (!instrumentRange || !operationalRange) return;
+    if (!instrumentRange) return;
+    if (mode === "full" && !operationalRange) {
+      // No operational limit defined for this param at this averaging period —
+      // still check instrument range, but skip Priority 2.
+    }
 
     const numValue = Number(value);
     if (isNaN(numValue)) {
@@ -78,7 +98,8 @@ export const validateParameterValues = (
 
     // Priority 2: Check if value violates operational limits (data reliable but unacceptable)
     // Skip this check if mode is 'instrument_only' (for 1-minute storage)
-    if (mode === "full") {
+    // Also skip if no operational range is defined for this param at this averaging period
+    if (mode === "full" && operationalRange) {
       if (numValue < operationalRange.min || numValue > operationalRange.max) {
         flags[param] = "out_of_range";
         hasIssues = true;

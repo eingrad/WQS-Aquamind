@@ -47,11 +47,11 @@ const checkH2S_SO2Correlation = (
 
   if (h2s === undefined || so2 === undefined) return null;
 
-  // High H2S (>0.03 ppm) should correlate with elevated SO2 (>0.02 ppm)
-  if (h2s > 0.03 && so2 < 0.02) {
+  // High H2S (>30 ppb) should correlate with elevated SO2 (>20 ppb)
+  if (h2s > 30 && so2 < 20) {
     return {
       name: "H2S-SO2 Correlation",
-      description: `High H2S (${h2s} ppm) but unexpectedly low SO2 (${so2} ppm)`,
+      description: `High H2S (${h2s} ppb) but unexpectedly low SO2 (${so2} ppb)`,
       affectedParameters: ["h2s", "so2"],
       severity: "warning",
     };
@@ -105,11 +105,11 @@ const checkNO2_SO2Combustion = (
 
   if (no2 === undefined || so2 === undefined) return null;
 
-  // Elevated NO2 often accompanies SO2 during flaring
-  if (no2 > 0.12 && so2 < 0.03) {
+  // Elevated NO2 (>120 ppb) often accompanies SO2 (>30 ppb) during flaring
+  if (no2 > 120 && so2 < 30) {
     return {
       name: "NO2-SO2 Combustion",
-      description: `High NO2 (${no2} ppm) from combustion but unexpectedly low SO2 (${so2} ppm)`,
+      description: `High NO2 (${no2} ppb) from combustion but unexpectedly low SO2 (${so2} ppb)`,
       affectedParameters: ["no2", "so2"],
       severity: "warning",
     };

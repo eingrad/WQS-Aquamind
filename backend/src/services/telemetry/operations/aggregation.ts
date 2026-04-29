@@ -123,8 +123,17 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
 
   let output: any;
 
-  // Validate 1-hour aggregates against regulatory limits
-  if (interval === "1h") {
+  // Validate aggregates against regulatory limits.
+  // 1h → Malaysia AAQS 1-hour table (SO2, NO2, environmentals)
+  // 24h / 24h_ma → Malaysia AAQS 24-hour table (SO2, NO2, H2S, BTEX)
+  const averagingPeriod: "1h" | "24h" | null =
+    interval === "1h"
+      ? "1h"
+      : interval === "24h" || interval === "24h_ma"
+      ? "24h"
+      : null;
+
+  if (averagingPeriod) {
     const validatedResults = results.map((row: any) => {
       // Extract average values for validation
       const readings: Record<string, number> = {};
@@ -136,7 +145,11 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
       });
 
       // Validate with full regulatory compliance checks
-      const validation = validateParameterValues(readings, "full");
+      const validation = validateParameterValues(
+        readings,
+        "full",
+        averagingPeriod
+      );
 
       return {
         ...row,
