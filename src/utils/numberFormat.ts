@@ -27,8 +27,6 @@ const PARAMETER_DECIMALS: Record<string, number> = {
   so2: 2, // ppb
   h2s: 2, // ppb
   no2: 2, // ppb
-  no: 2, // ppb
-  nox: 2, // ppb
   benzene: 2, // ppb
   toluene: 2, // ppb
   ethylbenzene: 2, // ppb

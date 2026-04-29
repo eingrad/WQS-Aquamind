@@ -2,7 +2,7 @@
  * Unit Conversion Utility
  *
  * Backend base units (all gases stored in ppb):
- *   SO₂, H₂S, NO, NO₂, NOx, Benzene, Toluene, Ethylbenzene, m,p-Xylene,
+ *   SO₂, H₂S, NO₂, Benzene, Toluene, Ethylbenzene, m,p-Xylene,
  *   o-Xylene → ppb
  *   Temperature: °C, Humidity: %, Wind Speed: m/s, Wind Direction: °
  *   Solar Radiation: W/m², Pressure: hPa, Rain: mm/h
@@ -10,8 +10,7 @@
  * Molecular weights (for µg/m³ conversion at 25°C, 1 atm):
  *   SO₂          = 64.07 g/mol
  *   H₂S          = 34.08 g/mol
- *   NO           = 30.01 g/mol
- *   NO₂ / NOx    = 46.01 g/mol (NOx reported as NO₂-equivalent)
+ *   NO₂          = 46.01 g/mol (NOx reported as NO₂-equivalent)
  *   Benzene      = 78.11 g/mol
  *   Toluene      = 92.14 g/mol
  *   Ethylbenzene = 106.17 g/mol
@@ -26,8 +25,6 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
   so2: ["ppb", "ppm", "µg/m³"],
   h2s: ["ppb", "ppm", "µg/m³"],
   no2: ["ppb", "ppm", "µg/m³"],
-  no: ["ppb", "ppm", "µg/m³"],
-  nox: ["ppb", "ppm", "µg/m³"],
   benzene: ["ppb", "ppm", "µg/m³"],
   toluene: ["ppb", "ppm", "µg/m³"],
   ethylbenzene: ["ppb", "ppm", "µg/m³"],
@@ -47,8 +44,6 @@ export const BASE_UNITS: Record<string, string> = {
   so2: "ppb",
   h2s: "ppb",
   no2: "ppb",
-  no: "ppb",
-  nox: "ppb",
   benzene: "ppb",
   toluene: "ppb",
   ethylbenzene: "ppb",
@@ -70,9 +65,7 @@ export const DEFAULT_UNITS: Record<string, string> = { ...BASE_UNITS };
 const MOLECULAR_WEIGHTS: Record<string, number> = {
   so2: 64.07,
   h2s: 34.08,
-  no2: 46.01,
-  no: 30.01,
-  nox: 46.01, // reported as NO2-equivalent (standard practice)
+  no2: 46.01, // reported as NO2-equivalent (standard practice)
   benzene: 78.11,
   toluene: 92.14,
   ethylbenzene: 106.17,
@@ -102,8 +95,6 @@ export function convertValue(
       "so2",
       "h2s",
       "no2",
-      "no",
-      "nox",
       "benzene",
       "toluene",
       "ethylbenzene",

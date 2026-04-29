@@ -10,8 +10,6 @@ export const PARAMETERS = [
   { key: "so2", label: "SO₂", unit: "ppb" },
   { key: "h2s", label: "H₂S", unit: "ppb" },
   { key: "no2", label: "NO₂", unit: "ppb" },
-  { key: "no", label: "NO", unit: "ppb" },
-  { key: "nox", label: "NOx", unit: "ppb" },
   // BTEX is shown as 5 individual isomer rows. The total Xylene sum
   // (mp + o) is only computed at report-generation time, not displayed live.
   { key: "benzene", label: "Benzene", unit: "ppb" },

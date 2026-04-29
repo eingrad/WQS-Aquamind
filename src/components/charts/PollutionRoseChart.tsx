@@ -41,10 +41,6 @@ function formatGasName(parameter: string | undefined): string {
       return "H₂S";
     case "no2":
       return "NO₂";
-    case "no":
-      return "NO";
-    case "nox":
-      return "NOₓ";
     case "benzene":
       return "Benzene";
     case "toluene":
