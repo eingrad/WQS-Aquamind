@@ -34,7 +34,8 @@ export const convertToUTC = (
 
   // Check if timestamp has timezone information
   // Matches: Z, +HH:MM, -HH:MM, +HHMM, -HHMM, +HH, -HH at the end
-  const hasTimezone = /Z|[+-]\d{2}(:?\d{2})?$/.test(timestamp);
+  // Requires a time component (T or space) to avoid matching date-only strings like "2026-04-28"
+  const hasTimezone = /(?:Z|[+-]\d{2}(?::?\d{2})?)$/.test(timestamp) && /T| /.test(timestamp);
 
   // If it has timezone info, let Date constructor handle it
   if (hasTimezone) {
@@ -90,7 +91,7 @@ export const parseReportDateRange = (
   offsetHours: number = 8
 ): { start: Date; end: Date } => {
   const OFFSET_MS = offsetHours * 60 * 60 * 1000;
-  const hasTimezone = /Z|[+-]\d{2}(:?\d{2})?$/.test(startDate);
+  const hasTimezone = /(?:Z|[+-]\d{2}(?::?\d{2})?)$/.test(startDate) && /T| /.test(startDate);
 
   let start: Date;
   let end: Date;
