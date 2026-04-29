@@ -9,12 +9,11 @@ interface DataRow {
   so2: number;
   h2s: number;
   no2: number;
-  // BTEX components — Synspec GC955 channels 34/35/36/37/38, all in ppb
+  // BTEX components (Synspec GC955, all in ppb)
   benzene: number;
   toluene: number;
   ethylbenzene: number;
-  mp_xylene: number;
-  o_xylene: number;
+  xylenes: number;
   solar: number;
   temperature: number;
   humidity: number;
@@ -119,16 +118,10 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                     {getUnit("ethylbenzene")}
                   </div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[130px]">
-                  <div>m,p-Xylene</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("mp_xylene")}
-                  </div>
-                </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>o-Xylene</div>
+                  <div>Xylene</div>
                   <div className="text-xs font-normal text-gray-400">
-                    {getUnit("o_xylene")}
+                    {getUnit("xylenes")}
                   </div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
@@ -216,14 +209,8 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                   </td>
                   <td className="px-4 py-3 text-center ">
                     {formatPollutantValue(
-                      convert(row.mp_xylene, "mp_xylene") ?? 0,
-                      "mp_xylene",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.o_xylene, "o_xylene") ?? 0,
-                      "o_xylene",
+                      convert(row.xylenes, "xylenes") ?? 0,
+                      "xylenes",
                     )}
                   </td>
                   <td className="px-4 py-3 text-center ">

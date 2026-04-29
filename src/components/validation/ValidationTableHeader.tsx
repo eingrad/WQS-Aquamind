@@ -54,16 +54,10 @@ export default function ValidationTableHeader() {
             {getUnit("ethylbenzene")}
           </div>
         </th>
-        <th className="px-4 py-3 text-center font-semibold border-r border-white/5 min-w-[130px]">
-          <div>m,p-Xylene</div>
-          <div className="text-xs font-normal text-gray-400">
-            {getUnit("mp_xylene")}
-          </div>
-        </th>
         <th className="px-4 py-3 text-center font-semibold border-r border-white/5 min-w-[120px]">
-          <div>o-Xylene</div>
+          <div>Xylene</div>
           <div className="text-xs font-normal text-gray-400">
-            {getUnit("o_xylene")}
+            {getUnit("xylenes")}
           </div>
         </th>
         <th className="px-4 py-3 text-center font-semibold border-r border-white/5 min-w-[120px]">

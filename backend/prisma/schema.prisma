@@ -138,14 +138,11 @@ model TelemetryProcessed {
   no2Value          Decimal? @map("no2_value") @db.Decimal(11, 4)
   noValue           Decimal? @map("no_value") @db.Decimal(11, 4)
   noxValue          Decimal? @map("nox_value") @db.Decimal(11, 4)
-  // BTEX components (Synspec GC955 — channels 34/35/36/37/38, all in ppb).
-  // Total Xylene = mp_xylene + o_xylene is computed at report-generation time,
-  // not stored.
+  // BTEX components (Synspec GC955, all in ppb)
   benzeneValue      Decimal? @map("benzene_value") @db.Decimal(11, 4)
   tolueneValue      Decimal? @map("toluene_value") @db.Decimal(11, 4)
   ethylbenzeneValue Decimal? @map("ethylbenzene_value") @db.Decimal(11, 4)
-  mpXyleneValue     Decimal? @map("mp_xylene_value") @db.Decimal(11, 4)
-  oXyleneValue     Decimal? @map("o_xylene_value") @db.Decimal(11, 4)
+  xylenesValue      Decimal? @map("xylenes_value") @db.Decimal(11, 4)
   
   // Meteorological Parameters
   tempValue       Decimal? @map("temp_value") @db.Decimal(5, 2)

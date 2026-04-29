@@ -2,8 +2,7 @@
  * Unit Conversion Utility
  *
  * Backend base units (all gases stored in ppb):
- *   SO₂, H₂S, NO₂, Benzene, Toluene, Ethylbenzene, m,p-Xylene,
- *   o-Xylene → ppb
+ *   SO₂, H₂S, NO₂, Benzene, Toluene, Ethylbenzene, Xylenes → ppb
  *   Temperature: °C, Humidity: %, Wind Speed: m/s, Wind Direction: °
  *   Solar Radiation: W/m², Pressure: hPa, Rain: mm/h
  *
@@ -28,8 +27,7 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
   benzene: ["ppb", "ppm", "µg/m³"],
   toluene: ["ppb", "ppm", "µg/m³"],
   ethylbenzene: ["ppb", "ppm", "µg/m³"],
-  mp_xylene: ["ppb", "ppm", "µg/m³"],
-  o_xylene: ["ppb", "ppm", "µg/m³"],
+  xylenes: ["ppb", "ppm", "µg/m³"],
   temperature: ["°C", "°F"],
   humidity: ["%", "g/m³"],
   windSpeed: ["m/s", "km/h", "mph"],
@@ -47,8 +45,7 @@ export const BASE_UNITS: Record<string, string> = {
   benzene: "ppb",
   toluene: "ppb",
   ethylbenzene: "ppb",
-  mp_xylene: "ppb",
-  o_xylene: "ppb",
+  xylenes: "ppb",
   temperature: "°C",
   humidity: "%",
   windSpeed: "m/s",
@@ -69,8 +66,7 @@ const MOLECULAR_WEIGHTS: Record<string, number> = {
   benzene: 78.11,
   toluene: 92.14,
   ethylbenzene: 106.17,
-  mp_xylene: 106.17,
-  o_xylene: 106.17,
+  xylenes: 106.17,
 };
 
 // Molar volume at 25°C, 1 atm (L/mol)
@@ -98,8 +94,7 @@ export function convertValue(
       "benzene",
       "toluene",
       "ethylbenzene",
-      "mp_xylene",
-      "o_xylene",
+      "xylenes",
     ].includes(parameter)
   ) {
     return convertGas(value, parameter, baseUnit, targetUnit);

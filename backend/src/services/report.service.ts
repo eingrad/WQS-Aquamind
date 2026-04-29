@@ -33,10 +33,7 @@ export interface ReportData {
     avgBenzene: number | null;
     avgToluene: number | null;
     avgEthylbenzene: number | null;
-    avgMpXylene: number | null;
-    avgOXylene: number | null;
-    // Total Xylene = mp + o, computed at report-generation time
-    avgXyleneTotal: number | null;
+    avgXylenes: number | null;
     avgSolar: number | null;
     availability: {
       [parameter: string]: number; // percentage 0-100
@@ -56,9 +53,7 @@ const DEFAULT_PARAMETERS = [
   { key: "benzene", label: "Benzene", unit: "ppb" },
   { key: "toluene", label: "Toluene", unit: "ppb" },
   { key: "ethylbenzene", label: "Ethylbenzene", unit: "ppb" },
-  { key: "mp_xylene", label: "m,p-Xylene", unit: "ppb" },
-  { key: "o_xylene", label: "o-Xylene", unit: "ppb" },
-  { key: "xylene", label: "Xylene (total)", unit: "ppb" },
+  { key: "xylenes", label: "Xylene", unit: "ppb" },
   { key: "temperature", label: "Temperature", unit: "°C" },
   { key: "humidity", label: "Humidity", unit: "%" },
   { key: "pressure", label: "Pressure", unit: "hPa" },
@@ -228,8 +223,7 @@ const calculateAvailability = (
     benzene: "benzene_avg",
     toluene: "toluene_avg",
     ethylbenzene: "ethylbenzene_avg",
-    mp_xylene: "mp_xylene_avg",
-    o_xylene: "o_xylene_avg",
+    xylenes: "xylenes_avg",
     temperature: "temperature_avg",
     humidity: "humidity_avg",
     pressure: "pressure_avg",
@@ -351,9 +345,7 @@ const calculateSummary = (
     avgBenzene: null,
     avgToluene: null,
     avgEthylbenzene: null,
-    avgMpXylene: null,
-    avgOXylene: null,
-    avgXyleneTotal: null,
+    avgXylenes: null,
     avgSolar: null,
     availability,
     incompletePeriods,
@@ -431,27 +423,8 @@ const calculateSummary = (
   if (parameters.includes("toluene")) summary.avgToluene = avgOf("toluene_avg");
   if (parameters.includes("ethylbenzene"))
     summary.avgEthylbenzene = avgOf("ethylbenzene_avg");
-  if (parameters.includes("mp_xylene"))
-    summary.avgMpXylene = avgOf("mp_xylene_avg");
-  if (parameters.includes("o_xylene"))
-    summary.avgOXylene = avgOf("o_xylene_avg");
-
-  // Total Xylene = average of (mp_xylene + o_xylene) per row, then averaged.
-  // This is the report-only sum the user asked for; it is not stored.
-  if (parameters.includes("xylene")) {
-    const xyleneValues = data
-      .map((row) => {
-        const mp = row.mp_xylene_avg;
-        const o = row.o_xylene_avg;
-        if (mp === null && o === null) return null;
-        return Number(mp ?? 0) + Number(o ?? 0);
-      })
-      .filter((v): v is number => v !== null);
-    if (xyleneValues.length > 0) {
-      summary.avgXyleneTotal =
-        xyleneValues.reduce((a, b) => a + b, 0) / xyleneValues.length;
-    }
-  }
+  if (parameters.includes("xylenes"))
+    summary.avgXylenes = avgOf("xylenes_avg");
 
   // Calculate Solar average
   if (parameters.includes("solar")) {

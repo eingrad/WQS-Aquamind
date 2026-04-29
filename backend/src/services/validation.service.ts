@@ -212,7 +212,7 @@ export const getValidationTableData = async (options: {
     endDate,
     interval: "1h",
     parameters:
-      "so2,h2s,no2,benzene,toluene,ethylbenzene,mp_xylene,o_xylene,windSpeed,windDirection,temperature,humidity,pressure,solar,rain",
+      "so2,h2s,no2,benzene,toluene,ethylbenzene,xylenes,windSpeed,windDirection,temperature,humidity,pressure,solar,rain",
   });
 
   // Fetch human validation flags for the date range
@@ -313,33 +313,18 @@ export const getValidationTableData = async (options: {
           pendingRequests,
         ),
       },
-      mp_xylene: {
-        value: row.mp_xylene_avg !== null ? Number(row.mp_xylene_avg) : null,
+      xylenes: {
+        value: row.xylenes_avg !== null ? Number(row.xylenes_avg) : null,
         unit: "ppb",
-        autoFlag: row.validation_flags?.mp_xylene || "valid",
+        autoFlag: row.validation_flags?.xylenes || "valid",
         humanValidation: getHumanFlagsForHour(
           row.bucket,
-          "mp_xylene",
+          "xylenes",
           humanFlags,
         ),
         pendingApproval: getPendingApprovalForHour(
           row.bucket,
-          "mp_xylene",
-          pendingRequests,
-        ),
-      },
-      o_xylene: {
-        value: row.o_xylene_avg !== null ? Number(row.o_xylene_avg) : null,
-        unit: "ppb",
-        autoFlag: row.validation_flags?.o_xylene || "valid",
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "o_xylene",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "o_xylene",
+          "xylenes",
           pendingRequests,
         ),
       },

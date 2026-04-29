@@ -211,19 +211,13 @@ export default function DataValidationPage() {
             "no_data") as ValidationStatus,
           ethylbenzenePendingAdminApproval:
             !!record.parameters.ethylbenzene?.pendingApproval?.isPending,
-          mpXylene: record.parameters.mp_xylene?.value ?? null,
-          mpXyleneStatus: (record.parameters.mp_xylene?.humanValidation
+          xylenes: record.parameters.xylenes?.value ?? null,
+          xylenesStatus: (record.parameters.xylenes?.humanValidation
             ?.status ||
-            record.parameters.mp_xylene?.autoFlag ||
+            record.parameters.xylenes?.autoFlag ||
             "no_data") as ValidationStatus,
-          mpXylenePendingAdminApproval:
-            !!record.parameters.mp_xylene?.pendingApproval?.isPending,
-          oXylene: record.parameters.o_xylene?.value ?? null,
-          oXyleneStatus: (record.parameters.o_xylene?.humanValidation?.status ||
-            record.parameters.o_xylene?.autoFlag ||
-            "no_data") as ValidationStatus,
-          oXylenePendingAdminApproval:
-            !!record.parameters.o_xylene?.pendingApproval?.isPending,
+          xylenesPendingAdminApproval:
+            !!record.parameters.xylenes?.pendingApproval?.isPending,
           windSpeed: record.parameters.windSpeed?.value ?? null,
           windSpeedStatus: (record.parameters.windSpeed?.humanValidation
             ?.status ||

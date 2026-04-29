@@ -16,8 +16,7 @@ export const INSTRUMENT_RANGES = {
   benzene: { min: 0, max: 300, unit: "ppb" },
   toluene: { min: 0, max: 300, unit: "ppb" },
   ethylbenzene: { min: 0, max: 300, unit: "ppb" },
-  mp_xylene: { min: 0, max: 300, unit: "ppb" },
-  o_xylene: { min: 0, max: 300, unit: "ppb" },
+  xylenes: { min: 0, max: 300, unit: "ppb" },
   temperature: { min: -40, max: 85, unit: "°C" },
   humidity: { min: 0, max: 100, unit: "%" },
   windSpeed: { min: 0, max: 60, unit: "m/s" },
@@ -72,8 +71,7 @@ export const OPERATIONAL_RANGES = {
   benzene: { min: 0.1, max: 2.3, unit: "ppb" }, // Ontario AAQC 24-hr
   toluene: { min: 0.1, max: 400, unit: "ppb" }, // Alberta AAQC 24-hr
   ethylbenzene: { min: 0.1, max: 460, unit: "ppb" }, // Alberta AAQC 24-hr
-  mp_xylene: { min: 0.1, max: 350, unit: "ppb" },
-  o_xylene: { min: 0.1, max: 350, unit: "ppb" },
+  xylenes: { min: 0.1, max: 700, unit: "ppb" }, // AAQC 24-hr total xylene
 
   // Malaysia tropical climate: 21-32°C typical range
   // Allow 20-35°C for operational monitoring (accounts for daily variation)

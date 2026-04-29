@@ -60,8 +60,7 @@ const CHANNEL_MAP: Record<number, string> = {
   34: "benzene", // Benzene
   35: "toluene", // Toluene
   36: "ethylbenzene", // Ethylbenzene
-  37: "mp_xylene", // m,p-Xylene (co-eluting isomers)
-  38: "o_xylene", // o-Xylene
+  59: "xylenes", // Xylenes (total)
 };
 
 /**
@@ -406,8 +405,7 @@ const handleSensorMessage = async (
     "benzene",
     "toluene",
     "ethylbenzene",
-    "mp_xylene",
-    "o_xylene",
+    "xylenes",
   ] as const;
   const cached = latestWindDirection.get(deviceId);
   const windFresh =
@@ -650,9 +648,7 @@ const CONCENTRATION_BINS: Record<string, [number, number, number]> = {
   benzene: [0.5, 1.0, 2.3],
   toluene: [50, 200, 400],
   ethylbenzene: [50, 200, 460],
-  mp_xylene: [50, 200, 350],
-  o_xylene: [25, 100, 175],
-  xylene: [100, 350, 700], // total (m,p + o), aligned with AAQC 700 ppb 24-hr
+  xylenes: [100, 350, 700], // aligned with AAQC 700 ppb 24-hr
 };
 
 /**

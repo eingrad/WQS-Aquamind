@@ -30,8 +30,7 @@ const PARAMETER_DECIMALS: Record<string, number> = {
   benzene: 4, // ppb
   toluene: 4, // ppb
   ethylbenzene: 4, // ppb
-  mp_xylene: 4, // ppb
-  o_xylene: 4, // ppb
+  xylenes: 4, // ppb
 
   // Meteorological
   solar: 2, // W/m²

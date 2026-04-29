@@ -60,8 +60,7 @@ export default function RealTimeParameters({
     const fetchLiveData = async () => {
       try {
         // Try live data from Redis (pushed by MQTT subscriber).
-        // The service layer already synthesizes a virtual `xylene` reading
-        // from mp_xylene + o_xylene, so this widget just consumes it.
+        // Xylenes is now a direct reading from channel 59.
         const data = await getRealTimeParams(deviceId);
         setLiveData(data.readings);
         setLoading(false);
@@ -88,8 +87,7 @@ export default function RealTimeParameters({
             set("benzene", latest.benzeneValue);
             set("toluene", latest.tolueneValue);
             set("ethylbenzene", latest.ethylbenzeneValue);
-            set("mp_xylene", latest.mpXyleneValue);
-            set("o_xylene", latest.oXyleneValue);
+            set("xylenes", latest.xylenesValue);
             set("temperature", latest.tempValue);
             set("humidity", latest.humidityValue);
             set("windSpeed", latest.wsValue);

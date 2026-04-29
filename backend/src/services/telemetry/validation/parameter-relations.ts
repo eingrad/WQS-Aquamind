@@ -19,8 +19,7 @@ export interface TelemetryReadings {
   benzene?: number;
   toluene?: number;
   ethylbenzene?: number;
-  mp_xylene?: number;
-  o_xylene?: number;
+  xylenes?: number;
   temperature?: number;
   humidity?: number;
   windSpeed?: number;
@@ -132,15 +131,14 @@ const checkBTEX_WindRelationship = (
     benzene,
     toluene,
     ethylbenzene,
-    mp_xylene,
-    o_xylene,
+    xylenes,
     windSpeed,
   } = readings;
 
   if (windSpeed === undefined) return null;
 
   // Need at least one BTEX component reading; otherwise skip the rule.
-  const components = [benzene, toluene, ethylbenzene, mp_xylene, o_xylene];
+  const components = [benzene, toluene, ethylbenzene, xylenes];
   const present = components.filter((v) => v !== undefined) as number[];
   if (present.length === 0) return null;
 
@@ -155,8 +153,7 @@ const checkBTEX_WindRelationship = (
         "benzene",
         "toluene",
         "ethylbenzene",
-        "mp_xylene",
-        "o_xylene",
+        "xylenes",
         "windSpeed",
       ],
       severity: "critical",

@@ -81,7 +81,7 @@ export const createReading = async (input: ReadingInput) => {
         readings.no !== undefined ? new Prisma.Decimal(readings.no) : null,
       noxValue:
         readings.nox !== undefined ? new Prisma.Decimal(readings.nox) : null,
-      // BTEX components (Synspec GC955 channels 34/35/36/37/38)
+      // BTEX components (Synspec GC955 channel 34/35/36/59)
       benzeneValue:
         readings.benzene !== undefined
           ? new Prisma.Decimal(readings.benzene)
@@ -94,13 +94,9 @@ export const createReading = async (input: ReadingInput) => {
         readings.ethylbenzene !== undefined
           ? new Prisma.Decimal(readings.ethylbenzene)
           : null,
-      mpXyleneValue:
-        readings.mp_xylene !== undefined
-          ? new Prisma.Decimal(readings.mp_xylene)
-          : null,
-      oXyleneValue:
-        readings.o_xylene !== undefined
-          ? new Prisma.Decimal(readings.o_xylene)
+      xylenesValue:
+        readings.xylenes !== undefined
+          ? new Prisma.Decimal(readings.xylenes)
           : null,
       tempValue:
         readings.temperature !== undefined

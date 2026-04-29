@@ -84,23 +84,12 @@ export default function ValidationTableRow({
       />
       <StatusCell
         rowId={row.id}
-        parameter="mp_xylene"
-        value={row.mpXylene ?? null}
-        status={row.mpXyleneStatus ?? "no_data"}
-        validatedByHuman={row.mpXyleneValidatedByHuman}
-        flaggedByHuman={row.mpXyleneFlaggedByHuman}
-        pendingAdminApproval={row.mpXylenePendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
-        parameter="o_xylene"
-        value={row.oXylene ?? null}
-        status={row.oXyleneStatus ?? "no_data"}
-        validatedByHuman={row.oXyleneValidatedByHuman}
-        flaggedByHuman={row.oXyleneFlaggedByHuman}
-        pendingAdminApproval={row.oXylenePendingAdminApproval}
+        parameter="xylenes"
+        value={row.xylenes ?? null}
+        status={row.xylenesStatus ?? "no_data"}
+        validatedByHuman={row.xylenesValidatedByHuman}
+        flaggedByHuman={row.xylenesFlaggedByHuman}
+        pendingAdminApproval={row.xylenesPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />

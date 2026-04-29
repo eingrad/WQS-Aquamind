@@ -70,8 +70,7 @@ export default function DashboardPage() {
     | "BENZENE"
     | "TOLUENE"
     | "ETHYLBENZENE"
-    | "MP_XYLENE"
-    | "O_XYLENE"
+    | "XYLENES"
   >("SO2");
 
   // Fetch devices from backend
@@ -224,7 +223,7 @@ export default function DashboardPage() {
           endDate: endTime.toISOString(),
           interval: average === "raw" ? "1m" : average, // Map "raw" to 1m interval
           parameters:
-            "so2,h2s,no2,benzene,toluene,ethylbenzene,mp_xylene,o_xylene,solar,temperature,humidity,windSpeed,windDirection,pressure,rain",
+            "so2,h2s,no2,benzene,toluene,ethylbenzene,xylenes,solar,temperature,humidity,windSpeed,windDirection,pressure,rain",
         });
 
         const transformed = data.timeSeries.map((item: any) => ({
@@ -235,8 +234,7 @@ export default function DashboardPage() {
           benzene: item.benzene_avg ?? null,
           toluene: item.toluene_avg ?? null,
           ethylbenzene: item.ethylbenzene_avg ?? null,
-          mp_xylene: item.mp_xylene_avg ?? null,
-          o_xylene: item.o_xylene_avg ?? null,
+          xylenes: item.xylenes_avg ?? null,
           solar: item.solar_avg ?? null,
           temperature: item.temperature_avg ?? null,
           humidity: item.humidity_avg ?? null,
@@ -712,8 +710,7 @@ export default function DashboardPage() {
                                 | "BENZENE"
                                 | "TOLUENE"
                                 | "ETHYLBENZENE"
-                                | "MP_XYLENE"
-                                | "O_XYLENE",
+                                | "XYLENES",
                             )
                           }
                           className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[160px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
@@ -755,16 +752,10 @@ export default function DashboardPage() {
                             Ethylbenzene
                           </option>
                           <option
-                            value="MP_XYLENE"
+                            value="XYLENES"
                             className="bg-[#0d1717] text-white"
                           >
-                            m,p-Xylene
-                          </option>
-                          <option
-                            value="O_XYLENE"
-                            className="bg-[#0d1717] text-white"
-                          >
-                            o-Xylene
+                            Xylene
                           </option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">

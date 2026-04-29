@@ -47,10 +47,8 @@ function formatGasName(parameter: string | undefined): string {
       return "Toluene";
     case "ethylbenzene":
       return "Ethylbenzene";
-    case "mp_xylene":
-      return "m,p-Xylene";
-    case "o_xylene":
-      return "o-Xylene";
+    case "xylenes":
+      return "Xylene";
     default:
       return parameter.toUpperCase();
   }

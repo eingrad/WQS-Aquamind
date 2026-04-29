@@ -244,73 +244,37 @@ export const EXPOSURE_RANGES: Record<string, ExposureRangeData | null> = {
       },
     ],
   },
-  // m,p-Xylene — half-split of total xylene AAQC 24-hr (700 ppb / 2 = 350)
-  mp_xylene: {
+  // Xylene — AAQC 24-hr = 700 ppb (total xylenes)
+  xylenes: {
     unit: "ppb",
     ranges: [
       {
         category: "Good",
-        range: "0 - 50",
+        range: "0 - 100",
         color: "#3b82f6",
         bgColor: "rgba(59, 130, 246, 0.1)",
       },
       {
         category: "Moderate",
-        range: "51 - 175",
+        range: "101 - 350",
         color: "#22c55e",
         bgColor: "rgba(34, 197, 94, 0.1)",
       },
       {
         category: "Unhealthy",
-        range: "176 - 350",
+        range: "351 - 700",
         color: "#eab308",
         bgColor: "rgba(234, 179, 8, 0.1)",
       },
       {
         category: "Very Unhealthy",
-        range: "351 - 750",
+        range: "701 - 1500",
         color: "#f97316",
         bgColor: "rgba(249, 115, 22, 0.1)",
       },
       {
         category: "Hazardous",
-        range: "> 750",
-        color: "#ef4444",
-        bgColor: "rgba(239, 68, 68, 0.1)",
-      },
-    ],
-  },
-  // o-Xylene — same half-split as m,p
-  o_xylene: {
-    unit: "ppb",
-    ranges: [
-      {
-        category: "Good",
-        range: "0 - 50",
-        color: "#3b82f6",
-        bgColor: "rgba(59, 130, 246, 0.1)",
-      },
-      {
-        category: "Moderate",
-        range: "51 - 175",
-        color: "#22c55e",
-        bgColor: "rgba(34, 197, 94, 0.1)",
-      },
-      {
-        category: "Unhealthy",
-        range: "176 - 350",
-        color: "#eab308",
-        bgColor: "rgba(234, 179, 8, 0.1)",
-      },
-      {
-        category: "Very Unhealthy",
-        range: "351 - 750",
-        color: "#f97316",
-        bgColor: "rgba(249, 115, 22, 0.1)",
-      },
-      {
-        category: "Hazardous",
-        range: "> 750",
+        range: "> 1500",
         color: "#ef4444",
         bgColor: "rgba(239, 68, 68, 0.1)",
       },
