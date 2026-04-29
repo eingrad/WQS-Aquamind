@@ -212,7 +212,7 @@ export const getValidationTableData = async (options: {
     endDate,
     interval: "1h",
     parameters:
-      "so2,h2s,no2,btex,windSpeed,windDirection,temperature,humidity,pressure,solar,rain",
+      "so2,h2s,no2,benzene,toluene,ethylbenzene,mp_xylene,o_xylene,windSpeed,windDirection,temperature,humidity,pressure,solar,rain",
   });
 
   // Fetch human validation flags for the date range
@@ -244,7 +244,7 @@ export const getValidationTableData = async (options: {
     parameters: {
       so2: {
         value: row.so2_avg !== null ? Number(row.so2_avg) : null,
-        unit: "ppm",
+        unit: "ppb",
         autoFlag: row.validation_flags?.so2 || "valid",
         humanValidation: getHumanFlagsForHour(row.bucket, "so2", humanFlags),
         pendingApproval: getPendingApprovalForHour(
@@ -255,7 +255,7 @@ export const getValidationTableData = async (options: {
       },
       h2s: {
         value: row.h2s_avg !== null ? Number(row.h2s_avg) : null,
-        unit: "ppm",
+        unit: "ppb",
         autoFlag: row.validation_flags?.h2s || "valid",
         humanValidation: getHumanFlagsForHour(row.bucket, "h2s", humanFlags),
         pendingApproval: getPendingApprovalForHour(
@@ -266,7 +266,7 @@ export const getValidationTableData = async (options: {
       },
       no2: {
         value: row.no2_avg !== null ? Number(row.no2_avg) : null,
-        unit: "ppm",
+        unit: "ppb",
         autoFlag: row.validation_flags?.no2 || "valid",
         humanValidation: getHumanFlagsForHour(row.bucket, "no2", humanFlags),
         pendingApproval: getPendingApprovalForHour(
@@ -275,14 +275,71 @@ export const getValidationTableData = async (options: {
           pendingRequests,
         ),
       },
-      btex: {
-        value: row.btex_avg !== null ? Number(row.btex_avg) : null,
-        unit: "ppm",
-        autoFlag: row.validation_flags?.btex || "valid",
-        humanValidation: getHumanFlagsForHour(row.bucket, "btex", humanFlags),
+      benzene: {
+        value: row.benzene_avg !== null ? Number(row.benzene_avg) : null,
+        unit: "ppb",
+        autoFlag: row.validation_flags?.benzene || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "benzene", humanFlags),
         pendingApproval: getPendingApprovalForHour(
           row.bucket,
-          "btex",
+          "benzene",
+          pendingRequests,
+        ),
+      },
+      toluene: {
+        value: row.toluene_avg !== null ? Number(row.toluene_avg) : null,
+        unit: "ppb",
+        autoFlag: row.validation_flags?.toluene || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "toluene", humanFlags),
+        pendingApproval: getPendingApprovalForHour(
+          row.bucket,
+          "toluene",
+          pendingRequests,
+        ),
+      },
+      ethylbenzene: {
+        value:
+          row.ethylbenzene_avg !== null ? Number(row.ethylbenzene_avg) : null,
+        unit: "ppb",
+        autoFlag: row.validation_flags?.ethylbenzene || "valid",
+        humanValidation: getHumanFlagsForHour(
+          row.bucket,
+          "ethylbenzene",
+          humanFlags,
+        ),
+        pendingApproval: getPendingApprovalForHour(
+          row.bucket,
+          "ethylbenzene",
+          pendingRequests,
+        ),
+      },
+      mp_xylene: {
+        value: row.mp_xylene_avg !== null ? Number(row.mp_xylene_avg) : null,
+        unit: "ppb",
+        autoFlag: row.validation_flags?.mp_xylene || "valid",
+        humanValidation: getHumanFlagsForHour(
+          row.bucket,
+          "mp_xylene",
+          humanFlags,
+        ),
+        pendingApproval: getPendingApprovalForHour(
+          row.bucket,
+          "mp_xylene",
+          pendingRequests,
+        ),
+      },
+      o_xylene: {
+        value: row.o_xylene_avg !== null ? Number(row.o_xylene_avg) : null,
+        unit: "ppb",
+        autoFlag: row.validation_flags?.o_xylene || "valid",
+        humanValidation: getHumanFlagsForHour(
+          row.bucket,
+          "o_xylene",
+          humanFlags,
+        ),
+        pendingApproval: getPendingApprovalForHour(
+          row.bucket,
+          "o_xylene",
           pendingRequests,
         ),
       },
