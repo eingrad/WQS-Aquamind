@@ -1,5 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import redis from "../services/redis.service";
+import {
+  getWindRoseHistogram,
+  getPollutionRoseHistogram,
+} from "../services/rose.service";
+
+type RangeMode = "realtime" | "1h" | "1d";
+const RANGE_HOURS: Record<Exclude<RangeMode, "realtime">, number> = {
+  "1h": 1,
+  "1d": 24,
+};
+
+const parseRange = (raw: unknown): RangeMode => {
+  if (raw === "1h" || raw === "1d") return raw;
+  return "realtime";
+};
 
 /**
  * Live Data Cache using Redis
@@ -23,6 +38,7 @@ export const getWindRose = async (
 ): Promise<void> => {
   try {
     const { deviceId } = req.query;
+    const range = parseRange(req.query.range);
 
     if (!deviceId) {
       res.status(400).json({
@@ -32,30 +48,49 @@ export const getWindRose = async (
       return;
     }
 
-    if (!redis.isRedisAvailable()) {
-      res.status(503).json({
-        success: false,
-        error: "Cache service unavailable",
+    // Realtime: read the 10-minute MQTT-accumulated snapshot from Redis
+    if (range === "realtime") {
+      if (!redis.isRedisAvailable()) {
+        res.status(503).json({
+          success: false,
+          error: "Cache service unavailable",
+        });
+        return;
+      }
+
+      const key = `live:windrose:${deviceId}`;
+      const cached = await redis.get(key);
+
+      if (!cached) {
+        res.status(404).json({
+          success: false,
+          error: "No live data available",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: JSON.parse(cached),
       });
       return;
     }
 
-    // Get from Redis (populated by generator script)
-    const key = `live:windrose:${deviceId}`;
-    const cached = await redis.get(key);
+    // 1h / 1d: build histogram from telemetry_processed
+    const histogram = await getWindRoseHistogram(
+      deviceId as string,
+      RANGE_HOURS[range],
+    );
 
-    if (!cached) {
+    if (histogram.count === 0) {
       res.status(404).json({
         success: false,
-        error: "No live data available",
+        error: "No telemetry data in selected range",
       });
       return;
     }
 
-    res.status(200).json({
-      success: true,
-      data: JSON.parse(cached),
-    });
+    res.status(200).json({ success: true, data: histogram });
   } catch (error) {
     next(error);
   }
@@ -73,6 +108,7 @@ export const getPollutionRose = async (
 ): Promise<void> => {
   try {
     const { deviceId, parameter = "SO2" } = req.query;
+    const range = parseRange(req.query.range);
 
     if (!deviceId) {
       res.status(400).json({
@@ -82,30 +118,48 @@ export const getPollutionRose = async (
       return;
     }
 
-    if (!redis.isRedisAvailable()) {
-      res.status(503).json({
-        success: false,
-        error: "Cache service unavailable",
+    if (range === "realtime") {
+      if (!redis.isRedisAvailable()) {
+        res.status(503).json({
+          success: false,
+          error: "Cache service unavailable",
+        });
+        return;
+      }
+
+      const key = `live:pollutionrose:${deviceId}:${(parameter as string).toUpperCase()}`;
+      const cached = await redis.get(key);
+
+      if (!cached) {
+        res.status(404).json({
+          success: false,
+          error: "No live data available.",
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: JSON.parse(cached),
       });
       return;
     }
 
-    // Get from Redis (populated by generator script)
-    const key = `live:pollutionrose:${deviceId}:${(parameter as string).toUpperCase()}`;
-    const cached = await redis.get(key);
+    const histogram = await getPollutionRoseHistogram(
+      deviceId as string,
+      parameter as string,
+      RANGE_HOURS[range],
+    );
 
-    if (!cached) {
+    if (histogram.count === 0) {
       res.status(404).json({
         success: false,
-        error: "No live data available.",
+        error: "No telemetry data in selected range",
       });
       return;
     }
 
-    res.status(200).json({
-      success: true,
-      data: JSON.parse(cached),
-    });
+    res.status(200).json({ success: true, data: histogram });
   } catch (error) {
     next(error);
   }

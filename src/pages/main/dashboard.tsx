@@ -58,6 +58,15 @@ export default function DashboardPage() {
   const windDirMode = "to" as const;
   const pollutionDirMode = "to" as const;
 
+  // Time range for the rose charts: "realtime" (10-min MQTT window),
+  // "1h" (last 1 hour from telemetry), or "1d" (last 24 hours).
+  const [windRange, setWindRange] = useState<"realtime" | "1h" | "1d">(
+    "realtime",
+  );
+  const [pollutionRange, setPollutionRange] = useState<
+    "realtime" | "1h" | "1d"
+  >("realtime");
+
   // Selected gas for the pollution rose (matches keys written by the backend).
   // BTEX channels are exposed as 5 separate isomers; the total Xylene sum is
   // only computed when the user generates a report.
@@ -277,14 +286,18 @@ export default function DashboardPage() {
     fetchTableData();
   }, [device, average, view, startDate, endDate]);
 
-  // Fetch wind rose data (10s polling)
+  // Polling cadence: realtime updates every 10s; 1h every minute; 1d every 5 min
+  const pollMs = (range: "realtime" | "1h" | "1d") =>
+    range === "realtime" ? 10_000 : range === "1h" ? 60_000 : 300_000;
+
+  // Fetch wind rose data
   useEffect(() => {
     if (!device) return;
 
     const fetchWindRose = async () => {
       try {
         setWindRoseLoading(true);
-        const data = await getWindRoseData(device);
+        const data = await getWindRoseData(device, windRange);
         setWindRoseData(data);
       } catch (error) {
         console.error("Failed to fetch wind rose data:", error);
@@ -296,19 +309,22 @@ export default function DashboardPage() {
 
     fetchWindRose();
 
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(fetchWindRose, 10000);
+    const interval = setInterval(fetchWindRose, pollMs(windRange));
     return () => clearInterval(interval);
-  }, [device]);
+  }, [device, windRange]);
 
-  // Fetch pollution rose data (10s polling)
+  // Fetch pollution rose data
   useEffect(() => {
     if (!device) return;
 
     const fetchPollutionRose = async () => {
       try {
         setPollutionRoseLoading(true);
-        const data = await getPollutionRoseData(device, pollutionParam);
+        const data = await getPollutionRoseData(
+          device,
+          pollutionParam,
+          pollutionRange,
+        );
         setPollutionRoseData(data);
       } catch (error) {
         console.error("Failed to fetch pollution rose data:", error);
@@ -320,10 +336,9 @@ export default function DashboardPage() {
 
     fetchPollutionRose();
 
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(fetchPollutionRose, 10000);
+    const interval = setInterval(fetchPollutionRose, pollMs(pollutionRange));
     return () => clearInterval(interval);
-  }, [device, pollutionParam]);
+  }, [device, pollutionParam, pollutionRange]);
 
   // Get metadata for selected parameters
   const selectedParamsMeta = params.map(
@@ -622,7 +637,56 @@ export default function DashboardPage() {
 
               {/* Wind Rose Chart */}
               <div className="col-span-5 xl:col-span-1">
-                <Card title="Wind Rose">
+                <Card
+                  title="Wind Rose"
+                  right={
+                    <div className="relative group">
+                      <select
+                        value={windRange}
+                        onChange={(e) =>
+                          setWindRange(
+                            e.target.value as "realtime" | "1h" | "1d",
+                          )
+                        }
+                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[160px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                      >
+                        <option
+                          value="realtime"
+                          className="bg-[#0d1717] text-white"
+                        >
+                          Realtime
+                        </option>
+                        <option
+                          value="1h"
+                          className="bg-[#0d1717] text-white"
+                        >
+                          Last 1 Hour
+                        </option>
+                        <option
+                          value="1d"
+                          className="bg-[#0d1717] text-white"
+                        >
+                          Last 1 Day
+                        </option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg
+                          className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1}
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  }
+                >
                   <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem]">
                     {windRoseLoading ? (
                       <div className="h-full flex items-center justify-center">
@@ -729,6 +793,52 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
+                      {/* Range selector */}
+                      <div className="relative group">
+                        <select
+                          value={pollutionRange}
+                          onChange={(e) =>
+                            setPollutionRange(
+                              e.target.value as "realtime" | "1h" | "1d",
+                            )
+                          }
+                          className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[160px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                        >
+                          <option
+                            value="realtime"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Realtime
+                          </option>
+                          <option
+                            value="1h"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Last 1 Hour
+                          </option>
+                          <option
+                            value="1d"
+                            className="bg-[#0d1717] text-white"
+                          >
+                            Last 1 Day
+                          </option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                          <svg
+                            className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={1}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   }
                 >

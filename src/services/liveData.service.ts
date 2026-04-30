@@ -27,32 +27,36 @@ export interface PollutionRoseData {
   };
 }
 
+export type RoseRange = "realtime" | "1h" | "1d";
+
 /**
- * Fetch current wind rose data
+ * Fetch wind rose data
  * @param deviceId - Device UUID
- * @returns Wind rose data for all 16 directions with speed bins
+ * @param range - Time window: "realtime" (default), "1h", or "1d"
  */
 export const getWindRoseData = async (
   deviceId: string,
+  range: RoseRange = "realtime",
 ): Promise<WindRoseData> => {
   const response = await api.get(`/live/wind-rose`, {
-    params: { deviceId },
+    params: { deviceId, range },
   });
   return response.data.data;
 };
 
 /**
- * Fetch current pollution rose data
+ * Fetch pollution rose data
  * @param deviceId - Device UUID
  * @param parameter - Pollutant parameter (SO2, H2S, NO2, BTEX)
- * @returns Pollution rose data for all 16 directions with concentration bins
+ * @param range - Time window: "realtime" (default), "1h", or "1d"
  */
 export const getPollutionRoseData = async (
   deviceId: string,
   parameter: string = "SO2",
+  range: RoseRange = "realtime",
 ): Promise<PollutionRoseData> => {
   const response = await api.get(`/live/pollution-rose`, {
-    params: { deviceId, parameter },
+    params: { deviceId, parameter, range },
   });
   return response.data.data;
 };
