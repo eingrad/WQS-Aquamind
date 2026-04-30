@@ -63,7 +63,7 @@ export default function DeviceInfoPanel({
 
         const now = new Date();
         const paramList =
-          "so2,h2s,no2,temperature,humidity,windSpeed,windDirection,solar,pressure,rain";
+          "so2,h2s,no2,benzene,toluene,ethylbenzene,xylenes,temperature,humidity,windSpeed,windDirection,solar,pressure,rain";
 
         // Strategy 1: Try fetching last 3 days with 1m interval (high res, fast for short range)
         const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
