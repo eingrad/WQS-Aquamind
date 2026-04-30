@@ -54,11 +54,9 @@ export default function DashboardPage() {
   const [windRoseLoading, setWindRoseLoading] = useState(true);
   const [pollutionRoseLoading, setPollutionRoseLoading] = useState(true);
 
-  // Direction mode: "from" = wind blowing FROM, "to" = wind blowing TO
-  const [windDirMode, setWindDirMode] = useState<"from" | "to">("from");
-  const [pollutionDirMode, setPollutionDirMode] = useState<"from" | "to">(
-    "from",
-  );
+  // Direction mode is fixed to "to" (where wind/pollution is going)
+  const windDirMode = "to" as const;
+  const pollutionDirMode = "to" as const;
 
   // Selected gas for the pollution rose (matches keys written by the backend).
   // BTEX channels are exposed as 5 separate isomers; the total Xylene sum is
@@ -624,45 +622,7 @@ export default function DashboardPage() {
 
               {/* Wind Rose Chart */}
               <div className="col-span-5 xl:col-span-1">
-                <Card
-                  title="Wind Rose"
-                  right={
-                    <div className="relative group">
-                      <select
-                        value={windDirMode}
-                        onChange={(e) =>
-                          setWindDirMode(e.target.value as "from" | "to")
-                        }
-                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
-                      >
-                        <option
-                          value="from"
-                          className="bg-[#0d1717] text-white"
-                        >
-                          Direction From
-                        </option>
-                        <option value="to" className="bg-[#0d1717] text-white">
-                          Direction To
-                        </option>
-                      </select>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <svg
-                          className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1}
-                            d="M19 9l-7 7-7-7"
-                          />
-                        </svg>
-                      </div>
-                    </div>
-                  }
-                >
+                <Card title="Wind Rose">
                   <div className="w-full h-[20rem] sm:h-[24rem] lg:h-[28rem]">
                     {windRoseLoading ? (
                       <div className="h-full flex items-center justify-center">
@@ -769,44 +729,6 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Direction selector */}
-                      <div className="relative group">
-                        <select
-                          value={pollutionDirMode}
-                          onChange={(e) =>
-                            setPollutionDirMode(e.target.value as "from" | "to")
-                          }
-                          className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[160px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
-                        >
-                          <option
-                            value="from"
-                            className="bg-[#0d1717] text-white"
-                          >
-                            Direction From
-                          </option>
-                          <option
-                            value="to"
-                            className="bg-[#0d1717] text-white"
-                          >
-                            Direction To
-                          </option>
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <svg
-                            className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                        </div>
-                      </div>
                     </div>
                   }
                 >

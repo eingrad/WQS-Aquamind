@@ -184,16 +184,16 @@
     <div class="section">
       <div class="section-title">Summary</div>
       <div class="summary">
-        <p><strong>Max Temperature:</strong> <%= summary.maxTemp %> °C</p>
-        <p><strong>Min Wind Speed:</strong> <%= summary.minWind %> m/s</p>
-        <p><strong>SO₂ Average:</strong> <%= summary.avgSO2 %> ppb</p>
-        <p><strong>H₂S Average:</strong> <%= summary.avgH2S %> ppb</p>
-        <p><strong>NO₂ Average:</strong> <%= summary.avgNO2 %> ppb</p>
-        <p><strong>Benzene Average:</strong> <%= summary.avgBenzene %> ppb</p>
-        <p><strong>Toluene Average:</strong> <%= summary.avgToluene %> ppb</p>
-        <p><strong>Ethylbenzene Average:</strong> <%= summary.avgEthylbenzene %> ppb</p>
-        <p><strong>Xylene Average:</strong> <%= summary.avgXylenes %> ppb</p>
-        <p><strong>Solar Radiation Average:</strong> <%= summary.avgSolar %> W/m²</p>
+        <p><strong>Max Temperature:</strong> <%= summary.maxTemp %> <%= summary.units.temperature %></p>
+        <p><strong>Min Wind Speed:</strong> <%= summary.minWind %> <%= summary.units.windSpeed %></p>
+        <p><strong>SO₂ Average:</strong> <%= summary.avgSO2 %> <%= summary.units.so2 %></p>
+        <p><strong>H₂S Average:</strong> <%= summary.avgH2S %> <%= summary.units.h2s %></p>
+        <p><strong>NO₂ Average:</strong> <%= summary.avgNO2 %> <%= summary.units.no2 %></p>
+        <p><strong>Benzene Average:</strong> <%= summary.avgBenzene %> <%= summary.units.benzene %></p>
+        <p><strong>Toluene Average:</strong> <%= summary.avgToluene %> <%= summary.units.toluene %></p>
+        <p><strong>Ethylbenzene Average:</strong> <%= summary.avgEthylbenzene %> <%= summary.units.ethylbenzene %></p>
+        <p><strong>Xylene Average:</strong> <%= summary.avgXylenes %> <%= summary.units.xylenes %></p>
+        <p><strong>Solar Radiation Average:</strong> <%= summary.avgSolar %> <%= summary.units.solar %></p>
       </div>
     </div>
 

@@ -108,19 +108,36 @@ export const exportPDF = async (req: Request, res: Response) => {
       units,
     });
 
+    // Build a unit lookup from the resolved parameter metadata so the
+    // summary block matches the dashboard's selected units.
+    const unitFor = (key: string): string =>
+      reportData.parameters.find((p) => p.key === key)?.unit || "";
+
     // Format summary for template
     const formattedSummary = {
       maxTemp: reportData.summary.maxTemp?.toFixed(2) || "N/A",
       minWind: reportData.summary.minWind?.toFixed(2) || "N/A",
-      avgSO2: reportData.summary.avgSO2?.toFixed(3) || "N/A",
-      avgH2S: reportData.summary.avgH2S?.toFixed(3) || "N/A",
-      avgNO2: reportData.summary.avgNO2?.toFixed(3) || "N/A",
-      // BTEX components — Synspec GC955 (ppb)
-      avgBenzene: reportData.summary.avgBenzene?.toFixed(3) || "N/A",
-      avgToluene: reportData.summary.avgToluene?.toFixed(3) || "N/A",
-      avgEthylbenzene: reportData.summary.avgEthylbenzene?.toFixed(3) || "N/A",
-      avgXylenes: reportData.summary.avgXylenes?.toFixed(3) || "N/A",
+      avgSO2: reportData.summary.avgSO2?.toFixed(4) || "N/A",
+      avgH2S: reportData.summary.avgH2S?.toFixed(4) || "N/A",
+      avgNO2: reportData.summary.avgNO2?.toFixed(4) || "N/A",
+      // BTEX components — Synspec GC955
+      avgBenzene: reportData.summary.avgBenzene?.toFixed(4) || "N/A",
+      avgToluene: reportData.summary.avgToluene?.toFixed(4) || "N/A",
+      avgEthylbenzene: reportData.summary.avgEthylbenzene?.toFixed(4) || "N/A",
+      avgXylenes: reportData.summary.avgXylenes?.toFixed(4) || "N/A",
       avgSolar: reportData.summary.avgSolar?.toFixed(2) || "N/A",
+      units: {
+        temperature: unitFor("temperature"),
+        windSpeed: unitFor("windSpeed"),
+        so2: unitFor("so2"),
+        h2s: unitFor("h2s"),
+        no2: unitFor("no2"),
+        benzene: unitFor("benzene"),
+        toluene: unitFor("toluene"),
+        ethylbenzene: unitFor("ethylbenzene"),
+        xylenes: unitFor("xylenes"),
+        solar: unitFor("solar"),
+      },
       availability: reportData.summary.availability || {}, // Pass availability data
       incompletePeriods: reportData.summary.incompletePeriods || {}, // Pass incomplete periods
     };

@@ -153,7 +153,17 @@ export const generateReportData = async (
       }),
     };
 
-    // Add parameter values, converted to the user's chosen unit
+    // Add parameter values, converted to the user's chosen unit.
+    // Gases use 4 decimals (sub-ppb precision); other params use 2.
+    const GAS_KEYS = new Set([
+      "so2",
+      "h2s",
+      "no2",
+      "benzene",
+      "toluene",
+      "ethylbenzene",
+      "xylenes",
+    ]);
     parameters.forEach((param) => {
       // PostgreSQL returns lowercase column names
       const avgKey = `${param.toLowerCase()}_avg`;
@@ -166,9 +176,10 @@ export const generateReportData = async (
 
       const targetUnit = units?.[param];
       const converted = convertValue(Number(raw), param, targetUnit);
+      const decimals = GAS_KEYS.has(param) ? 4 : 2;
       formatted[param] =
         converted !== null && converted !== undefined
-          ? Number(converted).toFixed(2)
+          ? Number(converted).toFixed(decimals)
           : "N/A";
     });
 
