@@ -15,15 +15,28 @@ function toDMS(decimal: number, isLat: boolean): string {
   return `${deg}°${min}'${sec}"${dir}`;
 }
 
+// Gases (incl. BTEX) display 4 decimals; met parameters use 2.
+const GAS_KEYS = new Set([
+  "so2",
+  "h2s",
+  "no2",
+  "benzene",
+  "toluene",
+  "ethylbenzene",
+  "xylenes",
+]);
+
 // Format parameter value with fallback
 function formatValue(
   val: string | number | null | undefined,
   unit: string,
+  param?: string,
 ): string {
   if (val === null || val === undefined || val === "") return "–";
   const num = typeof val === "string" ? parseFloat(val) : val;
   if (isNaN(num)) return "–";
-  return `${num.toFixed(2)} ${unit}`;
+  const decimals = param && GAS_KEYS.has(param) ? 4 : 2;
+  return `${num.toFixed(decimals)} ${unit}`;
 }
 
 export default function DeviceInfoPanel({
@@ -195,6 +208,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.so2_avg, "so2"),
                         getUnit("so2"),
+                        "so2",
                       )}
                     </span>
                   </div>
@@ -204,6 +218,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.h2s_avg, "h2s"),
                         getUnit("h2s"),
+                        "h2s",
                       )}
                     </span>
                   </div>
@@ -213,6 +228,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.no2_avg, "no2"),
                         getUnit("no2"),
+                        "no2",
                       )}
                     </span>
                   </div>
@@ -222,6 +238,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.benzene_avg, "benzene"),
                         getUnit("benzene"),
+                        "benzene",
                       )}
                     </span>
                   </div>
@@ -231,6 +248,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.toluene_avg, "toluene"),
                         getUnit("toluene"),
+                        "toluene",
                       )}
                     </span>
                   </div>
@@ -240,6 +258,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.ethylbenzene_avg, "ethylbenzene"),
                         getUnit("ethylbenzene"),
+                        "ethylbenzene",
                       )}
                     </span>
                   </div>
@@ -249,6 +268,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.xylenes_avg, "xylenes"),
                         getUnit("xylenes"),
+                        "xylenes",
                       )}
                     </span>
                   </div>
@@ -258,6 +278,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.windspeed_avg, "windSpeed"),
                         getUnit("windSpeed"),
+                        "windSpeed",
                       )}
                     </span>
                   </div>
@@ -270,6 +291,7 @@ export default function DeviceInfoPanel({
                           "windDirection",
                         ),
                         getUnit("windDirection"),
+                        "windDirection",
                       )}
                     </span>
                   </div>
@@ -279,6 +301,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.rain_avg, "rain"),
                         getUnit("rain"),
+                        "rain",
                       )}
                     </span>
                   </div>
@@ -288,6 +311,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.pressure_avg, "pressure"),
                         getUnit("pressure"),
+                        "pressure",
                       )}
                     </span>
                   </div>
@@ -297,6 +321,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.humidity_avg, "humidity"),
                         getUnit("humidity"),
+                        "humidity",
                       )}
                     </span>
                   </div>
@@ -306,6 +331,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.temperature_avg, "temperature"),
                         getUnit("temperature"),
+                        "temperature",
                       )}
                     </span>
                   </div>
@@ -315,6 +341,7 @@ export default function DeviceInfoPanel({
                       {formatValue(
                         convert(latestReading.solar_avg, "solar"),
                         getUnit("solar"),
+                        "solar",
                       )}
                     </span>
                   </div>
