@@ -119,6 +119,9 @@
       <div class="section-title">Report Metadata</div>
       <p><strong>Generated On:</strong> <%= generatedOn %></p>
       <p><strong>Location:</strong> <%= location %></p>
+      <% if (summary.maintenanceExcluded > 0) { %>
+      <p><strong>Maintenance Excluded:</strong> <%= summary.maintenanceExcluded %> bucket(s)</p>
+      <% } %>
     </div>
 
     <div class="section">
@@ -180,6 +183,41 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Data Counts Section: per-parameter point counts at hourly granularity -->
+    <% if (summary.dataCountsRows && summary.dataCountsRows.length > 0) { %>
+    <div class="section">
+      <div class="section-title">Data Counts</div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Parameter</th>
+            <th>Unit</th>
+            <th>Total Data</th>
+            <th>Available Data</th>
+            <th>Validated Data</th>
+            <th>Missing Data</th>
+            <th>Calibration Data</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% summary.dataCountsRows.forEach(row => { %>
+          <tr>
+            <td><%= row.no %></td>
+            <td><%= row.label %></td>
+            <td><%= row.unit %></td>
+            <td><%= row.total %></td>
+            <td><%= row.available %></td>
+            <td><%= row.validated %></td>
+            <td><%= row.missing %></td>
+            <td><%= row.calibration %></td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% } %>
 
     <div class="section">
       <div class="section-title">Summary</div>

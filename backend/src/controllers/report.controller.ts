@@ -126,6 +126,28 @@ export const exportPDF = async (req: Request, res: Response) => {
       avgEthylbenzene: reportData.summary.avgEthylbenzene?.toFixed(4) || "N/A",
       avgXylenes: reportData.summary.avgXylenes?.toFixed(4) || "N/A",
       avgSolar: reportData.summary.avgSolar?.toFixed(2) || "N/A",
+      maintenanceExcluded: reportData.summary.maintenanceExcluded || 0,
+      // Per-parameter Data Counts table rows, in the same order as the
+      // report's parameter list.
+      dataCountsRows: reportData.parameters.map((p, idx) => {
+        const c = reportData.summary.dataCounts?.[p.key] || {
+          total: 0,
+          available: 0,
+          validated: 0,
+          missing: 0,
+          calibration: 0,
+        };
+        return {
+          no: idx + 1,
+          label: p.label,
+          unit: p.unit,
+          total: c.total,
+          available: c.available,
+          validated: c.validated,
+          missing: c.missing,
+          calibration: c.calibration,
+        };
+      }),
       units: {
         temperature: unitFor("temperature"),
         windSpeed: unitFor("windSpeed"),

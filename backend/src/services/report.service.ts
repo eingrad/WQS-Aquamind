@@ -49,6 +49,20 @@ export interface ReportData {
       [parameter: string]: Array<{ date: string; percentage: number }>; // List of incomplete days/hours
     };
     maintenanceExcluded: number; // count of buckets excluded as maintenance
+    /**
+     * Per-parameter data point counts at 1-hour granularity, used for the
+     * "Data Counts" table in the PDF. Counts are always hour-based regardless
+     * of report frequency: daily = 24, weekly = 168, monthly = 24 × N days.
+     */
+    dataCounts: {
+      [parameter: string]: {
+        total: number;
+        available: number;
+        validated: number;
+        missing: number;
+        calibration: number;
+      };
+    };
   };
 }
 
@@ -197,6 +211,29 @@ export const generateReportData = async (
     frequency,
     maintenanceBucketCount,
     units,
+  );
+
+  // Build the per-parameter Data Counts table at fixed 1-hour granularity
+  // (regardless of report frequency: daily=24, weekly=168, monthly=24×N).
+  // Reuse the main hourly fetch when the report is already hourly to avoid
+  // a redundant DB query.
+  const hourlyData =
+    interval === "1h"
+      ? (telemetryData as any[])
+      : ((await getTimeSeriesData({
+          deviceId: device.id,
+          startDate,
+          endDate,
+          interval: "1h",
+          parameters: parameters.join(","),
+        })) as any[]);
+
+  summary.dataCounts = calculateDataCounts(
+    hourlyData,
+    parameters,
+    startDate,
+    endDate,
+    frequency,
   );
 
   // Debug: Log availability calculation
@@ -369,6 +406,97 @@ const calculateAvailability = (
 };
 
 /**
+ * Calculate per-parameter data point counts at 1-hour granularity for the
+ * "Data Counts" table in the PDF.
+ *
+ * Counts are always hour-based regardless of report frequency:
+ *   daily   → 24
+ *   weekly  → 168
+ *   monthly → 24 × N days in the selected period
+ *
+ * Definitions (one row per parameter):
+ *   total       — expected hourly buckets in the period
+ *   calibration — hourly buckets overlapping logged maintenance (device-level,
+ *                 same value for every parameter)
+ *   available   — non-maintenance buckets where the parameter has a value
+ *   validated   — buckets meeting DOE quality threshold (75% daily/weekly,
+ *                 95% monthly), reusing the existing rule
+ *   missing     — total − available − calibration
+ */
+const calculateDataCounts = (
+  hourlyData: any[],
+  parameters: string[],
+  startDate: Date,
+  endDate: Date,
+  frequency: string,
+): ReportData["summary"]["dataCounts"] => {
+  const total = Math.max(
+    0,
+    Math.round((endDate.getTime() - startDate.getTime()) / (60 * 60 * 1000)),
+  );
+
+  const calibration = hourlyData.filter((row) => row.in_maintenance).length;
+
+  // DOE Malaysia threshold per the existing rule used in calculateAvailability
+  const availabilityThreshold = frequency === "monthly" ? 95 : 75;
+
+  const parameterMapping: Record<string, string> = {
+    so2: "so2_avg",
+    h2s: "h2s_avg",
+    no2: "no2_avg",
+    benzene: "benzene_avg",
+    toluene: "toluene_avg",
+    ethylbenzene: "ethylbenzene_avg",
+    xylenes: "xylenes_avg",
+    temperature: "temperature_avg",
+    humidity: "humidity_avg",
+    pressure: "pressure_avg",
+    windSpeed: "windspeed_avg",
+    windDirection: "winddirection_avg",
+    solar: "solar_avg",
+    rain: "rain_avg",
+  };
+
+  const counts: ReportData["summary"]["dataCounts"] = {};
+
+  for (const param of parameters) {
+    const column = parameterMapping[param];
+    if (!column) {
+      counts[param] = {
+        total,
+        available: 0,
+        validated: 0,
+        missing: total,
+        calibration,
+      };
+      continue;
+    }
+
+    let available = 0;
+    let validated = 0;
+
+    for (const row of hourlyData) {
+      if (row.in_maintenance) continue;
+      const hasValue = row[column] !== null && row[column] !== undefined;
+      if (!hasValue) continue;
+
+      available++;
+
+      const meetsThreshold =
+        row.data_quality === "complete" ||
+        (row.data_quality === "partial" &&
+          row.data_availability_pct >= availabilityThreshold);
+      if (meetsThreshold) validated++;
+    }
+
+    const missing = Math.max(0, total - available - calibration);
+    counts[param] = { total, available, validated, missing, calibration };
+  }
+
+  return counts;
+};
+
+/**
  * Calculate summary statistics from telemetry data
  */
 const calculateSummary = (
@@ -413,6 +541,7 @@ const calculateSummary = (
     availability,
     incompletePeriods,
     maintenanceExcluded: maintenanceBuckets,
+    dataCounts: {}, // populated separately from hourly-granularity data
   };
 
   if (data.length === 0) return summary;
@@ -487,8 +616,7 @@ const calculateSummary = (
   if (parameters.includes("toluene")) summary.avgToluene = avgOf("toluene_avg");
   if (parameters.includes("ethylbenzene"))
     summary.avgEthylbenzene = avgOf("ethylbenzene_avg");
-  if (parameters.includes("xylenes"))
-    summary.avgXylenes = avgOf("xylenes_avg");
+  if (parameters.includes("xylenes")) summary.avgXylenes = avgOf("xylenes_avg");
 
   // Calculate Solar average
   if (parameters.includes("solar")) {
