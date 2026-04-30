@@ -20,6 +20,7 @@ import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ParameterInfoPage from "./pages/parameters/ParameterInfoPage";
 import DisplayBuilderPage from "./pages/display/DisplayBuilderPage";
 import DisplayViewerPage from "./pages/display/DisplayViewerPage";
+import MaintenancePage from "./pages/maintenance/MaintenancePage";
 
 /** Known role IDs — mirrors backend seed.ts */
 type UserRole = "admin" | "qa_qc" | "technician" | "user";
@@ -96,7 +97,7 @@ export default function App() {
           <Routes>
             <Route path="/login" element={<PetronasLogin />} />
             <Route path="/dashboard" element={<PrivateRoute element={<DashboardPage />} />} />
-            <Route path="/analytics" element={<RoleRoute element={<AnalyticsPage />} allowedRoles={["admin", "qa_qc", "technician"]} />} />
+            <Route path="/analytics" element={<RoleRoute element={<AnalyticsPage />} allowedRoles={["admin", "qa_qc", "technician", "user"]} />} />
             <Route path="/overview" element={<PrivateRoute element={<OverviewPage />} />} />
             <Route path="/reports" element={<PrivateRoute element={<ReportsPage />} />} />
             <Route path="/data-validation" element={<RoleRoute element={<DataValidationPage />} allowedRoles={["admin", "qa_qc", "technician"]} />} />
@@ -108,6 +109,7 @@ export default function App() {
             <Route path="/telegram-setup" element={<PrivateRoute element={<TelegramSetupGuide />} />} />
             <Route path="/newmap" element={<PrivateRoute element={<WindDirectionMap />} />} />
             <Route path="/displays" element={<RoleRoute element={<DisplayBuilderPage />} allowedRoles={["admin", "qa_qc"]} />} />
+            <Route path="/maintenance" element={<RoleRoute element={<MaintenancePage />} allowedRoles={["admin", "technician"]} />} />
             <Route path="/display/:slug" element={<DisplayViewerPage />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>

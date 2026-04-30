@@ -5,6 +5,12 @@ import {
   maintenanceQuerySchema,
 } from "../utils/validation";
 
+const performedByFromUser = (req: Request): string | undefined => {
+  const u = req.user;
+  if (!u) return undefined;
+  return u.username || u.email || u.userId;
+};
+
 /**
  * Create a new maintenance log
  * POST /api/devices/:deviceId/maintenance
@@ -14,13 +20,15 @@ export const createMaintenance = async (req: Request, res: Response) => {
     const { deviceId } = req.params;
     const validatedData = createMaintenanceSchema.parse(req.body);
 
+    const performedBy = performedByFromUser(req);
+
     const maintenance = await maintenanceService.createMaintenanceLog(
       deviceId,
       new Date(validatedData.startTime),
       new Date(validatedData.endTime),
       validatedData.reason,
       validatedData.description,
-      validatedData.performedBy
+      performedBy
     );
 
     res.status(201).json({
@@ -34,6 +42,17 @@ export const createMaintenance = async (req: Request, res: Response) => {
         success: false,
         error: "Validation error",
         details: error.errors,
+      });
+    }
+
+    // Service-level validation errors (overlap, time order)
+    if (
+      error.message === "endTime must be after startTime" ||
+      /overlaps an existing/.test(error.message)
+    ) {
+      return res.status(400).json({
+        success: false,
+        error: error.message,
       });
     }
 
@@ -55,6 +74,29 @@ export const getMaintenanceLogs = async (req: Request, res: Response) => {
     const { limit } = maintenanceQuerySchema.parse(req.query);
 
     const logs = await maintenanceService.getMaintenanceLogs(deviceId, limit);
+
+    res.json({
+      success: true,
+      data: logs,
+      count: logs.length,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch maintenance logs",
+      details: error.message,
+    });
+  }
+};
+
+/**
+ * Get all maintenance logs across every device
+ * GET /api/maintenance
+ */
+export const getAllMaintenance = async (req: Request, res: Response) => {
+  try {
+    const { limit } = maintenanceQuerySchema.parse(req.query);
+    const logs = await maintenanceService.getAllMaintenanceLogs(limit);
 
     res.json({
       success: true,
@@ -128,7 +170,7 @@ export const endMaintenance = async (req: Request, res: Response) => {
 };
 
 /**
- * Delete a maintenance log
+ * Soft-delete a maintenance log
  * DELETE /api/maintenance/:logId
  */
 export const deleteMaintenance = async (req: Request, res: Response) => {

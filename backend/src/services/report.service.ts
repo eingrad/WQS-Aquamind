@@ -41,6 +41,7 @@ export interface ReportData {
     incompletePeriods: {
       [parameter: string]: Array<{ date: string; percentage: number }>; // List of incomplete days/hours
     };
+    maintenanceExcluded: number; // count of buckets excluded as maintenance
   };
 }
 
@@ -114,8 +115,22 @@ export const generateReportData = async (
     `   📥 Retrieved ${(telemetryData as any[]).length} rows for ${frequency} report (interval: ${interval})`,
   );
 
+  // Exclude maintenance buckets from the report entirely.
+  // A bucket containing any maintenance minutes is marked in_maintenance
+  // by the aggregation layer and must not appear in CSV/TXT exports.
+  const maintenanceBucketCount = (telemetryData as any[]).filter(
+    (row: any) => row.in_maintenance,
+  ).length;
+  const filteredTelemetry = (telemetryData as any[]).filter(
+    (row: any) => !row.in_maintenance,
+  );
+
+  console.log(
+    `   🔧 Excluded ${maintenanceBucketCount} maintenance bucket(s) from report`,
+  );
+
   // Format data for report
-  const formattedData = (telemetryData as any[]).map((row: any) => {
+  const formattedData = filteredTelemetry.map((row: any) => {
     const timestamp = new Date(row.bucket);
     const formatted: Record<string, any> = {
       date: timestamp.toLocaleDateString("en-MY", {
@@ -145,13 +160,16 @@ export const generateReportData = async (
     return formatted;
   });
 
-  // Calculate statistics
+  // Calculate statistics — pass the filtered telemetry so maintenance
+  // buckets do not influence averages, and pass the maintenance count so
+  // availability can subtract them from the expected denominator.
   const summary = calculateSummary(
-    telemetryData,
+    filteredTelemetry,
     parameters,
     startDate,
     endDate,
     frequency,
+    maintenanceBucketCount,
   );
 
   // Debug: Log availability calculation
@@ -191,6 +209,7 @@ const calculateAvailability = (
   startDate: Date,
   endDate: Date,
   frequency: string,
+  maintenanceBuckets: number = 0,
 ): {
   availability: { [parameter: string]: number };
   incompletePeriods: {
@@ -214,6 +233,10 @@ const calculateAvailability = (
     );
     expectedPoints = daysDiff;
   }
+
+  // Subtract scheduled maintenance buckets from the denominator so they
+  // do not penalize availability — DOE treats logged maintenance as excused.
+  expectedPoints = Math.max(0, expectedPoints - maintenanceBuckets);
 
   // Calculate availability for each parameter
   const parameterMapping: { [key: string]: string } = {
@@ -323,6 +346,7 @@ const calculateSummary = (
   startDate: Date,
   endDate: Date,
   frequency: string,
+  maintenanceBuckets: number = 0,
 ): ReportData["summary"] => {
   // Get availability and incomplete periods
   const { availability, incompletePeriods } = calculateAvailability(
@@ -331,6 +355,7 @@ const calculateSummary = (
     startDate,
     endDate,
     frequency,
+    maintenanceBuckets,
   ) || {
     availability: {},
     incompletePeriods: {},
@@ -349,6 +374,7 @@ const calculateSummary = (
     avgSolar: null,
     availability,
     incompletePeriods,
+    maintenanceExcluded: maintenanceBuckets,
   };
 
   if (data.length === 0) return summary;
@@ -508,10 +534,11 @@ export const generateTXT = (reportData: ReportData): string => {
     divider,
     `  AQMS Report - ${reportData.deviceName}`,
     divider,
-    `  Location     : ${reportData.location}`,
-    `  Period       : ${reportData.dateRange}`,
-    `  Frequency    : ${reportData.frequency}`,
-    `  Generated On : ${reportData.generatedOn}`,
+    `  Location              : ${reportData.location}`,
+    `  Period                : ${reportData.dateRange}`,
+    `  Frequency             : ${reportData.frequency}`,
+    `  Generated On          : ${reportData.generatedOn}`,
+    `  Maintenance Excluded  : ${reportData.summary.maintenanceExcluded} bucket(s)`,
     divider,
     "",
   ];

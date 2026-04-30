@@ -135,6 +135,30 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
 
   if (averagingPeriod) {
     const validatedResults = results.map((row: any) => {
+      const maintenanceMinutes = Number(row.maintenance_minutes ?? 0);
+      const inMaintenance = maintenanceMinutes > 0;
+
+      // If any minute in this bucket falls inside a maintenance window,
+      // null out values and force flags to "maintenance". The bucket is
+      // marked but excluded from analytics/reports downstream.
+      if (inMaintenance) {
+        const maintenanceFlags: Record<string, string> = {};
+        const maintenanceRow: any = { ...row };
+        parameterList.forEach((param) => {
+          maintenanceFlags[param] = "maintenance";
+          maintenanceRow[`${param}_avg`] = null;
+          maintenanceRow[`${param}_min`] = null;
+          maintenanceRow[`${param}_max`] = null;
+        });
+        return {
+          ...maintenanceRow,
+          validation_flags: maintenanceFlags,
+          has_validation_issues: true,
+          in_maintenance: true,
+          maintenance_minutes: maintenanceMinutes,
+        };
+      }
+
       // Extract average values for validation
       const readings: Record<string, number> = {};
       parameterList.forEach((param) => {
@@ -156,6 +180,7 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
         validation_flags: validation.flags,
         has_validation_issues: validation.hasIssues,
         relation_violations: validation.relationViolations,
+        in_maintenance: false,
       };
     });
 

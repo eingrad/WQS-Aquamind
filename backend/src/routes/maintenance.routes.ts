@@ -8,6 +8,15 @@ const router = Router();
 router.use(authenticate);
 
 /**
+ * Cross-device list (admin + technician)
+ */
+router.get(
+  "/maintenance",
+  authorize(["admin", "technician"]),
+  maintenanceController.getAllMaintenance
+);
+
+/**
  * Device-specific maintenance routes
  */
 router.post(
@@ -39,7 +48,7 @@ router.patch(
 
 router.delete(
   "/maintenance/:logId",
-  authorize(["admin"]),
+  authorize(["admin", "technician"]),
   maintenanceController.deleteMaintenance
 );
 

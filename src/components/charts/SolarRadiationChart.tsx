@@ -11,7 +11,7 @@ interface SolarRadiationChartProps {
 export default function SolarRadiationChart({
   deviceId,
 }: SolarRadiationChartProps) {
-  const [data, setData] = useState<{ time: string; value: number }[]>([]);
+  const [data, setData] = useState<{ time: Date; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,16 +44,12 @@ export default function SolarRadiationChart({
                 : null;
             if (val === null) return null;
 
-            const date = new Date(item.bucket);
-            const timeStr = date.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
-
-            return { time: timeStr, value: val };
+            return { time: new Date(item.bucket), value: val };
           })
-          .filter(Boolean) as { time: string; value: number }[];
+          .filter(Boolean) as { time: Date; value: number }[];
+
+        // Ensure chronological left-to-right order regardless of API ordering
+        transformed.sort((a, b) => a.time.getTime() - b.time.getTime());
 
         setData(transformed);
       } catch (error) {
@@ -106,7 +102,12 @@ export default function SolarRadiationChart({
       ]}
       layout={{
         title: { text: "Solar Radiation (W/m²)" },
-        xaxis: { title: { text: "Time" }, tickfont: { color: "#cbd5e1" } },
+        xaxis: {
+          title: { text: "Time" },
+          type: "date",
+          tickformat: "%H:%M",
+          tickfont: { color: "#cbd5e1" },
+        },
         yaxis: {
           title: { text: "Radiation (W/m²)" },
           rangemode: "tozero",

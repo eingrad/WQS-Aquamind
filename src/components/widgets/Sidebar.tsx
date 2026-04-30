@@ -16,6 +16,7 @@ import {
   BarChart3,
   BookOpen,
   Monitor,
+  Wrench,
 } from "lucide-react";
 
 /** All known role IDs — matches backend seed.ts */
@@ -105,7 +106,7 @@ export default function Sidebar({
       // ── MAIN MENU ──
       { label: "Overview",         href: "/overview",          icon: <MapPin className="w-5 h-5" />,                    allowedRoles: ALL_ROLES },
       { label: "Dashboard",        href: "/dashboard",         icon: <CircleGauge className="w-5 h-5" />,               allowedRoles: ALL_ROLES },
-      { label: "Analytics",        href: "/analytics",         icon: <BarChart3 className="w-5 h-5" />,                 allowedRoles: ["admin", "qa_qc", "technician"] },
+      { label: "Analytics",        href: "/analytics",         icon: <BarChart3 className="w-5 h-5" />,                 allowedRoles: ALL_ROLES },
       { label: "Report",           href: "/reports",           icon: <ClipboardList className="w-5 h-5" />,             allowedRoles: ALL_ROLES },
       { label: "Displays",          href: "/displays",          icon: <Monitor className="w-5 h-5" />,                   allowedRoles: ["admin", "qa_qc"] },
       { label: "Data Validation",  href: "/data-validation",   icon: <Flag className="w-5 h-5" />,                      allowedRoles: ["admin", "qa_qc", "technician"] },
@@ -113,6 +114,7 @@ export default function Sidebar({
       { label: "Alert Thresholds", href: "/alert-thresholds",  icon: <Bell className="w-5 h-5" />,                      allowedRoles: ALL_ROLES },
       { label: "Alert History",    href: "/alert-history",     icon: <History className="w-5 h-5" />,                   allowedRoles: ALL_ROLES },
       { label: "Knowledge Center", href: "/parameters",        icon: <BookOpen className="w-5 h-5" />,                  allowedRoles: ALL_ROLES },
+      { label: "Maintenance",      href: "/maintenance",       icon: <Wrench className="w-5 h-5" />,                    allowedRoles: ["admin", "technician"] },
 
       // ── SYSTEM ──
       { label: "Settings",         href: "/settings",          icon: <Settings className="w-5 h-5" />,                  allowedRoles: ALL_ROLES, sectionTitle: "SYSTEM" },

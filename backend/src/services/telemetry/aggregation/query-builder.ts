@@ -138,6 +138,15 @@ export const buildRegularAggregationQuery = (options: {
       tb.bucket,
       ${aggregationColumns},
       COUNT(*) as count,
+      COUNT(*) FILTER (
+        WHERE EXISTS (
+          SELECT 1 FROM maintenance_log m
+          WHERE m.device_id = tp.device_id
+            AND m.deleted_at IS NULL
+            AND tp.observed_at >= m.start_time
+            AND tp.observed_at <= m.end_time
+        )
+      ) as maintenance_minutes,
       ROUND((COUNT(*)::decimal / ${expectedPoints}) * 100, 1) as data_availability_pct,
       CASE
         WHEN COUNT(*) >= ${expectedPoints} THEN 'complete'
@@ -200,6 +209,15 @@ export const buildMovingAverageQuery = (options: {
         tb.bucket,
         ${baseAggColumns},
         COUNT(*) as count,
+        COUNT(*) FILTER (
+          WHERE EXISTS (
+            SELECT 1 FROM maintenance_log m
+            WHERE m.device_id = tp.device_id
+              AND m.deleted_at IS NULL
+              AND tp.observed_at >= m.start_time
+              AND tp.observed_at <= m.end_time
+          )
+        ) as maintenance_minutes,
         ROUND((COUNT(*)::decimal / ${expectedPoints}) * 100, 1) as data_availability_pct,
         CASE
           WHEN COUNT(*) >= ${expectedPoints} THEN 'complete'
@@ -218,6 +236,7 @@ export const buildMovingAverageQuery = (options: {
       bucket,
       ${movingAvgColumns},
       count,
+      maintenance_minutes,
       data_availability_pct,
       data_quality
     FROM base_aggregation

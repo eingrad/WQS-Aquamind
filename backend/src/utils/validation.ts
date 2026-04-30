@@ -340,7 +340,6 @@ export const createMaintenanceSchema = z.object({
   }),
   reason: z.string().max(100).optional(),
   description: z.string().optional(),
-  performedBy: z.string().max(255).optional(),
 });
 
 export const maintenanceQuerySchema = z.object({
