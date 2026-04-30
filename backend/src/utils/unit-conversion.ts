@@ -4,7 +4,7 @@
  * Storage units (canonical) are always:
  *   gases (so2, h2s, no2, benzene, toluene, ethylbenzene, xylenes) → ppb
  *   temperature → °C, humidity → %, windSpeed → m/s, windDirection → °
- *   solar → W/m², pressure → hPa, rain → mm/h
+ *   solar → W/m², pressure → hPa, rain → mm (total per bucket)
  *
  * This module converts a stored value to the user's chosen display unit
  * for use in exports (CSV/TXT/PDF) so the report matches the dashboard.
@@ -36,7 +36,7 @@ const BASE_UNITS: Record<string, string> = {
   windDirection: "°",
   solar: "W/m²",
   pressure: "hPa",
-  rain: "mm/h",
+  rain: "mm",
 };
 
 const GAS_PARAMS = new Set([
@@ -132,9 +132,9 @@ const convertHumidity = (value: number, toUnit: string): number => {
 
 const convertRain = (value: number, toUnit: string): number => {
   switch (toUnit) {
-    case "mm/h":
+    case "mm":
       return value;
-    case "in/h":
+    case "in":
       return value / 25.4;
     default:
       return value;

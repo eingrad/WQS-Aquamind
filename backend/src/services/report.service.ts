@@ -82,7 +82,7 @@ const DEFAULT_PARAMETERS = [
   { key: "windSpeed", label: "Wind Speed", unit: "m/s" },
   { key: "windDirection", label: "Wind Direction", unit: "°" },
   { key: "solar", label: "Solar Radiation", unit: "W/m²" },
-  { key: "rain", label: "Rain", unit: "mm/h" },
+  { key: "rain", label: "Rain", unit: "mm" },
 ];
 
 /**

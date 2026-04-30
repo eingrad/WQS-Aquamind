@@ -40,5 +40,5 @@ export const PARAMETER_UNITS: Record<string, string> = {
   windDirection: "°",
   solar: "W/m²",
   pressure: "hPa",
-  rain: "mm/h",
+  rain: "mm",
 };

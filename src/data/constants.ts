@@ -20,7 +20,7 @@ export const PARAMETERS = [
   { key: "temperature", label: "Temperature", unit: "°C" },
   { key: "humidity", label: "Humidity", unit: "%" },
   { key: "pressure", label: "Pressure", unit: "hPa" },
-  { key: "rain", label: "Rain", unit: "mm/h" },
+  { key: "rain", label: "Rain", unit: "mm" },
   { key: "windSpeed", label: "Wind Speed", unit: "m/s" },
   { key: "windDirection", label: "Wind Direction", unit: "°" },
 ];

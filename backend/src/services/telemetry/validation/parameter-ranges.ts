@@ -23,7 +23,8 @@ export const INSTRUMENT_RANGES = {
   windDirection: { min: 0, max: 360, unit: "°" },
   solar: { min: 0, max: 2000, unit: "W/m²" },
   pressure: { min: 300, max: 1200, unit: "hPa" },
-  rain: { min: 0, max: 200, unit: "mm/h" },
+  // Per-reading rainfall (mm in the report interval, typically 1 minute).
+  rain: { min: 0, max: 200, unit: "mm" },
 };
 
 /**
@@ -70,8 +71,8 @@ export const OPERATIONAL_RANGES_1H = {
   // Sea level pressure: 1013 hPa ± 50 hPa normal variation
   pressure: { min: 980, max: 1040, unit: "hPa" },
 
-  // Extreme tropical rainfall: ~100 mm/h during intense storms
-  rain: { min: 0, max: 120, unit: "mm/h" },
+  // Extreme tropical rainfall: ~100 mm/h ≈ ~1.7 mm per minute reading
+  rain: { min: 0, max: 120, unit: "mm" },
 };
 
 /**

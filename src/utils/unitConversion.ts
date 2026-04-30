@@ -4,7 +4,7 @@
  * Backend base units (all gases stored in ppb):
  *   SO₂, H₂S, NO₂, Benzene, Toluene, Ethylbenzene, Xylenes → ppb
  *   Temperature: °C, Humidity: %, Wind Speed: m/s, Wind Direction: °
- *   Solar Radiation: W/m², Pressure: hPa, Rain: mm/h
+ *   Solar Radiation: W/m², Pressure: hPa, Rain: mm (per-bucket total)
  *
  * Molecular weights (for µg/m³ conversion at 25°C, 1 atm):
  *   SO₂          = 64.07 g/mol
@@ -34,7 +34,7 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
   windDirection: ["°", "Cardinal"],
   solar: ["W/m²", "kWh/m²"],
   pressure: ["hPa", "mmHg", "atm", "psi"],
-  rain: ["mm/h", "in/h"],
+  rain: ["mm", "in"],
 };
 
 // Default base units from backend (all gases in ppb)
@@ -52,7 +52,7 @@ export const BASE_UNITS: Record<string, string> = {
   windDirection: "°",
   solar: "W/m²",
   pressure: "hPa",
-  rain: "mm/h",
+  rain: "mm",
 };
 
 // Default user-facing units (same as backend defaults)
@@ -125,7 +125,7 @@ export function convertValue(
     return convertHumidity(value, baseUnit, targetUnit);
   }
 
-  // Rain: mm/h <-> in/h
+  // Rain: mm <-> in
   if (parameter === "rain") {
     return convertRain(value, baseUnit, targetUnit);
   }
@@ -363,29 +363,29 @@ function convertHumidity(
 }
 
 /**
- * Convert rainfall rate
- * Base unit: mm/h
+ * Convert rainfall depth (per-bucket total).
+ * Base unit: mm
  */
 function convertRain(value: number, fromUnit: string, toUnit: string): number {
-  // Convert to mm/h first
-  let mmh: number;
+  // Convert input to mm first
+  let mm: number;
   switch (fromUnit) {
-    case "mm/h":
-      mmh = value;
+    case "mm":
+      mm = value;
       break;
-    case "in/h":
-      mmh = value * 25.4;
+    case "in":
+      mm = value * 25.4;
       break;
     default:
       return value;
   }
 
-  // Convert from mm/h to target
+  // Convert from mm to target
   switch (toUnit) {
-    case "mm/h":
-      return mmh;
-    case "in/h":
-      return mmh / 25.4;
+    case "mm":
+      return mm;
+    case "in":
+      return mm / 25.4;
     default:
       return value;
   }

@@ -166,8 +166,8 @@ export default function SettingsPage() {
       if (option === "psi") return "Pounds per sq inch (psi)";
     }
     if (param === "rain") {
-      if (option === "mm/h") return "Millimeters per hour (mm/h)";
-      if (option === "in/h") return "Inches per hour (in/h)";
+      if (option === "mm") return "Millimeters (mm)";
+      if (option === "in") return "Inches (in)";
     }
     return option;
   };

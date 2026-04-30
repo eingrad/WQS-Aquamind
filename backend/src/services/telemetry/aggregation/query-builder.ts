@@ -36,6 +36,26 @@ export const buildAggregationColumns = (
         }
       }
 
+      // Rain is an incremental quantity (mm fallen during each reading
+      // interval), so the bucket value must be SUM not AVG. The _avg
+      // alias is kept for downstream compatibility — it now carries the
+      // total mm in that bucket. min/max stay as the per-reading extremes.
+      if (p === "rain") {
+        if (isMovingAvg) {
+          return `
+            SUM(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
+            MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
+            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max
+          `;
+        } else {
+          return `
+            SUM(tp.${col}) as ${p}_avg,
+            MIN(tp.${col}) as ${p}_min,
+            MAX(tp.${col}) as ${p}_max
+          `;
+        }
+      }
+
       // Regular arithmetic mean for other parameters
       if (isMovingAvg) {
         return `
@@ -68,6 +88,13 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
             AVG(SIN(RADIANS(tp.${col}))),
             AVG(COS(RADIANS(tp.${col})))
           )) + 360)::numeric, 360) as ${p}_base_avg,
+          MIN(tp.${col}) as ${p}_base_min,
+          MAX(tp.${col}) as ${p}_base_max
+        `;
+      } else if (p === "rain") {
+        // Incremental quantity — bucket total is SUM, not AVG.
+        return `
+          SUM(tp.${col}) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
           MAX(tp.${col}) as ${p}_base_max
         `;
