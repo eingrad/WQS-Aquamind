@@ -17,7 +17,7 @@ import { parseReportDateRange } from "../utils/timezone";
  */
 export const generateReport = async (req: Request, res: Response) => {
   try {
-    const { deviceId, startDate, endDate, frequency } = req.body;
+    const { deviceId, startDate, endDate, frequency, units } = req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -49,6 +49,7 @@ export const generateReport = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      units,
     });
 
     res.json(reportData);
@@ -68,7 +69,7 @@ export const exportPDF = async (req: Request, res: Response) => {
   let browser: Browser | null = null;
 
   try {
-    const { deviceId, startDate, endDate, frequency } = req.body;
+    const { deviceId, startDate, endDate, frequency, units } = req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -104,6 +105,7 @@ export const exportPDF = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      units,
     });
 
     // Format summary for template
@@ -252,7 +254,7 @@ export const exportPDF = async (req: Request, res: Response) => {
  */
 export const exportCSV = async (req: Request, res: Response) => {
   try {
-    const { deviceId, startDate, endDate, frequency } = req.body;
+    const { deviceId, startDate, endDate, frequency, units } = req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -282,6 +284,7 @@ export const exportCSV = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      units,
     });
 
     // Generate CSV
@@ -371,7 +374,7 @@ export const exportCSV = async (req: Request, res: Response) => {
  */
 export const exportTXT = async (req: Request, res: Response) => {
   try {
-    const { deviceId, startDate, endDate, frequency } = req.body;
+    const { deviceId, startDate, endDate, frequency, units } = req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -396,6 +399,7 @@ export const exportTXT = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      units,
     });
 
     // Generate TXT

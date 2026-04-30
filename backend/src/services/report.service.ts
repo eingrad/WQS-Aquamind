@@ -1,6 +1,7 @@
 import prisma from "../config/database";
 import { getTimeSeriesData } from "./telemetry.service";
 import { getDeviceById } from "./device.service";
+import { convertValue, resolveUnit } from "../utils/unit-conversion";
 
 export interface ReportOptions {
   deviceId: string;
@@ -8,6 +9,12 @@ export interface ReportOptions {
   endDate: Date;
   frequency: "daily" | "weekly" | "monthly";
   parameters?: string[];
+  /**
+   * Optional per-parameter unit preferences supplied by the caller (the
+   * dashboard sends the user's selected units so the report matches what
+   * they see on screen). Example: { so2: "ppm", temperature: "°F" }
+   */
+  units?: Record<string, string>;
 }
 
 export interface ReportData {
@@ -70,7 +77,7 @@ const DEFAULT_PARAMETERS = [
 export const generateReportData = async (
   options: ReportOptions,
 ): Promise<ReportData> => {
-  const { deviceId, startDate, endDate, frequency } = options;
+  const { deviceId, startDate, endDate, frequency, units } = options;
 
   // Get device info - try by ID first, then by device code
   let device;
@@ -146,14 +153,22 @@ export const generateReportData = async (
       }),
     };
 
-    // Add parameter values
+    // Add parameter values, converted to the user's chosen unit
     parameters.forEach((param) => {
       // PostgreSQL returns lowercase column names
       const avgKey = `${param.toLowerCase()}_avg`;
+      const raw = row[avgKey];
 
+      if (raw === null || raw === undefined) {
+        formatted[param] = "N/A";
+        return;
+      }
+
+      const targetUnit = units?.[param];
+      const converted = convertValue(Number(raw), param, targetUnit);
       formatted[param] =
-        row[avgKey] !== null && row[avgKey] !== undefined
-          ? Number(row[avgKey]).toFixed(2)
+        converted !== null && converted !== undefined
+          ? Number(converted).toFixed(2)
           : "N/A";
     });
 
@@ -170,6 +185,7 @@ export const generateReportData = async (
     endDate,
     frequency,
     maintenanceBucketCount,
+    units,
   );
 
   // Debug: Log availability calculation
@@ -182,10 +198,14 @@ export const generateReportData = async (
     JSON.stringify(summary.incompletePeriods, null, 2),
   );
 
-  // Prepare parameter metadata
+  // Prepare parameter metadata, replacing storage units with the user's
+  // chosen display units so column headers match the dashboard.
   const parameterMetadata = DEFAULT_PARAMETERS.filter((p) =>
     parameters.includes(p.key),
-  );
+  ).map((p) => ({
+    ...p,
+    unit: resolveUnit(p.key, units),
+  }));
 
   return {
     deviceId: device.deviceCode,
@@ -347,7 +367,14 @@ const calculateSummary = (
   endDate: Date,
   frequency: string,
   maintenanceBuckets: number = 0,
+  units?: Record<string, string>,
 ): ReportData["summary"] => {
+  const conv = (val: number | null, param: string): number | null => {
+    if (val === null) return null;
+    const targetUnit = units?.[param];
+    if (!targetUnit) return val;
+    return convertValue(val, param, targetUnit);
+  };
   // Get availability and incomplete periods
   const { availability, incompletePeriods } = calculateAvailability(
     data,
@@ -463,6 +490,19 @@ const calculateSummary = (
         solarValues.reduce((a, b) => a + b, 0) / solarValues.length;
     }
   }
+
+  // Convert numeric summary fields to the user's chosen units so the
+  // PDF/CSV/TXT headers and stats line up with the dashboard display.
+  summary.maxTemp = conv(summary.maxTemp, "temperature");
+  summary.minWind = conv(summary.minWind, "windSpeed");
+  summary.avgSO2 = conv(summary.avgSO2, "so2");
+  summary.avgH2S = conv(summary.avgH2S, "h2s");
+  summary.avgNO2 = conv(summary.avgNO2, "no2");
+  summary.avgBenzene = conv(summary.avgBenzene, "benzene");
+  summary.avgToluene = conv(summary.avgToluene, "toluene");
+  summary.avgEthylbenzene = conv(summary.avgEthylbenzene, "ethylbenzene");
+  summary.avgXylenes = conv(summary.avgXylenes, "xylenes");
+  summary.avgSolar = conv(summary.avgSolar, "solar");
 
   return summary;
 };

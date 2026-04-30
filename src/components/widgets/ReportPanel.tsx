@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import DateRangePicker from "./DateRangePicker";
 import api from "../../services/api";
+import { useUnits } from "../../context/UnitContext";
 
 interface Device {
   id: string;
@@ -11,6 +12,7 @@ interface Device {
 }
 
 export default function ReportPanel({ onClose }: { onClose: () => void }) {
+  const { units } = useUnits();
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
   const [frequency, setFrequency] = useState<string>("");
@@ -87,6 +89,9 @@ export default function ReportPanel({ onClose }: { onClose: () => void }) {
         startDate,
         endDate,
         frequency: frequency.toLowerCase(),
+        // Send the user's per-parameter unit preferences so the report
+        // matches what they see on the dashboard.
+        units,
       };
 
       const ext = exportType.toLowerCase();
