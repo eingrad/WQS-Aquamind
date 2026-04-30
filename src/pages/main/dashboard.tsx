@@ -64,13 +64,7 @@ export default function DashboardPage() {
   // BTEX channels are exposed as 5 separate isomers; the total Xylene sum is
   // only computed when the user generates a report.
   const [pollutionParam, setPollutionParam] = useState<
-    | "SO2"
-    | "H2S"
-    | "NO2"
-    | "BENZENE"
-    | "TOLUENE"
-    | "ETHYLBENZENE"
-    | "XYLENES"
+    "SO2" | "H2S" | "NO2" | "BENZENE" | "TOLUENE" | "ETHYLBENZENE" | "XYLENES"
   >("SO2");
 
   // Fetch devices from backend
@@ -584,7 +578,7 @@ export default function DashboardPage() {
                             value={p.key}
                             className="bg-[#1a2a2a] text-white"
                           >
-                            {p.label} ({p.unit})
+                            {p.label}
                           </option>
                         ))}
                       </select>

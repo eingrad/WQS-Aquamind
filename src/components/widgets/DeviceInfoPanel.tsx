@@ -217,6 +217,42 @@ export default function DeviceInfoPanel({
                     </span>
                   </div>
                   <div className="flex justify-between">
+                    <span>Benzene</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.benzene_avg, "benzene"),
+                        getUnit("benzene"),
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Toluene</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.toluene_avg, "toluene"),
+                        getUnit("toluene"),
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Ethylbenzene</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.ethylbenzene_avg, "ethylbenzene"),
+                        getUnit("ethylbenzene"),
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Xylenes</span>
+                    <span>
+                      {formatValue(
+                        convert(latestReading.xylenes_avg, "xylenes"),
+                        getUnit("xylenes"),
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
                     <span>Wind Speed</span>
                     <span>
                       {formatValue(
