@@ -108,9 +108,17 @@ export default function SettingsPage() {
     }
   };
 
-  // Handle unit change with feedback
+  // Keys that the "BTEX" group control fans out to.
+  const BTEX_KEYS = ["benzene", "toluene", "ethylbenzene", "xylenes"];
+
+  // Handle unit change with feedback. The "btex" key is a virtual group
+  // that updates all four BTEX gases at once.
   const handleUnitChange = (parameter: string, unit: string) => {
-    setUnit(parameter, unit);
+    if (parameter === "btex") {
+      BTEX_KEYS.forEach((key) => setUnit(key, unit));
+    } else {
+      setUnit(parameter, unit);
+    }
     setUnitSaveMessage("Units updated and saved automatically");
     setTimeout(() => setUnitSaveMessage(""), 2000);
   };
@@ -186,6 +194,14 @@ export default function SettingsPage() {
                 const options = UNIT_OPTIONS[key] || [];
                 if (options.length <= 1) return null;
 
+                // For the BTEX group, the displayed value comes from the
+                // benzene unit — all four BTEX gases stay in sync via the
+                // fan-out in handleUnitChange.
+                const currentValue =
+                  key === "btex"
+                    ? units.benzene || options[0]
+                    : units[key] || options[0];
+
                 return (
                   <div key={key}>
                     <label className="block mb-1 text-sm text-gray-300">
@@ -193,7 +209,7 @@ export default function SettingsPage() {
                     </label>
                     <div className="relative">
                       <select
-                        value={units[key] || options[0]}
+                        value={currentValue}
                         onChange={(e) => handleUnitChange(key, e.target.value)}
                         className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0d1717] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
                       >

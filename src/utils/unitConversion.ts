@@ -28,6 +28,10 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
   toluene: ["ppb", "ppm", "µg/m³"],
   ethylbenzene: ["ppb", "ppm", "µg/m³"],
   xylenes: ["ppb", "ppm", "µg/m³"],
+  // Virtual group key — controls the unit for all four BTEX gases at once
+  // from the Settings page. Per-gas entries above are still the source of
+  // truth for actual conversion lookups.
+  btex: ["ppb", "ppm", "µg/m³"],
   temperature: ["°C", "°F"],
   humidity: ["%", "g/m³"],
   windSpeed: ["m/s", "km/h", "mph"],
