@@ -6,6 +6,7 @@ import {
   validationStatusTextColors,
 } from "../../data/validationData";
 import { formatPollutantValue } from "../../utils/numberFormat";
+import { useUnits } from "../../context/UnitContext";
 
 interface HumanValidation {
   status: string;
@@ -47,6 +48,12 @@ export default function StatusCell({
   const textColor = validationStatusTextColors[status];
   const cellKey = `${rowId}:${parameter}`;
   const isSelected = selectedCells.has(cellKey);
+
+  // Convert the stored value (backend base unit) into the user's chosen
+  // display unit so values track the unit shown in the column header.
+  const { convert } = useUnits();
+  const displayValue =
+    typeof value === "number" ? convert(value, parameter) : value;
 
   const handleClick = () => {
     // Allow selection of all cells except "no_data"
@@ -99,9 +106,9 @@ export default function StatusCell({
         onClick={handleClick}
         title={humanValidation ? getTooltipText() : undefined}
       >
-        {typeof value === "number"
-          ? formatPollutantValue(value, parameter)
-          : value}
+        {typeof displayValue === "number"
+          ? formatPollutantValue(displayValue, parameter)
+          : displayValue}
 
         {/* Show icon badge */}
         {showIcon && (

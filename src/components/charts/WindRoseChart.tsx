@@ -142,16 +142,18 @@ export default function WindRoseChart({
     );
   }
 
-  // If "Direction To", shift each direction's data to the opposite compass point
-  const displayDirections =
-    directionMode === "to"
-      ? DIRECTIONS.map((d) => OPPOSITE_DIR[d] || d)
-      : DIRECTIONS;
-
+  // For "Direction To" mode, keep the compass with N at top and instead
+  // rotate the data 180°: each compass slot now reflects its opposite
+  // direction's reading. A wind originating from the south then renders
+  // as a bar pointing north (where it's going), matching the standard
+  // meteorological "going-to" rose convention.
   const traces: Partial<PlotData>[] = windMap.map((layer, i) => ({
     type: "barpolar",
-    r: DIRECTIONS.map((d) => (layer[d] / totalCount) * 100),
-    theta: displayDirections,
+    r: DIRECTIONS.map((d) => {
+      const sourceDir = directionMode === "to" ? OPPOSITE_DIR[d] || d : d;
+      return (layer[sourceDir] / totalCount) * 100;
+    }),
+    theta: DIRECTIONS,
     name: SPEED_RANGES[i].label,
     marker: { color: SPEED_RANGES[i].color },
     hovertemplate:

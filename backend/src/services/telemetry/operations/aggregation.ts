@@ -139,19 +139,19 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
       const inMaintenance = maintenanceMinutes > 0;
 
       // If any minute in this bucket falls inside a maintenance window,
-      // null out values and force flags to "maintenance". The bucket is
-      // marked but excluded from analytics/reports downstream.
+      // flag every parameter as "maintenance" but keep the underlying
+      // values visible on the validation table for QA review (e.g. seeing
+      // calibration-gas readings logged during the window).
+      // Reports still exclude these buckets from analytics via the
+      // in_maintenance flag, and alarms are independently gated upstream
+      // by a maintenance_log lookup in the aggregation worker.
       if (inMaintenance) {
         const maintenanceFlags: Record<string, string> = {};
-        const maintenanceRow: any = { ...row };
         parameterList.forEach((param) => {
           maintenanceFlags[param] = "maintenance";
-          maintenanceRow[`${param}_avg`] = null;
-          maintenanceRow[`${param}_min`] = null;
-          maintenanceRow[`${param}_max`] = null;
         });
         return {
-          ...maintenanceRow,
+          ...row,
           validation_flags: maintenanceFlags,
           has_validation_issues: true,
           in_maintenance: true,

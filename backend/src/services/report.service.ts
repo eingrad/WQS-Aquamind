@@ -2,6 +2,9 @@ import prisma from "../config/database";
 import { getTimeSeriesData } from "./telemetry.service";
 import { getDeviceById } from "./device.service";
 import { convertValue, resolveUnit } from "../utils/unit-conversion";
+import {
+  expectedReadingsForInterval,
+} from "./telemetry/aggregation/parameter-cadence";
 
 export interface ReportOptions {
   deviceId: string;
@@ -324,6 +327,9 @@ const calculateAvailability = (
     rain: "rain_avg",
   };
 
+  // Aggregation interval per frequency — daily = 1h buckets, others = 1d.
+  const intervalSeconds = frequency === "daily" ? 3600 : 86400;
+
   console.log(
     `\n🔍 Calculating availability for ${parameters.length} parameters`,
   );
@@ -347,29 +353,33 @@ const calculateAvailability = (
     // Monthly: 95% threshold (≥22.8 hours/day for higher accuracy)
     const availabilityThreshold = frequency === "monthly" ? 95 : 75;
 
-    // Count rows meeting DOE requirements:
-    // - Complete quality (100% data), OR
-    // - Partial quality with ≥ threshold (75% or 95%)
+    // Per-parameter cadence-aware availability:
+    // BTEX expects 4 readings/hour (15-min GC cycle); others expect 60.
+    const countColumn = columnName.replace("_avg", "_count");
+    const expectedForParam = expectedReadingsForInterval(param, intervalSeconds);
+
+    const bucketAvailabilityPct = (row: any): number => {
+      if (expectedForParam <= 0) return 0;
+      const cnt = Number(row[countColumn] ?? 0);
+      return (cnt / expectedForParam) * 100;
+    };
+    const meetsThreshold = (row: any): boolean =>
+      bucketAvailabilityPct(row) >= availabilityThreshold;
+
+    // Count rows where the parameter has data AND meets its DOE threshold.
     const validPoints = data.filter(
       (row) =>
         row[columnName] !== null &&
         row[columnName] !== undefined &&
-        (row.data_quality === "complete" ||
-          (row.data_quality === "partial" &&
-            row.data_availability_pct >= availabilityThreshold)),
+        meetsThreshold(row),
     ).length;
 
     // Track incomplete periods (those NOT meeting DOE threshold)
-    // Only flag periods that fall below the required threshold
     data.forEach((row) => {
       if (
         row[columnName] !== null &&
         row[columnName] !== undefined &&
-        !(
-          row.data_quality === "complete" ||
-          (row.data_quality === "partial" &&
-            row.data_availability_pct >= availabilityThreshold)
-        )
+        !meetsThreshold(row)
       ) {
         // Format date based on frequency
         const date = new Date(row.bucket);
@@ -381,8 +391,9 @@ const calculateAvailability = (
               })
             : date.toLocaleDateString("en-MY");
 
-        // Calculate this period's individual availability percentage
-        const periodPercentage = row.data_availability_pct || 0;
+        // Per-parameter availability % (rounded to 1dp).
+        const periodPercentage =
+          Math.round(bucketAvailabilityPct(row) * 10) / 10;
 
         incompleteList.push({
           date: dateStr,
@@ -472,6 +483,11 @@ const calculateDataCounts = (
       continue;
     }
 
+    // Per-parameter cadence: BTEX expects 4 readings/hour; others expect 60.
+    // hourlyData rows are 1-hour buckets, so the interval is fixed at 3600s.
+    const countColumn = column.replace("_avg", "_count");
+    const expectedForParam = expectedReadingsForInterval(param, 3600);
+
     let available = 0;
     let validated = 0;
 
@@ -482,11 +498,9 @@ const calculateDataCounts = (
 
       available++;
 
-      const meetsThreshold =
-        row.data_quality === "complete" ||
-        (row.data_quality === "partial" &&
-          row.data_availability_pct >= availabilityThreshold);
-      if (meetsThreshold) validated++;
+      const cnt = Number(row[countColumn] ?? 0);
+      const pct = expectedForParam > 0 ? (cnt / expectedForParam) * 100 : 0;
+      if (pct >= availabilityThreshold) validated++;
     }
 
     const missing = Math.max(0, total - available - calibration);

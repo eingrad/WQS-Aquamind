@@ -1,5 +1,23 @@
 import prisma from "../config/database";
 import { getTimeSeriesData } from "./telemetry/operations/aggregation";
+import { expectedReadingsForInterval } from "./telemetry/aggregation/parameter-cadence";
+
+/**
+ * Override autoFlag for BTEX hours that don't meet the GC955's native
+ * 4-readings-per-hour cadence. Other parameters fall through unchanged so
+ * existing 1-minute behaviour is preserved.
+ */
+const BTEX_PARAMS = new Set(["benzene", "toluene", "ethylbenzene", "xylenes"]);
+function btexAdjustedFlag(row: any, param: string, baseFlag: string): string {
+  if (baseFlag !== "valid") return baseFlag;
+  if (!BTEX_PARAMS.has(param)) return baseFlag;
+  const expected = expectedReadingsForInterval(param, 3600);
+  const cnt = Number(row[`${param.toLowerCase()}_count`] ?? 0);
+  if (expected <= 0 || cnt === 0) return baseFlag;
+  const pct = (cnt / expected) * 100;
+  // Daily DOE threshold of 75% applies to per-bucket validity here.
+  return pct >= 75 ? "valid" : "insufficient_data";
+}
 
 export interface ValidationRecord {
   recordId: string;
@@ -90,8 +108,10 @@ function getHumanFlagsForHour(
     return currPriority < prevPriority ? curr : prev;
   });
 
-  // Calculate coverage
+  // Calculate coverage against this parameter's native cadence —
+  // BTEX expects 4 records/hour (15-min GC cycle), others expect 60.
   const totalRecords = flagsInHour.length;
+  const expectedRecords = expectedReadingsForInterval(parameter, 3600);
 
   return {
     status: mostSevereFlag.status,
@@ -103,7 +123,7 @@ function getHumanFlagsForHour(
       mostSevereFlag.validatedAt?.toISOString() ||
       mostSevereFlag.createdAt.toISOString(),
     remarks: mostSevereFlag.remarks,
-    coverage: `${totalRecords}/60 records`,
+    coverage: `${totalRecords}/${expectedRecords} records`,
   };
 }
 
@@ -278,7 +298,11 @@ export const getValidationTableData = async (options: {
       benzene: {
         value: row.benzene_avg !== null ? Number(row.benzene_avg) : null,
         unit: "ppb",
-        autoFlag: row.validation_flags?.benzene || "valid",
+        autoFlag: btexAdjustedFlag(
+          row,
+          "benzene",
+          row.validation_flags?.benzene || "valid",
+        ),
         humanValidation: getHumanFlagsForHour(row.bucket, "benzene", humanFlags),
         pendingApproval: getPendingApprovalForHour(
           row.bucket,
@@ -289,7 +313,11 @@ export const getValidationTableData = async (options: {
       toluene: {
         value: row.toluene_avg !== null ? Number(row.toluene_avg) : null,
         unit: "ppb",
-        autoFlag: row.validation_flags?.toluene || "valid",
+        autoFlag: btexAdjustedFlag(
+          row,
+          "toluene",
+          row.validation_flags?.toluene || "valid",
+        ),
         humanValidation: getHumanFlagsForHour(row.bucket, "toluene", humanFlags),
         pendingApproval: getPendingApprovalForHour(
           row.bucket,
@@ -301,7 +329,11 @@ export const getValidationTableData = async (options: {
         value:
           row.ethylbenzene_avg !== null ? Number(row.ethylbenzene_avg) : null,
         unit: "ppb",
-        autoFlag: row.validation_flags?.ethylbenzene || "valid",
+        autoFlag: btexAdjustedFlag(
+          row,
+          "ethylbenzene",
+          row.validation_flags?.ethylbenzene || "valid",
+        ),
         humanValidation: getHumanFlagsForHour(
           row.bucket,
           "ethylbenzene",
@@ -316,7 +348,11 @@ export const getValidationTableData = async (options: {
       xylenes: {
         value: row.xylenes_avg !== null ? Number(row.xylenes_avg) : null,
         unit: "ppb",
-        autoFlag: row.validation_flags?.xylenes || "valid",
+        autoFlag: btexAdjustedFlag(
+          row,
+          "xylenes",
+          row.validation_flags?.xylenes || "valid",
+        ),
         humanValidation: getHumanFlagsForHour(
           row.bucket,
           "xylenes",

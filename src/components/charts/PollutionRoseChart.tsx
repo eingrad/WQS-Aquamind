@@ -58,10 +58,14 @@ function formatGasName(parameter: string | undefined): string {
  * Convert backend data to Plotly format
  * Backend: { "N": { "low": 5, "moderate": 8, ... }, ...}
  * Plotly needs: Array of traces, one per concentration bin
+ *
+ * `directionMode` controls whether each compass slot reflects readings
+ * coming FROM that direction (default) or going TO it. In "to" mode the
+ * data is rotated 180° while the compass labels stay with N at top.
  */
 function convertBackendToPollutionRose(
   backendData: any,
-  displayDirections: string[],
+  directionMode: "from" | "to",
   parameter?: string,
 ): Partial<PlotData>[] {
   if (!backendData) return [];
@@ -75,8 +79,12 @@ function convertBackendToPollutionRose(
   // obvious which pollutant the rose represents (e.g., "SO₂ — low").
   return bins.map((bin, index) => ({
     type: "barpolar",
-    r: DIRECTIONS.map((dir) => Number(backendData[dir]?.[bin]) || 0),
-    theta: displayDirections,
+    r: DIRECTIONS.map((dir) => {
+      const sourceDir =
+        directionMode === "to" ? OPPOSITE_DIR[dir] || dir : dir;
+      return Number(backendData[sourceDir]?.[bin]) || 0;
+    }),
+    theta: DIRECTIONS,
     name: gas ? `${gas} — ${bin}` : bin,
     marker: {
       color: CONCENTRATION_COLORS[index % CONCENTRATION_COLORS.length],
@@ -125,15 +133,10 @@ export default function PollutionRoseChart({
     );
   }
 
-  // Apply direction shift for "Direction To" mode
-  const displayDirections =
-    directionMode === "to"
-      ? DIRECTIONS.map((d) => OPPOSITE_DIR[d] || d)
-      : DIRECTIONS;
-
-  // Convert backend data or use dummy data
+  // Convert backend data or use dummy data. The compass stays with N at
+  // top regardless of mode; "to" mode rotates the data 180° instead.
   const traces = data?.directions
-    ? convertBackendToPollutionRose(data.directions, displayDirections)
+    ? convertBackendToPollutionRose(data.directions, directionMode)
     : generateDummyTraces();
 
   const layout: Partial<Layout> = {

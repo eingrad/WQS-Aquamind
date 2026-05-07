@@ -56,7 +56,7 @@ const CHANNEL_MAP: Record<number, string> = {
   56: "pressure", // Atmospheric Pressure (hPa)
   57: "rain", // Rainfall (mm)
   58: "solar", // Solar Radiation (W/m²)
-  // Synspec GC955 BTEX (5s reports, all values in ppb)
+  // Synspec GC955 BTEX (~15-min GC cycle, all values in ppb)
   34: "benzene", // Benzene
   35: "toluene", // Toluene
   36: "ethylbenzene", // Ethylbenzene

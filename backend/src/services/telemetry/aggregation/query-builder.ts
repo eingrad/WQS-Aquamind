@@ -13,6 +13,11 @@ export const buildAggregationColumns = (
     .map((p) => {
       const col = PARAMETER_DB_MAP[p];
 
+      // Per-parameter reading count (non-null values in the bucket).
+      // Used downstream to compute per-parameter availability % against
+      // the parameter's native cadence (BTEX: 4/hour, others: 60/hour).
+      const countCol = `COUNT(tp.${col}) as ${p}_count`;
+
       // Special handling for wind direction (vector mean) - convert to 0-360° range
       if (p === "windDirection") {
         if (isMovingAvg) {
@@ -22,7 +27,8 @@ export const buildAggregationColumns = (
               AVG(COS(RADIANS(tp.${col}))) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW)
             )) + 360)::numeric, 360) as ${p}_avg,
             MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
-            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max
+            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
+            ${countCol}
           `;
         } else {
           return `
@@ -31,7 +37,8 @@ export const buildAggregationColumns = (
               AVG(COS(RADIANS(tp.${col})))
             )) + 360)::numeric, 360) as ${p}_avg,
             MIN(tp.${col}) as ${p}_min,
-            MAX(tp.${col}) as ${p}_max
+            MAX(tp.${col}) as ${p}_max,
+            ${countCol}
           `;
         }
       }
@@ -45,13 +52,15 @@ export const buildAggregationColumns = (
           return `
             SUM(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
             MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
-            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max
+            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
+            ${countCol}
           `;
         } else {
           return `
             SUM(tp.${col}) as ${p}_avg,
             MIN(tp.${col}) as ${p}_min,
-            MAX(tp.${col}) as ${p}_max
+            MAX(tp.${col}) as ${p}_max,
+            ${countCol}
           `;
         }
       }
@@ -61,13 +70,15 @@ export const buildAggregationColumns = (
         return `
           AVG(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
           MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
-          MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max
+          MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
+          ${countCol}
         `;
       } else {
         return `
           AVG(tp.${col}) as ${p}_avg,
           MIN(tp.${col}) as ${p}_min,
-          MAX(tp.${col}) as ${p}_max
+          MAX(tp.${col}) as ${p}_max,
+          ${countCol}
         `;
       }
     })
@@ -82,6 +93,9 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
     .filter((p) => PARAMETER_DB_MAP[p])
     .map((p) => {
       const col = PARAMETER_DB_MAP[p];
+      // Per-parameter reading count for the base bucket (not windowed).
+      const countCol = `COUNT(tp.${col}) as ${p}_base_count`;
+
       if (p === "windDirection") {
         return `
           MOD((DEGREES(ATAN2(
@@ -89,20 +103,23 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
             AVG(COS(RADIANS(tp.${col})))
           )) + 360)::numeric, 360) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
-          MAX(tp.${col}) as ${p}_base_max
+          MAX(tp.${col}) as ${p}_base_max,
+          ${countCol}
         `;
       } else if (p === "rain") {
         // Incremental quantity — bucket total is SUM, not AVG.
         return `
           SUM(tp.${col}) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
-          MAX(tp.${col}) as ${p}_base_max
+          MAX(tp.${col}) as ${p}_base_max,
+          ${countCol}
         `;
       } else {
         return `
           AVG(tp.${col}) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
-          MAX(tp.${col}) as ${p}_base_max
+          MAX(tp.${col}) as ${p}_base_max,
+          ${countCol}
         `;
       }
     })
@@ -119,7 +136,8 @@ export const buildMovingAverageColumns = (paramList: string[]): string => {
       return `
         AVG(${p}_base_avg) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
         MIN(${p}_base_min) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
-        MAX(${p}_base_max) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max
+        MAX(${p}_base_max) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
+        ${p}_base_count as ${p}_count
       `;
     })
     .join(",");
