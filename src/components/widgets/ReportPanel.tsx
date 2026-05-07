@@ -11,7 +11,14 @@ interface Device {
   location: string;
 }
 
-export default function ReportPanel({ onClose }: { onClose: () => void }) {
+export default function ReportPanel({
+  onClose,
+  onReportGenerated,
+}: {
+  onClose: () => void;
+  /** Fired after a successful report generation, before the panel closes. */
+  onReportGenerated?: () => void;
+}) {
   const { units } = useUnits();
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
@@ -101,7 +108,8 @@ export default function ReportPanel({ onClose }: { onClose: () => void }) {
         `report_${selectedDevice}_${frequency}_${startDate}_to_${endDate}.${ext}`,
       );
 
-      // Success - close panel
+      // Success - notify parent so the report list can refresh, then close.
+      onReportGenerated?.();
       onClose();
     } catch (err: any) {
       console.error("Report generation error:", err);

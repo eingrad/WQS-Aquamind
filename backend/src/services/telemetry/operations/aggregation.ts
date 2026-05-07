@@ -3,7 +3,11 @@
  */
 
 import prisma from "../../../config/database";
-import { buildRegularAggregationQuery } from "../aggregation/query-builder";
+import {
+  buildRegularAggregationQuery,
+  buildMovingAverageQuery,
+} from "../aggregation/query-builder";
+import { isMovingAverage } from "../aggregation/interval-mapping";
 import { validateParameterValues } from "../validation/parameter-validator";
 import redis from "../../redis.service";
 
@@ -106,14 +110,27 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
   // --- Database query (cache miss or Redis unavailable) ---
   const parameterList = parameters.split(",").map((p) => p.trim());
 
-  // Build the aggregation query
-  const { query, params } = buildRegularAggregationQuery({
-    deviceId,
-    startDate,
-    endDate,
-    interval,
-    paramList: parameterList,
-  });
+  // Moving-average intervals (e.g. "8h_ma", "24h_ma") need the windowed
+  // query and the underlying base bucket size as the Postgres interval
+  // (Postgres can't parse "8h_ma" as an interval literal).
+  const movingAvg = isMovingAverage(interval);
+  const baseInterval = movingAvg ? interval.replace("_ma", "") : interval;
+
+  const { query, params } = movingAvg
+    ? buildMovingAverageQuery({
+        deviceId,
+        startDate,
+        endDate,
+        interval: baseInterval,
+        paramList: parameterList,
+      })
+    : buildRegularAggregationQuery({
+        deviceId,
+        startDate,
+        endDate,
+        interval,
+        paramList: parameterList,
+      });
 
   // Execute raw SQL query with parameterized binding
   const results = (await prisma.$queryRawUnsafe(
@@ -123,7 +140,8 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
 
   let output: any;
 
-  // Validate aggregates against regulatory limits.
+  // Regulatory averaging period — drives the additional range/relation
+  // checks below. Only 1h and 24h have Malaysia AAQS standards.
   // 1h → Malaysia AAQS 1-hour table (SO2, NO2, environmentals)
   // 24h / 24h_ma → Malaysia AAQS 24-hour table (SO2, NO2, H2S, BTEX)
   const averagingPeriod: "1h" | "24h" | null =
@@ -133,62 +151,63 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
       ? "24h"
       : null;
 
-  if (averagingPeriod) {
-    const validatedResults = results.map((row: any) => {
-      const maintenanceMinutes = Number(row.maintenance_minutes ?? 0);
-      const inMaintenance = maintenanceMinutes > 0;
+  // Maintenance flagging runs for every interval (raw, 1m, 30m, 1h, 8h,
+  // 1d, …) so reports/charts can consistently exclude or annotate these
+  // buckets regardless of the bucket size. Reports still gate via the
+  // in_maintenance flag, and alarms are independently gated upstream by
+  // a maintenance_log lookup in the aggregation worker.
+  const flagged = results.map((row: any) => {
+    const maintenanceMinutes = Number(row.maintenance_minutes ?? 0);
+    const inMaintenance = maintenanceMinutes > 0;
 
-      // If any minute in this bucket falls inside a maintenance window,
-      // flag every parameter as "maintenance" but keep the underlying
-      // values visible on the validation table for QA review (e.g. seeing
-      // calibration-gas readings logged during the window).
-      // Reports still exclude these buckets from analytics via the
-      // in_maintenance flag, and alarms are independently gated upstream
-      // by a maintenance_log lookup in the aggregation worker.
-      if (inMaintenance) {
-        const maintenanceFlags: Record<string, string> = {};
-        parameterList.forEach((param) => {
-          maintenanceFlags[param] = "maintenance";
-        });
-        return {
-          ...row,
-          validation_flags: maintenanceFlags,
-          has_validation_issues: true,
-          in_maintenance: true,
-          maintenance_minutes: maintenanceMinutes,
-        };
-      }
-
-      // Extract average values for validation
-      const readings: Record<string, number> = {};
+    // Maintenance bucket: keep underlying values for QA visibility on the
+    // validation table; tag every parameter with the "maintenance" flag.
+    if (inMaintenance) {
+      const maintenanceFlags: Record<string, string> = {};
       parameterList.forEach((param) => {
-        const avgValue = row[`${param}_avg`];
-        if (avgValue !== null && avgValue !== undefined) {
-          readings[param] = Number(avgValue);
-        }
+        maintenanceFlags[param] = "maintenance";
       });
-
-      // Validate with full regulatory compliance checks
-      const validation = validateParameterValues(
-        readings,
-        "full",
-        averagingPeriod
-      );
-
       return {
         ...row,
-        validation_flags: validation.flags,
-        has_validation_issues: validation.hasIssues,
-        relation_violations: validation.relationViolations,
-        in_maintenance: false,
+        validation_flags: maintenanceFlags,
+        has_validation_issues: true,
+        in_maintenance: true,
+        maintenance_minutes: maintenanceMinutes,
       };
+    }
+
+    // Non-maintenance row. Layer regulatory range/relation checks on top
+    // only when an AAQS averaging period applies (1h or 24h). Other
+    // intervals come back without those checks but still carry the
+    // in_maintenance: false flag so consumers can rely on it everywhere.
+    if (!averagingPeriod) {
+      return { ...row, in_maintenance: false };
+    }
+
+    const readings: Record<string, number> = {};
+    parameterList.forEach((param) => {
+      const avgValue = row[`${param}_avg`];
+      if (avgValue !== null && avgValue !== undefined) {
+        readings[param] = Number(avgValue);
+      }
     });
 
-    output = convertBigIntToNumber(validatedResults);
-  } else {
-    // For other intervals, return without validation
-    output = convertBigIntToNumber(results);
-  }
+    const validation = validateParameterValues(
+      readings,
+      "full",
+      averagingPeriod,
+    );
+
+    return {
+      ...row,
+      validation_flags: validation.flags,
+      has_validation_issues: validation.hasIssues,
+      relation_violations: validation.relationViolations,
+      in_maintenance: false,
+    };
+  });
+
+  output = convertBigIntToNumber(flagged);
 
   // --- Store in Redis cache ---
   if (redis.isRedisAvailable()) {

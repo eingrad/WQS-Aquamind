@@ -7,6 +7,9 @@ import ReportTable from "../../components/widgets/ReportTable.tsx";
 export default function ReportsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPanel, setShowPanel] = useState(false);
+  // Bumping this key signals ReportTable to refetch so a newly generated
+  // report shows up immediately without requiring a manual page reload.
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-screen max-w-screen overflow-x-hidden">
@@ -39,12 +42,15 @@ export default function ReportsPage() {
             />
             {/* Slide-in panel */}
             <div className="z-[999] relative">
-              <ReportPanel onClose={() => setShowPanel(false)} />
+              <ReportPanel
+                onClose={() => setShowPanel(false)}
+                onReportGenerated={() => setRefreshKey((k) => k + 1)}
+              />
             </div>
           </>
         )}
 
-        <ReportTable />
+        <ReportTable refreshKey={refreshKey} />
       </div>
     </div>
   );

@@ -24,7 +24,13 @@ interface Report {
   };
 }
 
-export default function ReportTable() {
+interface ReportTableProps {
+  /** Bumping this value triggers a refetch — used by the parent page to
+   *  refresh the list after a new report is generated. */
+  refreshKey?: number;
+}
+
+export default function ReportTable({ refreshKey = 0 }: ReportTableProps = {}) {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -41,7 +47,7 @@ export default function ReportTable() {
 
   useEffect(() => {
     fetchReports();
-  }, []);
+  }, [refreshKey]);
 
   const fetchReports = async () => {
     try {

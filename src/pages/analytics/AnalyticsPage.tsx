@@ -153,26 +153,37 @@ export default function AnalyticsPage() {
         });
 
         const transformed = data.timeSeries.map((item: any) => {
-          const point: any = { t: new Date(item.bucket).getTime() };
-          selectedParams.forEach((param) => {
-            const key =
-              param === "windSpeed"
-                ? "windspeed_avg"
-                : param === "windDirection"
-                  ? "winddirection_avg"
-                  : `${param}_avg`;
-            if (item[key] != null) {
-              const raw = parseFloat(item[key]);
-              point[param] = convert(raw, param) ?? raw;
-            }
-          });
+          const point: any = {
+            t: new Date(item.bucket).getTime(),
+            inMaintenance: !!item.in_maintenance,
+          };
+          // For maintenance buckets, skip the parameter values so the chart
+          // line breaks across the gap. The amber background band rendered
+          // by AnalyticsChart explains why the gap is there.
+          if (!item.in_maintenance) {
+            selectedParams.forEach((param) => {
+              const key =
+                param === "windSpeed"
+                  ? "windspeed_avg"
+                  : param === "windDirection"
+                    ? "winddirection_avg"
+                    : `${param}_avg`;
+              if (item[key] != null) {
+                const raw = parseFloat(item[key]);
+                point[param] = convert(raw, param) ?? raw;
+              }
+            });
+          }
           return point;
         });
 
-        // Drop trailing empty buckets (O(n), computed once)
+        // Drop trailing empty buckets (O(n), computed once). Maintenance
+        // points count as "has data" so the band still renders.
         const lastWithData = transformed.reduce(
           (last: number, point: any, idx: number) => {
-            const hasData = selectedParams.some((p) => point[p] != null);
+            const hasData =
+              selectedParams.some((p) => point[p] != null) ||
+              point.inMaintenance;
             return hasData ? idx : last;
           },
           0,

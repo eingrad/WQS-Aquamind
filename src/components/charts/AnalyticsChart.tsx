@@ -6,6 +6,37 @@ type Props = {
   params: string[];
 };
 
+/**
+ * Find contiguous runs of maintenance buckets and return their [start, end]
+ * timestamps in milliseconds. The end is the timestamp of the next non-
+ * maintenance bucket (so the rectangle covers the full hour/day cell);
+ * trailing maintenance is padded by the median bucket width.
+ */
+function getMaintenanceRanges(data: any[]): Array<[number, number]> {
+  if (!data?.length) return [];
+
+  // Estimate bucket width from the first two points; default to 1 hour.
+  const bucketWidth =
+    data.length >= 2 ? data[1].t - data[0].t : 60 * 60 * 1000;
+
+  const ranges: Array<[number, number]> = [];
+  let runStart: number | null = null;
+
+  for (let i = 0; i < data.length; i++) {
+    const inM = !!data[i].inMaintenance;
+    if (inM && runStart === null) {
+      runStart = data[i].t;
+    } else if (!inM && runStart !== null) {
+      ranges.push([runStart, data[i].t]);
+      runStart = null;
+    }
+  }
+  if (runStart !== null) {
+    ranges.push([runStart, data[data.length - 1].t + bucketWidth]);
+  }
+  return ranges;
+}
+
 const PARAM_COLORS = [
   "#14b8a6",
   "#a855f7",
@@ -81,6 +112,45 @@ export default function AnalyticsChart({ data, params }: Props) {
   const leftLabel = leftUnits.join(" · ");
   const rightLabel = rightUnits.join(" · ");
 
+  // Maintenance windows — translucent amber bands rendered behind the lines.
+  // The chart line is already broken across these ranges (parameter values
+  // are nulled out upstream), so the band explains the gap visually.
+  const maintenanceRanges = getMaintenanceRanges(data);
+  const maintenanceShapes: Partial<Plotly.Shape>[] = maintenanceRanges.map(
+    ([x0, x1]) => ({
+      type: "rect" as const,
+      xref: "x" as const,
+      yref: "paper" as const,
+      x0: new Date(x0).toISOString(),
+      x1: new Date(x1).toISOString(),
+      y0: 0,
+      y1: 1,
+      fillcolor: "rgba(245, 158, 11, 0.12)",
+      line: { width: 0 },
+      layer: "below" as const,
+    }),
+  );
+  const maintenanceLegend: Partial<Plotly.Annotations>[] =
+    maintenanceRanges.length > 0
+      ? [
+          {
+            xref: "paper" as const,
+            yref: "paper" as const,
+            x: 0,
+            y: 1.02,
+            xanchor: "left" as const,
+            yanchor: "bottom" as const,
+            text: "🔧 Maintenance window",
+            showarrow: false,
+            font: { size: 11, color: "#f59e0b" },
+            bgcolor: "rgba(245, 158, 11, 0.10)",
+            bordercolor: "rgba(245, 158, 11, 0.30)",
+            borderwidth: 1,
+            borderpad: 4,
+          },
+        ]
+      : [];
+
   // Build layout with max 2 Y-axes
   const layout: Partial<Plotly.Layout> = {
     plot_bgcolor: "#0a1515",
@@ -115,6 +185,8 @@ export default function AnalyticsChart({ data, params }: Props) {
       zeroline: false,
       tickfont: { color: "#cbd5e1", size: 12 },
     },
+    shapes: maintenanceShapes,
+    annotations: maintenanceLegend,
     dragmode: "zoom" as const,
   };
 
