@@ -166,10 +166,15 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
     const maintenanceMinutes = Number(row.maintenance_minutes ?? 0);
 
     // Build the per-parameter maintenance map from the SQL counts.
+    // Postgres lower-cases unquoted aliases, so camelCase params like
+    // `windSpeed` come back as `windspeed_maintenance_count` — look up
+    // the lowercased form to avoid silently reading `undefined`.
     const parameterInMaintenance: Record<string, boolean> = {};
     let anyParamInMaintenance = false;
     parameterList.forEach((param) => {
-      const cnt = Number(row[`${param}_maintenance_count`] ?? 0);
+      const cnt = Number(
+        row[`${param.toLowerCase()}_maintenance_count`] ?? 0,
+      );
       const isM = cnt > 0;
       parameterInMaintenance[param] = isM;
       if (isM) anyParamInMaintenance = true;
@@ -186,7 +191,8 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
       const readings: Record<string, number> = {};
       parameterList.forEach((param) => {
         if (parameterInMaintenance[param]) return; // skip maintenance params
-        const avgValue = row[`${param}_avg`];
+        // Same lower-case issue here for camelCase params.
+        const avgValue = row[`${param.toLowerCase()}_avg`];
         if (avgValue !== null && avgValue !== undefined) {
           readings[param] = Number(avgValue);
         }

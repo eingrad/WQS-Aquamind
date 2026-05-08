@@ -16,8 +16,7 @@ function getMaintenanceRanges(data: any[]): Array<[number, number]> {
   if (!data?.length) return [];
 
   // Estimate bucket width from the first two points; default to 1 hour.
-  const bucketWidth =
-    data.length >= 2 ? data[1].t - data[0].t : 60 * 60 * 1000;
+  const bucketWidth = data.length >= 2 ? data[1].t - data[0].t : 60 * 60 * 1000;
 
   const ranges: Array<[number, number]> = [];
   let runStart: number | null = null;
@@ -158,13 +157,17 @@ export default function AnalyticsChart({ data, params }: Props) {
   // The chart line is already broken across these ranges (parameter values
   // are nulled out upstream), so the band explains the gap visually.
   const maintenanceRanges = getMaintenanceRanges(data);
+  // Pass shape/annotation x coordinates as raw epoch milliseconds so
+  // Plotly treats them the same way as the trace's `new Date(d.t)` x
+  // values. ISO strings ending in "Z" are parsed differently from Date
+  // objects on a date axis and ended up rendering 8 h off the trace.
   const maintenanceShapes: Partial<Plotly.Shape>[] = maintenanceRanges.map(
     ([x0, x1]) => ({
       type: "rect" as const,
       xref: "x" as const,
       yref: "paper" as const,
-      x0: new Date(x0).toISOString(),
-      x1: new Date(x1).toISOString(),
+      x0: x0,
+      x1: x1,
       y0: 0,
       y1: 1,
       fillcolor: "rgba(245, 158, 11, 0.12)",
@@ -178,11 +181,11 @@ export default function AnalyticsChart({ data, params }: Props) {
     maintenanceRanges.map(([x0, x1]) => ({
       xref: "x" as const,
       yref: "paper" as const,
-      x: new Date((x0 + x1) / 2).toISOString(),
+      x: (x0 + x1) / 2,
       y: 1.02,
       xanchor: "center" as const,
       yanchor: "bottom" as const,
-      text: "🔧 Maintenance",
+      text: "Maintenance",
       showarrow: false,
       font: { size: 11, color: "#f59e0b" },
       bgcolor: "rgba(245, 158, 11, 0.10)",
