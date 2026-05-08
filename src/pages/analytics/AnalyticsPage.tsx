@@ -153,11 +153,12 @@ export default function AnalyticsPage() {
         });
 
         const transformed = data.timeSeries.map((item: any) => {
-          // Per-parameter maintenance: a bucket may have one parameter
-          // flagged maintenance while others are healthy. Only the
-          // affected parameter's line breaks; the chart band's union
-          // covers any selected parameter that's in maintenance.
-          const paramMaint: Record<string, boolean> = item.parameter_in_maintenance || {};
+          // Per-parameter maintenance map. Always emit every parameter's
+          // value — AnalyticsChart renders maintenance points on a
+          // separate dashed trace so the line stays continuous while
+          // still being visually distinguishable.
+          const paramMaint: Record<string, boolean> =
+            item.parameter_in_maintenance || {};
           const anySelectedInMaintenance = selectedParams.some(
             (p) => paramMaint[p],
           );
@@ -165,12 +166,10 @@ export default function AnalyticsPage() {
           const point: any = {
             t: new Date(item.bucket).getTime(),
             inMaintenance: anySelectedInMaintenance,
+            paramInMaintenance: paramMaint,
           };
 
           selectedParams.forEach((param) => {
-            // Skip values for parameters in maintenance so the line
-            // breaks across the band for that specific series.
-            if (paramMaint[param]) return;
             const key =
               param === "windSpeed"
                 ? "windspeed_avg"

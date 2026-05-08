@@ -90,22 +90,64 @@ export default function AnalyticsChart({ data, params }: Props) {
   // Build Plotly traces
   const xValues = data.map((d) => new Date(d.t));
 
-  const traces: Plotly.Data[] = params.map((param, index) => {
+  // True if any selected parameter has at least one maintenance row —
+  // controls whether the shared "Maintenance values" legend entry is shown.
+  const hasAnyMaintenance = data.some((d: any) =>
+    params.some((p) => d?.paramInMaintenance?.[p]),
+  );
+
+  // Per parameter we render TWO traces:
+  //   1. The main solid line — null at maintenance rows so it breaks.
+  //   2. A dashed amber line — present at every maintenance row and at
+  //      the immediately adjacent non-maintenance rows, so the dashed
+  //      segment visually attaches to the solid line at both ends.
+  const traces: Plotly.Data[] = params.flatMap((param, index) => {
     const color = PARAM_COLORS[index % PARAM_COLORS.length];
     const unit = paramToUnit[param];
     const yAxisKey = unitToAxis[unit] || "y";
 
-    return {
+    const isMaint = (i: number): boolean =>
+      !!data[i]?.paramInMaintenance?.[param];
+
+    const mainY = data.map((d, i) => (isMaint(i) ? null : (d[param] ?? null)));
+
+    const maintY = data.map((d, i) => {
+      // Include this row OR the immediately adjacent rows so the dashed
+      // segment connects to the solid line at the maintenance boundary.
+      const includeBoundary = isMaint(i) || isMaint(i - 1) || isMaint(i + 1);
+      return includeBoundary ? (d[param] ?? null) : null;
+    });
+
+    const mainTrace: Plotly.Data = {
       x: xValues,
-      y: data.map((d) => d[param] ?? null),
-      type: "scatter" as const,
-      mode: "lines" as const,
+      y: mainY,
+      type: "scatter",
+      mode: "lines",
       name: param.toUpperCase(),
       line: { color, width: 2, dash: "dot" as const },
       yaxis: yAxisKey,
       hovertemplate: `<b><br>${param.toUpperCase()}<br></b>Value: %{y:.4g} ${unit}<extra></extra>`,
       connectgaps: false,
     };
+
+    const maintTrace: Plotly.Data = {
+      x: xValues,
+      y: maintY,
+      type: "scatter",
+      mode: "lines",
+      // Single shared legend entry across all parameters — the dashed
+      // amber colour is universal so reviewers don't see one entry per
+      // parameter cluttering the legend.
+      name: "Maintenance values",
+      legendgroup: "maintenance",
+      showlegend: hasAnyMaintenance && index === 0,
+      line: { color: "#f59e0b", width: 2, dash: "dash" as const },
+      yaxis: yAxisKey,
+      hovertemplate: `<b>${param.toUpperCase()} 🔧</b><br>Value: %{y:.4g} ${unit}<br>(maintenance)<extra></extra>`,
+      connectgaps: false,
+    };
+
+    return [mainTrace, maintTrace];
   });
 
   // Build Y-axis titles — show all units assigned to each axis
