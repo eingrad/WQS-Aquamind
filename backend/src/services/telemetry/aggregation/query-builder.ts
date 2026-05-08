@@ -2,6 +2,35 @@ import { PARAMETER_DB_MAP } from "../queries/parameter-mapping";
 import { getDataQualityThresholds } from "./data-quality";
 
 /**
+ * SQL fragment that detects maintenance for a specific parameter at the
+ * current `tp` row. A reading counts as in-maintenance if either:
+ *
+ *   1. It overlaps a logged maintenance window in `maintenance_log`
+ *      (whole-device, all parameters), OR
+ *   2. There's a `validation_status` row for this exact telemetry record
+ *      and parameter with status = 'maintenance' (human-flagged from the
+ *      Data Validation page).
+ *
+ * `param` is whitelisted by PARAMETER_DB_MAP before this function is
+ * called, so the literal interpolation is safe from injection.
+ */
+const maintenanceFilterFor = (param: string): string => `
+  EXISTS (
+    SELECT 1 FROM maintenance_log m
+    WHERE m.device_id = tp.device_id
+      AND m.deleted_at IS NULL
+      AND tp.observed_at >= m.start_time
+      AND tp.observed_at <= m.end_time
+  )
+  OR EXISTS (
+    SELECT 1 FROM validation_status vs
+    WHERE vs.record_id = tp.record_id
+      AND vs.parameter = '${param}'
+      AND vs.status = 'maintenance'
+  )
+`;
+
+/**
  * Build aggregation columns for SQL query (for regular or moving average queries)
  */
 export const buildAggregationColumns = (
@@ -18,6 +47,12 @@ export const buildAggregationColumns = (
       // the parameter's native cadence (BTEX: 4/hour, others: 60/hour).
       const countCol = `COUNT(tp.${col}) as ${p}_count`;
 
+      // Per-parameter maintenance count — covers both scheduled
+      // maintenance windows AND human-flagged maintenance from the
+      // Data Validation page. Lets each parameter be excluded from
+      // analytics independently.
+      const maintCountCol = `COUNT(*) FILTER (WHERE ${maintenanceFilterFor(p)}) as ${p}_maintenance_count`;
+
       // Special handling for wind direction (vector mean) - convert to 0-360° range
       if (p === "windDirection") {
         if (isMovingAvg) {
@@ -28,7 +63,8 @@ export const buildAggregationColumns = (
             )) + 360)::numeric, 360) as ${p}_avg,
             MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
             MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
-            ${countCol}
+            ${countCol},
+            ${maintCountCol}
           `;
         } else {
           return `
@@ -38,7 +74,8 @@ export const buildAggregationColumns = (
             )) + 360)::numeric, 360) as ${p}_avg,
             MIN(tp.${col}) as ${p}_min,
             MAX(tp.${col}) as ${p}_max,
-            ${countCol}
+            ${countCol},
+            ${maintCountCol}
           `;
         }
       }
@@ -53,14 +90,16 @@ export const buildAggregationColumns = (
             SUM(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
             MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
             MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
-            ${countCol}
+            ${countCol},
+            ${maintCountCol}
           `;
         } else {
           return `
             SUM(tp.${col}) as ${p}_avg,
             MIN(tp.${col}) as ${p}_min,
             MAX(tp.${col}) as ${p}_max,
-            ${countCol}
+            ${countCol},
+            ${maintCountCol}
           `;
         }
       }
@@ -71,14 +110,16 @@ export const buildAggregationColumns = (
           AVG(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
           MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
           MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
-          ${countCol}
+          ${countCol},
+          ${maintCountCol}
         `;
       } else {
         return `
           AVG(tp.${col}) as ${p}_avg,
           MIN(tp.${col}) as ${p}_min,
           MAX(tp.${col}) as ${p}_max,
-          ${countCol}
+          ${countCol},
+          ${maintCountCol}
         `;
       }
     })
@@ -95,6 +136,10 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
       const col = PARAMETER_DB_MAP[p];
       // Per-parameter reading count for the base bucket (not windowed).
       const countCol = `COUNT(tp.${col}) as ${p}_base_count`;
+      // Per-parameter maintenance count (scheduled + human-flagged).
+      // Aliased to `<param>_base_maintenance_count` here and propagated
+      // through buildMovingAverageColumns as `<param>_maintenance_count`.
+      const maintCountCol = `COUNT(*) FILTER (WHERE ${maintenanceFilterFor(p)}) as ${p}_base_maintenance_count`;
 
       if (p === "windDirection") {
         return `
@@ -104,7 +149,8 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
           )) + 360)::numeric, 360) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
           MAX(tp.${col}) as ${p}_base_max,
-          ${countCol}
+          ${countCol},
+          ${maintCountCol}
         `;
       } else if (p === "rain") {
         // Incremental quantity — bucket total is SUM, not AVG.
@@ -112,14 +158,16 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
           SUM(tp.${col}) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
           MAX(tp.${col}) as ${p}_base_max,
-          ${countCol}
+          ${countCol},
+          ${maintCountCol}
         `;
       } else {
         return `
           AVG(tp.${col}) as ${p}_base_avg,
           MIN(tp.${col}) as ${p}_base_min,
           MAX(tp.${col}) as ${p}_base_max,
-          ${countCol}
+          ${countCol},
+          ${maintCountCol}
         `;
       }
     })
@@ -137,7 +185,8 @@ export const buildMovingAverageColumns = (paramList: string[]): string => {
         AVG(${p}_base_avg) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
         MIN(${p}_base_min) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
         MAX(${p}_base_max) OVER (ORDER BY bucket DESC ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
-        ${p}_base_count as ${p}_count
+        ${p}_base_count as ${p}_count,
+        ${p}_base_maintenance_count as ${p}_maintenance_count
       `;
     })
     .join(",");

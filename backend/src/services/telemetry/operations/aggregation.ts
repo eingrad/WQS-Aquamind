@@ -156,54 +156,69 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
   // buckets regardless of the bucket size. Reports still gate via the
   // in_maintenance flag, and alarms are independently gated upstream by
   // a maintenance_log lookup in the aggregation worker.
+  //
+  // Per-parameter maintenance: <param>_maintenance_count is emitted by
+  // the SQL aggregation and includes both scheduled-maintenance overlap
+  // (whole device) and human flags from the Data Validation page (just
+  // that one parameter). Per-parameter detection lets reports / analytics
+  // count availability accurately for unaffected parameters.
   const flagged = results.map((row: any) => {
     const maintenanceMinutes = Number(row.maintenance_minutes ?? 0);
-    const inMaintenance = maintenanceMinutes > 0;
 
-    // Maintenance bucket: keep underlying values for QA visibility on the
-    // validation table; tag every parameter with the "maintenance" flag.
-    if (inMaintenance) {
-      const maintenanceFlags: Record<string, string> = {};
-      parameterList.forEach((param) => {
-        maintenanceFlags[param] = "maintenance";
-      });
-      return {
-        ...row,
-        validation_flags: maintenanceFlags,
-        has_validation_issues: true,
-        in_maintenance: true,
-        maintenance_minutes: maintenanceMinutes,
-      };
-    }
-
-    // Non-maintenance row. Layer regulatory range/relation checks on top
-    // only when an AAQS averaging period applies (1h or 24h). Other
-    // intervals come back without those checks but still carry the
-    // in_maintenance: false flag so consumers can rely on it everywhere.
-    if (!averagingPeriod) {
-      return { ...row, in_maintenance: false };
-    }
-
-    const readings: Record<string, number> = {};
+    // Build the per-parameter maintenance map from the SQL counts.
+    const parameterInMaintenance: Record<string, boolean> = {};
+    let anyParamInMaintenance = false;
     parameterList.forEach((param) => {
-      const avgValue = row[`${param}_avg`];
-      if (avgValue !== null && avgValue !== undefined) {
-        readings[param] = Number(avgValue);
-      }
+      const cnt = Number(row[`${param}_maintenance_count`] ?? 0);
+      const isM = cnt > 0;
+      parameterInMaintenance[param] = isM;
+      if (isM) anyParamInMaintenance = true;
     });
+    const inMaintenance = anyParamInMaintenance || maintenanceMinutes > 0;
 
-    const validation = validateParameterValues(
-      readings,
-      "full",
-      averagingPeriod,
-    );
+    // Layer regulatory range/relation checks for non-maintenance params
+    // only when an AAQS averaging period applies (1h or 24h). Maintenance
+    // params skip range/relation checks and get the "maintenance" flag.
+    let regulatoryFlags: Record<string, string> = {};
+    let hasRegulatoryIssues = false;
+    let relationViolations: any = undefined;
+    if (averagingPeriod) {
+      const readings: Record<string, number> = {};
+      parameterList.forEach((param) => {
+        if (parameterInMaintenance[param]) return; // skip maintenance params
+        const avgValue = row[`${param}_avg`];
+        if (avgValue !== null && avgValue !== undefined) {
+          readings[param] = Number(avgValue);
+        }
+      });
+      const validation = validateParameterValues(
+        readings,
+        "full",
+        averagingPeriod,
+      );
+      regulatoryFlags = validation.flags;
+      hasRegulatoryIssues = validation.hasIssues;
+      relationViolations = validation.relationViolations;
+    }
+
+    // Build final per-parameter flag map: "maintenance" for affected
+    // params, otherwise whichever flag the regulatory check produced
+    // (or default "valid" for non-AAQS intervals).
+    const validation_flags: Record<string, string> = {};
+    parameterList.forEach((param) => {
+      validation_flags[param] = parameterInMaintenance[param]
+        ? "maintenance"
+        : regulatoryFlags[param] ?? "valid";
+    });
 
     return {
       ...row,
-      validation_flags: validation.flags,
-      has_validation_issues: validation.hasIssues,
-      relation_violations: validation.relationViolations,
-      in_maintenance: false,
+      validation_flags,
+      has_validation_issues: anyParamInMaintenance || hasRegulatoryIssues,
+      relation_violations: relationViolations,
+      in_maintenance: inMaintenance,
+      parameter_in_maintenance: parameterInMaintenance,
+      maintenance_minutes: maintenanceMinutes,
     };
   });
 

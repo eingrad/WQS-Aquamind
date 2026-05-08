@@ -139,22 +139,33 @@ export const generateReportData = async (
     `   📥 Retrieved ${(telemetryData as any[]).length} rows for ${frequency} report (interval: ${interval})`,
   );
 
-  // Exclude maintenance buckets from the report entirely.
-  // A bucket containing any maintenance minutes is marked in_maintenance
-  // by the aggregation layer and must not appear in CSV/TXT exports.
+  // Per-parameter maintenance bucket counts. A bucket may have one
+  // parameter under maintenance (human flag) while others are healthy —
+  // each parameter's report-availability/exclusion is tracked separately.
+  // The bucket-level `maintenanceBucketCount` is preserved for the
+  // "Maintenance Excluded: N bucket(s)" metadata line.
   const maintenanceBucketCount = (telemetryData as any[]).filter(
     (row: any) => row.in_maintenance,
   ).length;
-  const filteredTelemetry = (telemetryData as any[]).filter(
-    (row: any) => !row.in_maintenance,
-  );
+
+  const maintenanceByParam: Record<string, number> = {};
+  parameters.forEach((p) => (maintenanceByParam[p] = 0));
+  (telemetryData as any[]).forEach((row: any) => {
+    const map = row.parameter_in_maintenance || {};
+    parameters.forEach((p) => {
+      if (map[p]) maintenanceByParam[p]++;
+    });
+  });
 
   console.log(
-    `   🔧 Excluded ${maintenanceBucketCount} maintenance bucket(s) from report`,
+    `   🔧 ${maintenanceBucketCount} bucket(s) had at least one maintenance parameter; per-param counts:`,
+    JSON.stringify(maintenanceByParam),
   );
 
-  // Format data for report
-  const formattedData = filteredTelemetry.map((row: any) => {
+  // Format data for report. Each row is rendered with the parameters
+  // in maintenance hidden ("MAINT") so reviewers see at a glance which
+  // values were excluded from analytics and why.
+  const formattedData = (telemetryData as any[]).map((row: any) => {
     const timestamp = new Date(row.bucket);
     const formatted: Record<string, any> = {
       date: timestamp.toLocaleDateString("en-MY", {
@@ -181,7 +192,15 @@ export const generateReportData = async (
       "ethylbenzene",
       "xylenes",
     ]);
+    const paramMaint = row.parameter_in_maintenance || {};
     parameters.forEach((param) => {
+      // Parameter-specific maintenance — render distinctly from N/A so
+      // reviewers can tell missing data apart from excluded data.
+      if (paramMaint[param]) {
+        formatted[param] = "MAINT";
+        return;
+      }
+
       // PostgreSQL returns lowercase column names
       const avgKey = `${param.toLowerCase()}_avg`;
       const raw = row[avgKey];
@@ -203,17 +222,38 @@ export const generateReportData = async (
     return formatted;
   });
 
-  // Calculate statistics — pass the filtered telemetry so maintenance
-  // buckets do not influence averages, and pass the maintenance count so
-  // availability can subtract them from the expected denominator.
+  // Build a parallel telemetry array where maintenance-flagged values
+  // are nulled per-parameter. Used for averages so each parameter's
+  // statistics ignore only its own maintenance buckets, not unrelated
+  // ones in the same hour.
+  const telemetryWithoutMaintenance = (telemetryData as any[]).map(
+    (row: any) => {
+      const map = row.parameter_in_maintenance || {};
+      const cleaned: any = { ...row };
+      parameters.forEach((param) => {
+        if (map[param]) {
+          cleaned[`${param.toLowerCase()}_avg`] = null;
+          cleaned[`${param.toLowerCase()}_min`] = null;
+          cleaned[`${param.toLowerCase()}_max`] = null;
+        }
+      });
+      return cleaned;
+    },
+  );
+
+  // Calculate statistics — pass the per-parameter-cleaned telemetry so
+  // each parameter's stats ignore only its own maintenance buckets.
+  // maintenanceByParam drives the per-parameter expected-denominator
+  // adjustment in calculateAvailability.
   const summary = calculateSummary(
-    filteredTelemetry,
+    telemetryWithoutMaintenance,
     parameters,
     startDate,
     endDate,
     frequency,
     maintenanceBucketCount,
     units,
+    maintenanceByParam,
   );
 
   // Build the per-parameter Data Counts table at fixed 1-hour granularity
@@ -280,7 +320,8 @@ const calculateAvailability = (
   startDate: Date,
   endDate: Date,
   frequency: string,
-  maintenanceBuckets: number = 0,
+  _maintenanceBuckets: number = 0,
+  maintenanceByParam: Record<string, number> = {},
 ): {
   availability: { [parameter: string]: number };
   incompletePeriods: {
@@ -293,21 +334,17 @@ const calculateAvailability = (
   } = {};
 
   // Calculate expected number of data points based on frequency
-  let expectedPoints = 0;
+  let baseExpectedPoints = 0;
   if (frequency === "daily") {
     // Daily reports: hourly intervals (24 hours)
-    expectedPoints = 24;
+    baseExpectedPoints = 24;
   } else if (frequency === "weekly" || frequency === "monthly") {
     // Weekly/Monthly reports: daily intervals
     const daysDiff = Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
     );
-    expectedPoints = daysDiff;
+    baseExpectedPoints = daysDiff;
   }
-
-  // Subtract scheduled maintenance buckets from the denominator so they
-  // do not penalize availability — DOE treats logged maintenance as excused.
-  expectedPoints = Math.max(0, expectedPoints - maintenanceBuckets);
 
   // Calculate availability for each parameter
   const parameterMapping: { [key: string]: string } = {
@@ -333,7 +370,7 @@ const calculateAvailability = (
   console.log(
     `\n🔍 Calculating availability for ${parameters.length} parameters`,
   );
-  console.log(`   Expected points: ${expectedPoints}`);
+  console.log(`   Base expected points: ${baseExpectedPoints}`);
   console.log(`   Data rows: ${data.length}`);
 
   parameters.forEach((param) => {
@@ -402,14 +439,20 @@ const calculateAvailability = (
       }
     });
 
-    // Calculate percentage
+    // Per-parameter expected denominator: subtract only the buckets that
+    // were in maintenance for THIS parameter (DOE excuses logged
+    // maintenance from the availability calculation).
+    const expectedPoints = Math.max(
+      0,
+      baseExpectedPoints - (maintenanceByParam[param] ?? 0),
+    );
     const percentage =
       expectedPoints > 0 ? (validPoints / expectedPoints) * 100 : 0;
     availability[param] = Math.round(percentage * 10) / 10; // Round to 1 decimal place
     incompletePeriods[param] = incompleteList;
 
     console.log(
-      `   📊 ${param} (${columnName}): ${validPoints}/${expectedPoints} complete quality = ${availability[param]}%`,
+      `   📊 ${param} (${columnName}): ${validPoints}/${expectedPoints} complete quality = ${availability[param]}% (maintenance excluded: ${maintenanceByParam[param] ?? 0})`,
     );
   });
 
@@ -446,8 +489,6 @@ const calculateDataCounts = (
     Math.round((endDate.getTime() - startDate.getTime()) / (60 * 60 * 1000)),
   );
 
-  const calibration = hourlyData.filter((row) => row.in_maintenance).length;
-
   // DOE Malaysia threshold per the existing rule used in calculateAvailability
   const availabilityThreshold = frequency === "monthly" ? 95 : 75;
 
@@ -478,7 +519,7 @@ const calculateDataCounts = (
         available: 0,
         validated: 0,
         missing: total,
-        calibration,
+        calibration: 0,
       };
       continue;
     }
@@ -490,9 +531,18 @@ const calculateDataCounts = (
 
     let available = 0;
     let validated = 0;
+    let calibration = 0;
 
     for (const row of hourlyData) {
-      if (row.in_maintenance) continue;
+      // Per-parameter maintenance flag — only this parameter's
+      // calibration count is incremented, even if other params share
+      // the bucket.
+      const paramInMaintenance = !!row.parameter_in_maintenance?.[param];
+      if (paramInMaintenance) {
+        calibration++;
+        continue;
+      }
+
       const hasValue = row[column] !== null && row[column] !== undefined;
       if (!hasValue) continue;
 
@@ -521,6 +571,7 @@ const calculateSummary = (
   frequency: string,
   maintenanceBuckets: number = 0,
   units?: Record<string, string>,
+  maintenanceByParam: Record<string, number> = {},
 ): ReportData["summary"] => {
   const conv = (val: number | null, param: string): number | null => {
     if (val === null) return null;
@@ -528,7 +579,9 @@ const calculateSummary = (
     if (!targetUnit) return val;
     return convertValue(val, param, targetUnit);
   };
-  // Get availability and incomplete periods
+  // Get availability and incomplete periods. Pass per-parameter maintenance
+  // counts so each parameter's expected-denominator is adjusted only by
+  // its own maintenance buckets, not by maintenance flagged for others.
   const { availability, incompletePeriods } = calculateAvailability(
     data,
     parameters,
@@ -536,6 +589,7 @@ const calculateSummary = (
     endDate,
     frequency,
     maintenanceBuckets,
+    maintenanceByParam,
   ) || {
     availability: {},
     incompletePeriods: {},
