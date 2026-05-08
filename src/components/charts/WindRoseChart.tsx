@@ -150,7 +150,8 @@ export default function WindRoseChart({
   const traces: Partial<PlotData>[] = windMap.map((layer, i) => ({
     type: "barpolar",
     r: DIRECTIONS.map((d) => {
-      const sourceDir = directionMode === "to" ? OPPOSITE_DIR[d] || d : d;
+      const sourceDir: Dir =
+        directionMode === "to" ? ((OPPOSITE_DIR[d] || d) as Dir) : d;
       return (layer[sourceDir] / totalCount) * 100;
     }),
     theta: DIRECTIONS,
