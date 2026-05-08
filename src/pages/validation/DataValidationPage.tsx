@@ -33,10 +33,11 @@ export default function DataValidationPage() {
   const [validationStatuses, setValidationStatuses] = useState(validationData);
 
   // Track selected cell for flagging
-  const [selectedCellForFlag, setSelectedCellForFlag] = useState<{
-    timestamp: string;
-    parameter: string;
-  } | null>(null);
+  // All selected cells passed to the FlagSidebar — used to submit a flag
+  // request for every cell, not just the first one.
+  const [selectedCellsForFlag, setSelectedCellsForFlag] = useState<
+    Array<{ timestamp: string; parameter: string }>
+  >([]);
 
   // NEW: Backend data state
   const [backendRecords, setBackendRecords] = useState<ValidationRecord[]>([]);
@@ -324,63 +325,44 @@ export default function DataValidationPage() {
   };
 
   const handleFlag = () => {
-    if (selectedCells.size === 0) {
-      console.log("No cells selected");
+    if (selectedCells.size === 0) return;
+
+    // Resolve every selected cell key (`<rowId>:<parameter>`) into an
+    // {timestamp, parameter} pair. The FlagSidebar then submits one
+    // request per resolved cell.
+    const cells: Array<{ timestamp: string; parameter: string }> = [];
+
+    for (const cellKey of selectedCells) {
+      // Use the LAST colon since timestamps contain colons.
+      const lastColonIndex = cellKey.lastIndexOf(":");
+      const rowId = cellKey.substring(0, lastColonIndex);
+      const parameter = cellKey.substring(lastColonIndex + 1);
+
+      if (useBackend) {
+        const row = backendRecords.find(
+          (r) => `hourly-${r.timestamp}` === rowId,
+        );
+        if (row) cells.push({ timestamp: row.timestamp, parameter });
+      } else {
+        const row = validationStatuses.find((r) => r.id === rowId);
+        if (row && row.time) {
+          // Parse "HH:MM, DD/MM/YY" → ISO
+          const [timePart, datePart] = row.time.split(", ");
+          const [day, month, year] = datePart.split("/");
+          const [hour, minute] = timePart.split(":");
+          const isoDate = `20${year}-${month}-${day}T${hour}:${minute}:00.000Z`;
+          cells.push({ timestamp: isoDate, parameter });
+        }
+      }
+    }
+
+    if (cells.length === 0) {
+      console.error("No selected cells could be resolved to rows");
       return;
     }
 
-    console.log("Selected cells:", Array.from(selectedCells));
-    console.log("useBackend:", useBackend);
-
-    // Get the first selected cell to determine timestamp and parameter
-    const firstCell = Array.from(selectedCells)[0];
-
-    // Split by LAST colon since timestamp contains colons
-    const lastColonIndex = firstCell.lastIndexOf(":");
-    const rowId = firstCell.substring(0, lastColonIndex);
-    const parameter = firstCell.substring(lastColonIndex + 1);
-
-    console.log("First cell:", firstCell);
-    console.log("Row ID:", rowId);
-    console.log("Parameter:", parameter);
-
-    // Find the row to get timestamp
-    if (useBackend) {
-      console.log("Backend records:", backendRecords.length);
-      const row = backendRecords.find((r) => {
-        const id = `hourly-${r.timestamp}`;
-        console.log("Comparing:", id, "with", rowId);
-        return id === rowId;
-      });
-
-      console.log("Found row:", row);
-
-      if (row) {
-        setSelectedCellForFlag({
-          timestamp: row.timestamp,
-          parameter: parameter,
-        });
-        setShowFlagSidebar(true);
-        console.log("Sidebar should show now");
-      } else {
-        console.error("Row not found!");
-      }
-    } else {
-      const row = validationStatuses.find((r) => r.id === rowId);
-      if (row && row.time) {
-        // Parse time format "HH:MM, DD/MM/YY" to ISO timestamp
-        const [timePart, datePart] = row.time.split(", ");
-        const [day, month, year] = datePart.split("/");
-        const [hour, minute] = timePart.split(":");
-        const isoDate = `20${year}-${month}-${day}T${hour}:${minute}:00.000Z`;
-
-        setSelectedCellForFlag({
-          timestamp: isoDate,
-          parameter: parameter,
-        });
-        setShowFlagSidebar(true);
-      }
-    }
+    setSelectedCellsForFlag(cells);
+    setShowFlagSidebar(true);
   };
 
   // Handle flag submission from sidebar
@@ -507,24 +489,22 @@ export default function DataValidationPage() {
       />
 
       {/* Flag Sidebar */}
-      {showFlagSidebar && selectedCellForFlag && (
+      {showFlagSidebar && selectedCellsForFlag.length > 0 && (
         <FlagSidebar
           onClose={() => {
             setShowFlagSidebar(false);
-            setSelectedCellForFlag(null);
+            setSelectedCellsForFlag([]);
           }}
           onSuccess={() => {
             // Refresh data after successful flag submission
             if (useBackend && selectedDevice && startDate && endDate) {
-              // Trigger data refetch
-              window.location.reload(); // Simple refresh for now
+              window.location.reload();
             }
             setSelectedCells(new Set());
-            setSelectedCellForFlag(null);
+            setSelectedCellsForFlag([]);
           }}
           deviceId={selectedDevice}
-          hourTimestamp={selectedCellForFlag.timestamp}
-          parameter={selectedCellForFlag.parameter}
+          cells={selectedCellsForFlag}
         />
       )}
     </div>

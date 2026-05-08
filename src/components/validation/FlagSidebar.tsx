@@ -10,18 +10,20 @@ import api from "../../services/api";
 
 interface FlagSidebarProps {
   onClose: () => void;
-  onSuccess: () => void; // Changed from onSubmit - called after successful API submission
+  onSuccess: () => void; // Called after API submissions complete
   deviceId: string;
-  hourTimestamp: string; // ISO string for the selected hour
-  parameter: string;
+  /**
+   * Cells to flag. The sidebar fires one /validation/request-flag call per
+   * cell so multi-cell selections aren't silently truncated to the first.
+   */
+  cells: Array<{ timestamp: string; parameter: string }>;
 }
 
 export default function FlagSidebar({
   onClose,
   onSuccess,
   deviceId,
-  hourTimestamp,
-  parameter,
+  cells,
 }: FlagSidebarProps) {
   const [selectedFlagType, setSelectedFlagType] = useState<
     ValidationStatus | ""
@@ -38,29 +40,56 @@ export default function FlagSidebar({
       setError("Remarks must be at least 10 characters");
       return;
     }
+    if (cells.length === 0) {
+      setError("No cells selected");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Use api service to automatically include auth token
-      const response = await api.post("/validation/request-flag", {
-        deviceId,
-        hourTimestamp,
-        parameter,
-        flagType: selectedFlagType,
-        remarks: remarks.trim(),
-      });
-
-      const data = response.data;
-
-      // Show success dialog
-      setSuccessMessage(
-        `Flag request submitted successfully!\n\n` +
-          `Status: ${data?.data?.status || "pending"}\n` +
-          `Records affected: ${data?.data?.recordCount || "unknown"}\n\n` +
-          `Your request is awaiting admin approval.`,
+      // Submit one request per selected cell. Using allSettled so a single
+      // failed cell doesn't abort the whole batch — partial success is
+      // surfaced in the success dialog.
+      const results = await Promise.allSettled(
+        cells.map((cell) =>
+          api.post("/validation/request-flag", {
+            deviceId,
+            hourTimestamp: cell.timestamp,
+            parameter: cell.parameter,
+            flagType: selectedFlagType,
+            remarks: remarks.trim(),
+          }),
+        ),
       );
+
+      const successCount = results.filter(
+        (r) => r.status === "fulfilled",
+      ).length;
+      const failed = results.filter((r) => r.status === "rejected") as Array<
+        PromiseRejectedResult
+      >;
+
+      if (successCount === 0) {
+        // All failed — surface the first error.
+        const firstErr: any = failed[0]?.reason;
+        setError(
+          firstErr?.response?.data?.error ||
+            firstErr?.message ||
+            "Failed to submit flag request",
+        );
+        return;
+      }
+
+      const cellWord = successCount === 1 ? "cell" : "cells";
+      let message =
+        `${successCount} ${cellWord} flagged successfully!\n\n` +
+        `Your request${successCount === 1 ? " is" : "s are"} awaiting admin approval.`;
+      if (failed.length > 0) {
+        message += `\n\n${failed.length} cell${failed.length === 1 ? "" : "s"} failed to submit — please retry those.`;
+      }
+      setSuccessMessage(message);
       setShowSuccess(true);
     } catch (err: any) {
       console.error("Flag submission error:", err);
@@ -110,8 +139,10 @@ export default function FlagSidebar({
           {/* Info Banner */}
           <div className="bg-teal-900/30 border border-teal-700/50 rounded-lg p-4">
             <p className="text-sm text-teal-300">
-              Your flag request will be submitted to an admin for review before
-              being applied to the data.
+              Flagging {cells.length} cell{cells.length === 1 ? "" : "s"}.
+              Your flag request{cells.length === 1 ? "" : "s"} will be
+              submitted to an admin for review before being applied to the
+              data.
             </p>
           </div>
 
