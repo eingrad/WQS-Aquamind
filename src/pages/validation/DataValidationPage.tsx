@@ -7,9 +7,9 @@ import ValidationControls from "../../components/validation/ValidationControls";
 import ValidationTable from "../../components/validation/ValidationTable";
 import Pagination from "../../components/widgets/Pagination";
 import {
-  validationData,
   validationStatusLabels,
   validationStatusColors,
+  type ValidationDataRow,
   type ValidationStatus,
 } from "../../data/validationData";
 import {
@@ -30,7 +30,9 @@ export default function DataValidationPage() {
   const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(today);
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
-  const [validationStatuses, setValidationStatuses] = useState(validationData);
+  const [validationStatuses, setValidationStatuses] = useState<
+    ValidationDataRow[]
+  >([]);
 
   // Track selected cell for flagging
   // All selected cells passed to the FlagSidebar — used to submit a flag
@@ -260,11 +262,11 @@ export default function DataValidationPage() {
             "no_data") as ValidationStatus,
           rainPendingAdminApproval:
             !!record.parameters.rain?.pendingApproval?.isPending,
-          radiation: record.parameters.solar?.value ?? null,
-          radiationStatus: (record.parameters.solar?.humanValidation?.status ||
+          solar: record.parameters.solar?.value ?? null,
+          solarStatus: (record.parameters.solar?.humanValidation?.status ||
             record.parameters.solar?.autoFlag ||
             "no_data") as ValidationStatus,
-          radiationPendingAdminApproval:
+          solarPendingAdminApproval:
             !!record.parameters.solar?.pendingApproval?.isPending,
         }))
       : filteredData.slice(startIndex, endIndex);
@@ -303,7 +305,7 @@ export default function DataValidationPage() {
         "windDirection",
         "temperature",
         "humidity",
-        "radiation",
+        "solar",
       ];
       parameters.forEach((param) => {
         const cellKey = `${row.id}:${param}`;

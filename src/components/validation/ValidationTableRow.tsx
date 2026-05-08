@@ -161,12 +161,12 @@ export default function ValidationTableRow({
       />
       <StatusCell
         rowId={row.id}
-        parameter="radiation"
-        value={row.radiation}
-        status={row.radiationStatus}
-        validatedByHuman={row.radiationValidatedByHuman}
-        flaggedByHuman={row.radiationFlaggedByHuman}
-        pendingAdminApproval={row.radiationPendingAdminApproval}
+        parameter="solar"
+        value={row.solar}
+        status={row.solarStatus}
+        validatedByHuman={row.solarValidatedByHuman}
+        flaggedByHuman={row.solarFlaggedByHuman}
+        pendingAdminApproval={row.solarPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
