@@ -153,27 +153,35 @@ export default function AnalyticsPage() {
         });
 
         const transformed = data.timeSeries.map((item: any) => {
+          // Per-parameter maintenance: a bucket may have one parameter
+          // flagged maintenance while others are healthy. Only the
+          // affected parameter's line breaks; the chart band's union
+          // covers any selected parameter that's in maintenance.
+          const paramMaint: Record<string, boolean> = item.parameter_in_maintenance || {};
+          const anySelectedInMaintenance = selectedParams.some(
+            (p) => paramMaint[p],
+          );
+
           const point: any = {
             t: new Date(item.bucket).getTime(),
-            inMaintenance: !!item.in_maintenance,
+            inMaintenance: anySelectedInMaintenance,
           };
-          // For maintenance buckets, skip the parameter values so the chart
-          // line breaks across the gap. The amber background band rendered
-          // by AnalyticsChart explains why the gap is there.
-          if (!item.in_maintenance) {
-            selectedParams.forEach((param) => {
-              const key =
-                param === "windSpeed"
-                  ? "windspeed_avg"
-                  : param === "windDirection"
-                    ? "winddirection_avg"
-                    : `${param}_avg`;
-              if (item[key] != null) {
-                const raw = parseFloat(item[key]);
-                point[param] = convert(raw, param) ?? raw;
-              }
-            });
-          }
+
+          selectedParams.forEach((param) => {
+            // Skip values for parameters in maintenance so the line
+            // breaks across the band for that specific series.
+            if (paramMaint[param]) return;
+            const key =
+              param === "windSpeed"
+                ? "windspeed_avg"
+                : param === "windDirection"
+                  ? "winddirection_avg"
+                  : `${param}_avg`;
+            if (item[key] != null) {
+              const raw = parseFloat(item[key]);
+              point[param] = convert(raw, param) ?? raw;
+            }
+          });
           return point;
         });
 

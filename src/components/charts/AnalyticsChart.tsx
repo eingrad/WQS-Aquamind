@@ -130,33 +130,38 @@ export default function AnalyticsChart({ data, params }: Props) {
       layer: "below" as const,
     }),
   );
+  // One annotation per band, anchored to the band's centre time so the
+  // "🔧 Maintenance" pill always sits directly above the band it labels.
   const maintenanceLegend: Partial<Plotly.Annotations>[] =
-    maintenanceRanges.length > 0
-      ? [
-          {
-            xref: "paper" as const,
-            yref: "paper" as const,
-            x: 0,
-            y: 1.02,
-            xanchor: "left" as const,
-            yanchor: "bottom" as const,
-            text: "🔧 Maintenance window",
-            showarrow: false,
-            font: { size: 11, color: "#f59e0b" },
-            bgcolor: "rgba(245, 158, 11, 0.10)",
-            bordercolor: "rgba(245, 158, 11, 0.30)",
-            borderwidth: 1,
-            borderpad: 4,
-          },
-        ]
-      : [];
+    maintenanceRanges.map(([x0, x1]) => ({
+      xref: "x" as const,
+      yref: "paper" as const,
+      x: new Date((x0 + x1) / 2).toISOString(),
+      y: 1.02,
+      xanchor: "center" as const,
+      yanchor: "bottom" as const,
+      text: "🔧 Maintenance",
+      showarrow: false,
+      font: { size: 11, color: "#f59e0b" },
+      bgcolor: "rgba(245, 158, 11, 0.10)",
+      bordercolor: "rgba(245, 158, 11, 0.30)",
+      borderwidth: 1,
+      borderpad: 4,
+    }));
 
   // Build layout with max 2 Y-axes
   const layout: Partial<Plotly.Layout> = {
     plot_bgcolor: "#0a1515",
     paper_bgcolor: "#0a1515",
     font: { color: "#e5e7eb", family: "Inter, system-ui, sans-serif" },
-    margin: { t: 20, b: 60, l: 70, r: hasRightAxis ? 70 : 30 },
+    // Reserve extra top margin when the maintenance badge is shown so
+    // it doesn't clip against the chart's top edge.
+    margin: {
+      t: maintenanceRanges.length > 0 ? 50 : 20,
+      b: 60,
+      l: 70,
+      r: hasRightAxis ? 70 : 30,
+    },
     legend: {
       orientation: "h" as const,
       y: -0.15,
