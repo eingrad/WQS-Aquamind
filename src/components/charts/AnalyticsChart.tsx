@@ -8,15 +8,21 @@ type Props = {
 
 /**
  * Find contiguous runs of maintenance buckets and return their [start, end]
- * timestamps in milliseconds. The end is the timestamp of the next non-
- * maintenance bucket (so the rectangle covers the full hour/day cell);
- * trailing maintenance is padded by the median bucket width.
+ * timestamps in milliseconds.
+ *
+ * The range is widened by one bucket on each side so the amber band
+ * visually matches the dashed maintenance line (which also extends one
+ * boundary point on each side so it joins the solid line at the
+ * transitions). Both are clamped to the actual data range so we don't
+ * draw past the chart edges.
  */
 function getMaintenanceRanges(data: any[]): Array<[number, number]> {
   if (!data?.length) return [];
 
   // Estimate bucket width from the first two points; default to 1 hour.
   const bucketWidth = data.length >= 2 ? data[1].t - data[0].t : 60 * 60 * 1000;
+  const dataStart = data[0].t;
+  const dataEnd = data[data.length - 1].t + bucketWidth;
 
   const ranges: Array<[number, number]> = [];
   let runStart: number | null = null;
@@ -26,12 +32,17 @@ function getMaintenanceRanges(data: any[]): Array<[number, number]> {
     if (inM && runStart === null) {
       runStart = data[i].t;
     } else if (!inM && runStart !== null) {
-      ranges.push([runStart, data[i].t]);
+      // Extend each end by one bucket so the band aligns with the
+      // dashed maintenance trace's boundary points.
+      ranges.push([
+        Math.max(runStart - bucketWidth, dataStart),
+        Math.min(data[i].t + bucketWidth, dataEnd),
+      ]);
       runStart = null;
     }
   }
   if (runStart !== null) {
-    ranges.push([runStart, data[data.length - 1].t + bucketWidth]);
+    ranges.push([Math.max(runStart - bucketWidth, dataStart), dataEnd]);
   }
   return ranges;
 }
