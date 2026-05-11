@@ -259,7 +259,7 @@ export default function AnalyticsPage() {
           getUnit={getUnit}
         />
 
-        <div className="flex-1 p-6 min-w-0">
+        <div className="flex-1 p-6 min-w-0 relative z-50">
           <Card title={`${chartTitle} | ${avgLabel}`}>
             {chartLoading ? (
               <div className="h-[650px] flex items-center justify-center">
