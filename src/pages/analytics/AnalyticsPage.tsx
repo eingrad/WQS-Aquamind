@@ -226,6 +226,10 @@ export default function AnalyticsPage() {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0d9488; }
         .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #474747ff #1f2937; }
+        /* Prevent Plotly unified hover tooltip from being clipped */
+        .js-plotly-plot .plotly .main-svg { overflow: visible !important; }
+        .js-plotly-plot .plotly .svg-container { overflow: visible !important; }
+        .js-plotly-plot .plot-container.plotly { overflow: visible !important; }
       `}</style>
 
       <Sidebar
@@ -276,7 +280,7 @@ export default function AnalyticsPage() {
                 message="Try adjusting your date range or parameters"
               />
             ) : (
-              <div className="h-[650px]">
+              <div className="h-[650px] overflow-visible">
                 <AnalyticsChart data={chartData} params={selectedParams} />
               </div>
             )}
