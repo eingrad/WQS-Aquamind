@@ -225,6 +225,11 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
       in_maintenance: inMaintenance,
       parameter_in_maintenance: parameterInMaintenance,
       maintenance_minutes: maintenanceMinutes,
+      // Reason string from maintenance_log (e.g. "Calibration",
+      // "Software Update", "Repair", …). NULL when the bucket is only
+      // flagged via validation_status (no maintenance_log overlap).
+      // Consumed by report.service.ts to emit per-reason CSV tags.
+      maintenance_reason: row.maintenance_reason ?? null,
     };
   });
 

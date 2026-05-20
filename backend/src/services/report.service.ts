@@ -112,13 +112,12 @@ export const generateReportData = async (
     device = deviceByCode;
   }
 
-  // Determine interval based on frequency
-  let interval = "1h"; // default hourly
-  if (frequency === "daily") {
-    interval = "1h";
-  } else if (frequency === "weekly") {
-    interval = "1d";
-  } else if (frequency === "monthly") {
+  // Determine interval based on frequency.
+  // Daily and monthly use 1-hour buckets so the report renders one row per
+  // hour (daily = 24 rows, monthly = 24 × N days). Weekly stays on 1-day
+  // buckets to keep the row count manageable for a 7-day window.
+  let interval = "1h";
+  if (frequency === "weekly") {
     interval = "1d";
   }
 
@@ -179,6 +178,10 @@ export const generateReportData = async (
         minute: "2-digit",
         timeZone: "Asia/Kuala_Lumpur",
       }),
+      // Carried through so generateCSV can map "MAINT" cells to the
+      // specific tag (CAL / UPT / REPL / INSP / RPR / MAINT) based on
+      // the maintenance_log reason. PDF and TXT ignore this field.
+      maintenance_reason: row.maintenance_reason ?? null,
     };
 
     // Add parameter values, converted to the user's chosen unit.
@@ -333,16 +336,18 @@ const calculateAvailability = (
     [parameter: string]: Array<{ date: string; percentage: number }>;
   } = {};
 
-  // Calculate expected number of data points based on frequency
+  // Expected number of buckets in the report period. Must match the
+  // aggregation interval picked above: daily/monthly use 1h buckets,
+  // weekly uses 1d buckets.
   let baseExpectedPoints = 0;
+  const daysDiff = Math.ceil(
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
+  );
   if (frequency === "daily") {
-    // Daily reports: hourly intervals (24 hours)
     baseExpectedPoints = 24;
-  } else if (frequency === "weekly" || frequency === "monthly") {
-    // Weekly/Monthly reports: daily intervals
-    const daysDiff = Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    );
+  } else if (frequency === "monthly") {
+    baseExpectedPoints = daysDiff * 24;
+  } else if (frequency === "weekly") {
     baseExpectedPoints = daysDiff;
   }
 
@@ -364,8 +369,11 @@ const calculateAvailability = (
     rain: "rain_avg",
   };
 
-  // Aggregation interval per frequency — daily = 1h buckets, others = 1d.
-  const intervalSeconds = frequency === "daily" ? 3600 : 86400;
+  // Aggregation interval per frequency in seconds. Must match the bucket
+  // size picked in generateReportData: daily/monthly = 1h (3600s),
+  // weekly = 1d (86400s). Drives the per-parameter expected-reading
+  // denominator used by `meetsThreshold`.
+  const intervalSeconds = frequency === "weekly" ? 86400 : 3600;
 
   console.log(
     `\n🔍 Calculating availability for ${parameters.length} parameters`,
@@ -418,15 +426,27 @@ const calculateAvailability = (
         row[columnName] !== undefined &&
         !meetsThreshold(row)
       ) {
-        // Format date based on frequency
+        // Format the incomplete-period label based on bucket size:
+        //   daily   → HH:MM (all entries are on the same day)
+        //   monthly → date + HH:MM (1h buckets spread across many days)
+        //   weekly  → date (1d buckets)
         const date = new Date(row.bucket);
-        const dateStr =
-          frequency === "daily"
-            ? date.toLocaleTimeString("en-MY", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : date.toLocaleDateString("en-MY");
+        let dateStr: string;
+        if (frequency === "daily") {
+          dateStr = date.toLocaleTimeString("en-MY", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } else if (frequency === "monthly") {
+          dateStr = date.toLocaleString("en-MY", {
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } else {
+          dateStr = date.toLocaleDateString("en-MY");
+        }
 
         // Per-parameter availability % (rounded to 1dp).
         const periodPercentage =
@@ -740,6 +760,22 @@ export const generateCSV = (reportData: ReportData): string => {
     return `="${String(field)}"`;
   };
 
+  // Maintenance reasons stored in maintenance_log.reason map to short
+  // CSV tags so reviewers can tell at a glance why a value was suppressed.
+  // Cells where the upstream pipeline wrote "MAINT" but no maintenance_log
+  // row backs them (e.g. validation_status human flags) fall through to
+  // the plain "MAINT" tag.
+  const REASON_TO_TAG: Record<string, string> = {
+    Calibration: "CAL",
+    "Software Update": "UPT",
+    "Sensor Replacement": "REPL",
+    "Routine Inspection": "INSP",
+    Repair: "RPR",
+    Other: "MAINT",
+  };
+  const maintTag = (reason: string | null | undefined): string =>
+    (reason && REASON_TO_TAG[reason]) || "MAINT";
+
   const headers = [
     "Date",
     "Time",
@@ -750,7 +786,11 @@ export const generateCSV = (reportData: ReportData): string => {
     return [
       excelText(row.isoDate || row.date), // Force text for date
       excelText(row.time), // Force text for time
-      ...reportData.parameters.map((p) => row[p.key] || "N/A"),
+      ...reportData.parameters.map((p) => {
+        const cell = row[p.key];
+        if (cell === "MAINT") return maintTag(row.maintenance_reason);
+        return cell || "N/A";
+      }),
     ].map((val, index) => (index < 2 ? val : escapeCsv(val)));
   });
 
