@@ -155,6 +155,9 @@ export default function AnalyticsChart({ data, params }: Props) {
       yaxis: yAxisKey,
       hovertemplate: `<b>${param.toUpperCase()} 🔧</b><br>Value: %{y:.4g} ${unit}<br>(maintenance)<extra></extra>`,
       connectgaps: false,
+      // Skip maintenance traces in the unified hover tooltip to avoid
+      // doubling entries (14 params × 2 traces = 28 rows won't fit).
+      //hoverinfo: "skip" as const,
     };
 
     return [mainTrace, maintTrace];
