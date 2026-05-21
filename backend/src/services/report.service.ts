@@ -89,6 +89,82 @@ const DEFAULT_PARAMETERS = [
 ];
 
 /**
+ * Insert placeholder rows for buckets that have no telemetry at all.
+ *
+ * SQL's `time_buckets` CTE derives bucket times from `telemetry_processed`
+ * rows, so an hour/day where the sensor recorded nothing produces no bucket
+ * and is silently dropped. Reports then look like the missing day "never
+ * happened", which is misleading — reviewers can't distinguish "no data"
+ * from "this period wasn't in the report range".
+ *
+ * This helper builds the full expected bucket grid from `startDate` to
+ * `endDate` at the report's interval and merges in real rows by ISO key.
+ * Missing buckets become bare `{ bucket }` objects; downstream code already
+ * handles undefined avg/maintenance fields by rendering "N/A".
+ *
+ * Only used for reports — the Analytics page still uses the raw SQL output
+ * directly, so its chart line continues to break across genuine gaps.
+ */
+const fillBucketGaps = (
+  rows: any[],
+  startDate: Date,
+  endDate: Date,
+  interval: "1h" | "1d",
+): any[] => {
+  const byKey = new Map<string, any>();
+  for (const row of rows) {
+    if (row?.bucket) {
+      byKey.set(new Date(row.bucket).toISOString(), row);
+    }
+  }
+
+  const filled: any[] = [];
+
+  if (interval === "1h") {
+    // SQL emits each hourly bucket as `time_bucket('1 hour', observed_at)`
+    // — i.e. the UTC hour floor of the observation. Iterate every UTC hour
+    // from the floor-of-startDate to endDate.
+    const stepMs = 60 * 60 * 1000;
+    const startMs = Math.floor(startDate.getTime() / stepMs) * stepMs;
+    const endMs = endDate.getTime();
+    for (let t = startMs; t < endMs; t += stepMs) {
+      const key = new Date(t).toISOString();
+      filled.push(byKey.get(key) ?? { bucket: key });
+    }
+  } else {
+    // 1d aggregations apply `AT TIME ZONE 'Asia/Kuala_Lumpur'`, so the
+    // bucket comes back as "YYYY-MM-DDT00:00:00Z" where YYYY-MM-DD is the
+    // MYT calendar date. Iterate MYT calendar days and construct matching
+    // UTC-midnight ISO strings as keys.
+    const OFFSET_MS = 8 * 60 * 60 * 1000;
+    const startMyt = new Date(startDate.getTime() + OFFSET_MS);
+    const endMyt = new Date(endDate.getTime() + OFFSET_MS);
+    const startUtcMid = Date.UTC(
+      startMyt.getUTCFullYear(),
+      startMyt.getUTCMonth(),
+      startMyt.getUTCDate(),
+    );
+    const endUtcMid = Date.UTC(
+      endMyt.getUTCFullYear(),
+      endMyt.getUTCMonth(),
+      endMyt.getUTCDate(),
+    );
+    const stepMs = 24 * 60 * 60 * 1000;
+    for (let t = startUtcMid; t <= endUtcMid; t += stepMs) {
+      const key = new Date(t).toISOString();
+      filled.push(byKey.get(key) ?? { bucket: key });
+    }
+  }
+
+  // Match the SQL `ORDER BY bucket DESC` so downstream slicing/formatting
+  // sees the same order it always has.
+  filled.sort(
+    (a, b) => new Date(b.bucket).getTime() - new Date(a.bucket).getTime(),
+  );
+  return filled;
+};
+
+/**
  * Generate report data based on options
  */
 export const generateReportData = async (
@@ -124,18 +200,28 @@ export const generateReportData = async (
   // Get parameters to include
   const parameters = options.parameters || DEFAULT_PARAMETERS.map((p) => p.key);
 
-  // Fetch telemetry data using the device's actual ID
-  const telemetryData = await getTimeSeriesData({
-    deviceId: device.id, // Use actual device ID from database
+  // Fetch telemetry data using the device's actual ID, then fill in
+  // placeholder rows for buckets the SQL omitted because they had zero
+  // telemetry. Reports need to show "N/A" for missing periods rather than
+  // skip them silently.
+  const rawTelemetry = (await getTimeSeriesData({
+    deviceId: device.id,
     startDate,
     endDate,
     interval,
     parameters: parameters.join(","),
-  });
+  })) as any[];
+
+  const telemetryData = fillBucketGaps(
+    rawTelemetry,
+    startDate,
+    endDate,
+    interval as "1h" | "1d",
+  );
 
   // Debug: Log data retrieval
   console.log(
-    `   📥 Retrieved ${(telemetryData as any[]).length} rows for ${frequency} report (interval: ${interval})`,
+    `   📥 Retrieved ${rawTelemetry.length} rows (with gaps filled: ${telemetryData.length}) for ${frequency} report (interval: ${interval})`,
   );
 
   // Per-parameter maintenance bucket counts. A bucket may have one
