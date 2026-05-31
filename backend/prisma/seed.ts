@@ -36,19 +36,19 @@ async function main() {
       update: {},
       create: role,
     });
-    console.log("✅ Default roles created");
   }
+  console.log("✅ Default roles created");
 
   // Seed devices
   console.log("\n📡 Creating devices...");
 
   const device = await prisma.device.upsert({
-    where: { deviceCode: "PETRONAS-STATION-01" },
+    where: { deviceCode: "WQS-STATION-01" },
     update: {},
     create: {
-      deviceCode: "PETRONAS-STATION-01",
-      name: "PETRONAS Air Quality Monitoring Station 1",
-      location: "SK Pengerang, Johor",
+      deviceCode: "WQS-STATION-01",
+      name: "AquaMind Water Quality Monitoring Station 1",
+      location: "River Station, Johor",
       latitude: 1.3668593813920302,
       longitude: 104.10786207528017,
       status: "active",
@@ -64,10 +64,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash("Test@1234", 10);
 
   const superAdmin = await prisma.user.upsert({
-    where: { email: "superAdmin@petronas.com" },
+    where: { email: "admin@aquamind.local" },
     update: {},
     create: {
-      email: "superAdmin@petronas.com",
+      email: "admin@aquamind.local",
       passwordHash: hashedPassword,
       fullName: "Super Admin",
       isActive: true,
@@ -85,7 +85,7 @@ async function main() {
   });
 
   console.log("✅ Created super admin user");
-  console.log(`   Email: superAdmin@petronas.com`);
+  console.log(`   Email: admin@aquamind.local`);
   console.log(`   Password: Test@1234`);
   console.log("🎉 Seeding complete!");
 }

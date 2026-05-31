@@ -2,19 +2,18 @@
  * Data quality assessment for time aggregations
  *
  * Data Collection Architecture:
- * - Raw data: Every 5 seconds (collected by sensors)
- * - Buffer: Redis (1-minute buffer)
- * - Storage: PostgreSQL (1-minute aggregated records)
+ * - Sensor data: 1-minute averaged readings (sensor sends pre-averaged data)
+ * - Storage: PostgreSQL (1 record per minute per device)
  */
 
 import { isDeviceInMaintenance } from "../../maintenance.service";
 
 // ==================== 1-MINUTE VALIDATION ====================
-// Expected data points for 1-minute validation (based on 5-second collection)
-export const EXPECTED_POINTS_1M = 12; // 60 seconds / 5 seconds = 12 points
+// Expected data points for 1-minute validation (sensor sends 1 reading/minute)
+export const EXPECTED_POINTS_1M = 1;
 
-// Required points for valid 1-minute data (75% threshold = 45 seconds of data)
-export const REQUIRED_POINTS_1M = Math.ceil(EXPECTED_POINTS_1M * 0.75); // 9 points
+// Required points for valid 1-minute data (1 reading is sufficient)
+export const REQUIRED_POINTS_1M = 1;
 
 // ==================== 1-HOUR VALIDATION ====================
 // Expected data points for 1-hour validation (based on 1-minute stored data)

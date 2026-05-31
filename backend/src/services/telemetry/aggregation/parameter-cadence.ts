@@ -1,35 +1,21 @@
 /**
  * Per-parameter native sensor reporting cadence.
  *
- * The Synspec GC955 produces a BTEX measurement every ~15 minutes
- * (chromatography cycle = 4 readings/hour). Every other instrument on the
- * station reports every minute (60 readings/hour). Availability and
- * data-quality calculations must compare each parameter's reading count
- * against its own native cadence — not a global "60 per hour" assumption.
+ * All water quality sensors report one pre-averaged reading per minute
+ * (60 readings/hour). Availability and data-quality calculations compare
+ * each parameter's reading count against this cadence.
  */
 
 export const PARAMETER_READINGS_PER_HOUR: Record<string, number> = {
-  // 1-minute analyzers
-  so2: 60,
-  h2s: 60,
-  no2: 60,
-  no: 60,
-  nox: 60,
-
-  // GC955 BTEX — 15-minute chromatography cycle
-  benzene: 4,
-  toluene: 4,
-  ethylbenzene: 4,
-  xylenes: 4,
-
-  // 1-minute meteorological
+  ph:          60,
+  do:          60,
+  nh3n:        60,
+  cod:         60,
+  bod:         60,
+  tss:         60,
   temperature: 60,
-  humidity: 60,
-  pressure: 60,
-  windSpeed: 60,
-  windDirection: 60,
-  solar: 60,
-  rain: 60,
+  pressure:    60,
+  depth:       60,
 };
 
 /** Expected reading count for a parameter over an arbitrary interval. */

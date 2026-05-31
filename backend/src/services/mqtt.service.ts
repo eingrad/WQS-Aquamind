@@ -1,9 +1,12 @@
 import mqtt from "mqtt";
 import { convertSensorTimestampToUTC } from "../utils/timezone";
-import * as bufferService from "./telemetry/buffer/buffer.service";
 import redis from "./redis.service";
 import prisma from "../config/database";
 import logger from "../config/logger";
+import { createReading } from "./telemetry/operations/crud";
+import * as alertEvaluation from "./alert-evaluation.service";
+import * as notificationService from "./notification.service";
+import { isDeviceInMaintenance } from "./maintenance.service";
 
 /**
  * MQTT Subscriber Service
@@ -12,15 +15,12 @@ import logger from "../config/logger";
  * When a message arrives (every 1 minute per device), it:
  *   1. Translates channelId numbers to internal parameter names
  *   2. Resolves the device identifier to an internal UUID
- *   3. Stores the reading in the Redis buffer (via bufferService)
- *   4. Updates wind rose / pollution rose data in Redis for live charts
- *
- * The existing aggregation worker (aggregation.worker.ts) then picks up
- * the buffered readings every 60 seconds and writes 1-minute averages
- * to PostgreSQL.
+ *   3. Saves the reading directly to PostgreSQL (sensor already sends 1-min averages)
+ *   4. Evaluates alert thresholds
+ *   5. Caches the latest reading in Redis for the realtime dashboard widget
  *
  * Data flow:
- *   HiveMQ Broker → this service → Redis buffer → aggregation worker → PostgreSQL
+ *   HiveMQ Broker → this service → PostgreSQL + Redis realtime cache
  */
 
 // ─── Configuration ──────────────────────────────────────────────────────────
@@ -38,78 +38,21 @@ const SENSOR_DATA_TOPIC = process.env.MQTT_TOPIC || "congrego/+";
 /**
  * Channel ID → internal parameter name mapping
  *
- * These IDs are assigned by the analyzer/data logger.
- * When new channels are added, update this map.
+ * These IDs are assigned by the water quality sensor/data logger.
+ * Update the channel numbers below to match your hardware configuration.
  */
 const CHANNEL_MAP: Record<number, string> = {
-  // Gas analyzers (congrego/S40, congrego/S51)
-  13: "no", // Nitric Oxide (NO)
-  14: "nox", // Nitrogen Oxides (NOx = NO + NO2)
-  15: "no2", // Nitrogen Dioxide (NO2)
-  22: "so2", // Sulfur Dioxide (SO2)
-  23: "h2s", // Hydrogen Sulfide (H2S)
-  // Meteorological sensors (congrego/MS)
-  33: "temperature", // Temperature (°C)
-  53: "windSpeed", // Wind Speed (m/s)
-  54: "windDirection", // Wind Direction (°)
-  55: "humidity", // Relative Humidity (%)
-  56: "pressure", // Atmospheric Pressure (hPa)
-  57: "rain", // Rainfall (mm)
-  58: "solar", // Solar Radiation (W/m²)
-  // Synspec GC955 BTEX (~15-min GC cycle, all values in ppb)
-  34: "benzene", // Benzene
-  35: "toluene", // Toluene
-  36: "ethylbenzene", // Ethylbenzene
-  59: "xylenes", // Xylenes (total)
+  // Water quality sensors
+  1: "ph",          // pH (dimensionless)
+  2: "do",          // Dissolved Oxygen (mg/L)
+  3: "nh3n",        // Ammonia-Nitrogen NH₃-N (mg/L)
+  4: "cod",         // Chemical Oxygen Demand (mg/L)
+  5: "bod",         // Biochemical Oxygen Demand (mg/L)
+  6: "tss",         // Total Suspended Solids (mg/L)
+  7: "temperature", // Water Temperature (°C)
+  8: "pressure",    // Pressure (kPa)
+  9: "depth",       // Water Depth (m)
 };
-
-/**
- * Wind rose configuration
- * 16 compass directions split into speed bins
- */
-const COMPASS_DIRECTIONS = [
-  "N",
-  "NNE",
-  "NE",
-  "ENE",
-  "E",
-  "ESE",
-  "SE",
-  "SSE",
-  "S",
-  "SSW",
-  "SW",
-  "WSW",
-  "W",
-  "WNW",
-  "NW",
-  "NNW",
-];
-
-const WIND_SPEED_BINS = ["0-2", "2-5", "5-10", "10-15", "15+"];
-const POLLUTION_BINS = ["low", "moderate", "high", "very_high"];
-
-// TTL for wind/pollution rose data in Redis (5 minutes)
-const ROSE_TTL = 300;
-
-// Accumulator for wind rose computation (keeps last 10 minutes of data per device)
-const windAccumulator: Map<
-  string,
-  Array<{ speed: number; direction: number; timestamp: number }>
-> = new Map();
-const pollutionAccumulator: Map<
-  string,
-  Array<{ value: number; direction: number; timestamp: number }>
-> = new Map();
-
-// How long to keep readings in the accumulator (10 minutes in ms)
-const ACCUMULATOR_WINDOW = 10 * 60 * 1000;
-
-// Latest wind direction per device — used to correlate gas readings (S40/S51)
-// with met readings (MS) that arrive in separate MQTT messages
-const latestWindDirection: Map<string, { value: number; timestamp: number }> =
-  new Map();
-const WIND_DIRECTION_VALIDITY = 10 * 60 * 1000; // 10 min
 
 // ─── Device Identifier Cache ────────────────────────────────────────────────
 
@@ -174,7 +117,7 @@ export const startMqttSubscriber = (): void => {
       reconnectPeriod: 5000, // Retry every 5 seconds if disconnected
       connectTimeout: 10000, // 10 second connection timeout
       clean: true, // Don't persist session on broker
-      clientId: `petronas-backend-${process.pid}`, // Unique client ID
+      clientId: `aquamind-backend-${process.pid}`, // Unique client ID
       // TLS options for HiveMQ Cloud (mqtts://)
       rejectUnauthorized: true, // Verify server certificate
     });
@@ -357,210 +300,58 @@ const handleSensorMessage = async (
 
   const utcTimestamp = convertSensorTimestampToUTC(timestamp);
 
-  // ── Step 4: Store in Redis buffer (for 1-minute aggregation) ──────
+  // ── Step 4: Save directly to database ────────────────────────────
+  // Sensor sends 1-minute averaged readings — no buffering needed.
 
-  const stored = await bufferService.storeRawReading(
-    deviceId,
-    utcTimestamp,
-    readings,
-  );
-
-  if (stored) {
+  try {
+    await createReading({ deviceId, observedAt: utcTimestamp, readings });
     logger.debug(
-      `📥 MQTT: Buffered reading from ${deviceId} at ${timestamp} (${Object.keys(readings).join(", ")})`,
+      `💾 MQTT: Saved reading from ${deviceId} at ${timestamp} (${Object.keys(readings).join(", ")})`,
     );
-  } else {
-    logger.warn(`⚠️ MQTT: Failed to buffer reading (Redis unavailable?)`);
+  } catch (err) {
+    logger.error(`❌ MQTT: Failed to save reading to database:`, err);
+    return;
   }
 
-  // ── Step 5: Update wind rose data ─────────────────────────────────
+  // ── Step 5: Alert evaluation ──────────────────────────────────────
 
-  if (
-    readings.windSpeed !== undefined &&
-    readings.windDirection !== undefined
-  ) {
-    updateWindRose(deviceId, readings.windSpeed, readings.windDirection);
-  }
-
-  // Cache latest wind direction (even if windSpeed missing) so a separate
-  // gas message can use it to update the pollution rose.
-  if (readings.windDirection !== undefined) {
-    latestWindDirection.set(deviceId, {
-      value: readings.windDirection,
-      timestamp: Date.now(),
+  try {
+    const inMaintenance = await isDeviceInMaintenance(deviceId, {
+      start: utcTimestamp,
+      end: utcTimestamp,
     });
-  }
 
-  // ── Step 6: Update pollution rose data for every gas in the message ──
-  // Gas readings (S40/S51) and wind direction (MS) arrive in separate MQTT
-  // reports, so look up the most recent cached wind direction instead of
-  // requiring both in the same payload.
-
-  const POLLUTION_GASES = [
-    "so2",
-    "h2s",
-    "no",
-    "no2",
-    "nox",
-    "benzene",
-    "toluene",
-    "ethylbenzene",
-    "xylenes",
-  ] as const;
-  const cached = latestWindDirection.get(deviceId);
-  const windFresh =
-    cached && Date.now() - cached.timestamp < WIND_DIRECTION_VALIDITY;
-
-  for (const gas of POLLUTION_GASES) {
-    if (readings[gas] === undefined) continue;
-    if (!windFresh) {
-      logger.debug(
-        `📥 MQTT: ${gas.toUpperCase()} from ${deviceId} but no fresh wind direction, skipping pollution rose`,
+    if (!inMaintenance) {
+      const alertResults = await alertEvaluation.batchEvaluateParameters(
+        deviceId,
+        utcTimestamp,
+        readings,
       );
-      continue;
+
+      if (alertResults.length > 0) {
+        logger.info(`🚨 ${alertResults.length} alert(s) triggered for ${deviceId}`);
+        for (const result of alertResults) {
+          if (result.alertHistory) {
+            await notificationService.sendMultiChannelNotification(result.alertHistory);
+          }
+        }
+      }
     }
-    updatePollutionRose(
-      deviceId,
-      gas.toUpperCase(),
-      readings[gas],
-      cached!.value,
-    );
+  } catch (alertErr) {
+    logger.error(`⚠️ MQTT: Alert evaluation error:`, alertErr);
   }
 
-  // ── Step 7: Update realtime parameters in Redis ───────────────────
-  //    Stores the latest reading directly for the dashboard widget
+  // ── Step 6: Update realtime parameters in Redis ──────────────────
+  //    Stores the latest reading for the dashboard widget.
 
   await updateRealtimeParams(deviceId, timestamp, readings);
-};
-
-// ─── Wind Rose Computation ────────────────────────────────────────────────
-
-/**
- * Accumulate wind data and compute wind rose for live chart
- *
- * Wind rose = frequency of wind coming FROM each direction, split by speed bins
- * Uses a rolling 10-minute window of accumulated readings
- */
-const updateWindRose = async (
-  deviceId: string,
-  speed: number,
-  direction: number,
-): Promise<void> => {
-  const now = Date.now();
-
-  // Get or create accumulator for this device
-  if (!windAccumulator.has(deviceId)) {
-    windAccumulator.set(deviceId, []);
-  }
-
-  const readings = windAccumulator.get(deviceId)!;
-
-  // Add new reading
-  readings.push({ speed, direction, timestamp: now });
-
-  // Remove readings older than 10 minutes
-  const cutoff = now - ACCUMULATOR_WINDOW;
-  while (readings.length > 0 && readings[0].timestamp < cutoff) {
-    readings.shift();
-  }
-
-  // Compute wind rose from accumulated data
-  const directions: Record<string, Record<string, number>> = {};
-
-  for (const dir of COMPASS_DIRECTIONS) {
-    directions[dir] = {};
-    for (const bin of WIND_SPEED_BINS) {
-      directions[dir][bin] = 0;
-    }
-  }
-
-  for (const reading of readings) {
-    const compassDir = degreesToCompass(reading.direction);
-    const speedBin = getSpeedBin(reading.speed);
-    directions[compassDir][speedBin]++;
-  }
-
-  // Store in Redis
-  const data = {
-    timestamp: new Date().toISOString(),
-    deviceId,
-    directions,
-  };
-
-  const key = `live:windrose:${deviceId}`;
-  await redis.setWithTTL(key, JSON.stringify(data), ROSE_TTL);
-};
-
-// ─── Pollution Rose Computation ───────────────────────────────────────────
-
-/**
- * Accumulate pollution data and compute pollution rose for live chart
- *
- * Pollution rose = concentration levels by wind direction
- * Shows where pollution is coming FROM
- */
-const updatePollutionRose = async (
-  deviceId: string,
-  parameter: string,
-  value: number,
-  windDirection: number,
-): Promise<void> => {
-  const now = Date.now();
-  const accKey = `${deviceId}:${parameter}`;
-
-  // Get or create accumulator
-  if (!pollutionAccumulator.has(accKey)) {
-    pollutionAccumulator.set(accKey, []);
-  }
-
-  const readings = pollutionAccumulator.get(accKey)!;
-
-  // Add new reading
-  readings.push({ value, direction: windDirection, timestamp: now });
-
-  // Remove readings older than 10 minutes
-  const cutoff = now - ACCUMULATOR_WINDOW;
-  while (readings.length > 0 && readings[0].timestamp < cutoff) {
-    readings.shift();
-  }
-
-  // Compute pollution rose from accumulated data
-  const directions: Record<string, Record<string, number>> = {};
-
-  for (const dir of COMPASS_DIRECTIONS) {
-    directions[dir] = {};
-    for (const bin of POLLUTION_BINS) {
-      directions[dir][bin] = 0;
-    }
-  }
-
-  for (const reading of readings) {
-    const compassDir = degreesToCompass(reading.direction);
-    const concBin = getConcentrationBin(parameter, reading.value);
-    directions[compassDir][concBin]++;
-  }
-
-  // Store in Redis
-  const data = {
-    timestamp: new Date().toISOString(),
-    deviceId,
-    parameter: parameter.toUpperCase(),
-    directions,
-  };
-
-  const key = `live:pollutionrose:${deviceId}:${parameter.toUpperCase()}`;
-  await redis.setWithTTL(key, JSON.stringify(data), ROSE_TTL);
 };
 
 // ─── Realtime Parameters ──────────────────────────────────────────────────
 
 /**
  * Store the latest sensor readings in Redis for the realtime widget.
- *
- * Each parameter is stored as { value, at } so the frontend can show a
- * per-parameter freshness indicator. Gas messages (S40/S51) and met messages
- * (MS) arrive in separate MQTT reports — merging by parameter avoids the
- * flicker that overwriting would cause.
+ * Each parameter is stored as { value, at } for per-parameter freshness tracking.
  */
 type RealtimeReading = { value: number; at: string };
 
@@ -570,7 +361,7 @@ const updateRealtimeParams = async (
   readings: Record<string, number>,
 ): Promise<void> => {
   const key = `live:realtime:${deviceId}`;
-  const REALTIME_TTL = 60; // seconds — long enough to bridge between gas/met reports
+  const REALTIME_TTL = 90; // seconds — bridge latency between 1-minute sensor reports
 
   // Build per-parameter entries from this message
   const incoming: Record<string, RealtimeReading> = {};
@@ -600,69 +391,6 @@ const updateRealtimeParams = async (
   };
 
   await redis.setWithTTL(key, JSON.stringify(data), REALTIME_TTL);
-};
-
-// ─── Helper Functions ─────────────────────────────────────────────────────
-
-/**
- * Convert wind direction in degrees (0-360) to 16-point compass direction
- *
- *   0° = N, 90° = E, 180° = S, 270° = W
- *   Each direction covers 22.5°
- */
-const degreesToCompass = (degrees: number): string => {
-  // Normalize to 0-360
-  const normalized = ((degrees % 360) + 360) % 360;
-
-  // Each of 16 directions covers 22.5°
-  // Add 11.25° offset so that 0° ± 11.25° = "N"
-  const index = Math.round(normalized / 22.5) % 16;
-  return COMPASS_DIRECTIONS[index];
-};
-
-/**
- * Classify wind speed (m/s) into bins
- */
-const getSpeedBin = (speed: number): string => {
-  if (speed < 2) return "0-2";
-  if (speed < 5) return "2-5";
-  if (speed < 10) return "5-10";
-  if (speed < 15) return "10-15";
-  return "15+";
-};
-
-/**
- * Per-parameter pollution rose bin thresholds (all values in ppb)
- * Tuple format: [moderateMin, highMin, veryHighMin]
- *
- * Tuned to typical Pengerang ambient ranges so each gas distributes across all 4 bins
- * rather than collapsing into "low" or "very_high" with shared thresholds.
- */
-const CONCENTRATION_BINS: Record<string, [number, number, number]> = {
-  so2: [20, 50, 100],
-  h2s: [3, 30, 100],
-  no: [50, 100, 200],
-  no2: [50, 100, 200],
-  nox: [100, 200, 400],
-  // BTEX components — bins tuned to Canadian AAQC 24-hr limits
-  benzene: [0.5, 1.0, 2.3],
-  toluene: [50, 200, 400],
-  ethylbenzene: [50, 200, 460],
-  xylenes: [100, 350, 700], // aligned with AAQC 700 ppb 24-hr
-};
-
-/**
- * Classify pollutant concentration (ppb) into a 4-tier bin for the parameter
- */
-const getConcentrationBin = (parameter: string, value: number): string => {
-  const thresholds = CONCENTRATION_BINS[parameter.toLowerCase()] ?? [
-    20, 50, 100,
-  ];
-  const [mod, high, vhigh] = thresholds;
-  if (value < mod) return "low";
-  if (value < high) return "moderate";
-  if (value < vhigh) return "high";
-  return "very_high";
 };
 
 export default {

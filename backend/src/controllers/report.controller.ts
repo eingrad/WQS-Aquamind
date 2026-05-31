@@ -116,16 +116,9 @@ export const exportPDF = async (req: Request, res: Response) => {
     // Format summary for template
     const formattedSummary = {
       maxTemp: reportData.summary.maxTemp?.toFixed(2) || "N/A",
-      minWind: reportData.summary.minWind?.toFixed(2) || "N/A",
-      avgSO2: reportData.summary.avgSO2?.toFixed(4) || "N/A",
-      avgH2S: reportData.summary.avgH2S?.toFixed(4) || "N/A",
-      avgNO2: reportData.summary.avgNO2?.toFixed(4) || "N/A",
-      // BTEX components — Synspec GC955
-      avgBenzene: reportData.summary.avgBenzene?.toFixed(4) || "N/A",
-      avgToluene: reportData.summary.avgToluene?.toFixed(4) || "N/A",
-      avgEthylbenzene: reportData.summary.avgEthylbenzene?.toFixed(4) || "N/A",
-      avgXylenes: reportData.summary.avgXylenes?.toFixed(4) || "N/A",
-      avgSolar: reportData.summary.avgSolar?.toFixed(2) || "N/A",
+      avgPh: reportData.summary.avgPh?.toFixed(2) || "N/A",
+      avgDo: reportData.summary.avgDo?.toFixed(3) || "N/A",
+      avgNh3n: reportData.summary.avgNh3n?.toFixed(4) || "N/A",
       maintenanceExcluded: reportData.summary.maintenanceExcluded || 0,
       // Per-parameter Data Counts table rows, in the same order as the
       // report's parameter list.
@@ -149,16 +142,15 @@ export const exportPDF = async (req: Request, res: Response) => {
         };
       }),
       units: {
+        ph: unitFor("ph"),
+        do: unitFor("do"),
+        nh3n: unitFor("nh3n"),
+        cod: unitFor("cod"),
+        bod: unitFor("bod"),
+        tss: unitFor("tss"),
         temperature: unitFor("temperature"),
-        windSpeed: unitFor("windSpeed"),
-        so2: unitFor("so2"),
-        h2s: unitFor("h2s"),
-        no2: unitFor("no2"),
-        benzene: unitFor("benzene"),
-        toluene: unitFor("toluene"),
-        ethylbenzene: unitFor("ethylbenzene"),
-        xylenes: unitFor("xylenes"),
-        solar: unitFor("solar"),
+        pressure: unitFor("pressure"),
+        depth: unitFor("depth"),
       },
       availability: reportData.summary.availability || {}, // Pass availability data
       incompletePeriods: reportData.summary.incompletePeriods || {}, // Pass incomplete periods

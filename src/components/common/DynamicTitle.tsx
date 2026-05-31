@@ -15,7 +15,6 @@ const ROUTE_TITLES: Record<string, string> = {
   "/parameters": "Parameters",
   "/settings": "Settings",
   "/telegram-setup": "Telegram Setup",
-  "/newmap": "Wind Direction Map",
   "/displays": "Custom Displays",
 };
 

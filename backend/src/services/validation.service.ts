@@ -2,23 +2,6 @@ import prisma from "../config/database";
 import { getTimeSeriesData } from "./telemetry/operations/aggregation";
 import { expectedReadingsForInterval } from "./telemetry/aggregation/parameter-cadence";
 
-/**
- * Override autoFlag for BTEX hours that don't meet the GC955's native
- * 4-readings-per-hour cadence. Other parameters fall through unchanged so
- * existing 1-minute behaviour is preserved.
- */
-const BTEX_PARAMS = new Set(["benzene", "toluene", "ethylbenzene", "xylenes"]);
-function btexAdjustedFlag(row: any, param: string, baseFlag: string): string {
-  if (baseFlag !== "valid") return baseFlag;
-  if (!BTEX_PARAMS.has(param)) return baseFlag;
-  const expected = expectedReadingsForInterval(param, 3600);
-  const cnt = Number(row[`${param.toLowerCase()}_count`] ?? 0);
-  if (expected <= 0 || cnt === 0) return baseFlag;
-  const pct = (cnt / expected) * 100;
-  // Daily DOE threshold of 75% applies to per-bucket validity here.
-  return pct >= 75 ? "valid" : "insufficient_data";
-}
-
 export interface ValidationRecord {
   recordId: string;
   deviceId: string;
@@ -108,8 +91,7 @@ function getHumanFlagsForHour(
     return currPriority < prevPriority ? curr : prev;
   });
 
-  // Calculate coverage against this parameter's native cadence —
-  // BTEX expects 4 records/hour (15-min GC cycle), others expect 60.
+  // Calculate coverage against this parameter's native cadence (60/hour).
   const totalRecords = flagsInHour.length;
   const expectedRecords = expectedReadingsForInterval(parameter, 3600);
 
@@ -231,8 +213,7 @@ export const getValidationTableData = async (options: {
     startDate,
     endDate,
     interval: "1h",
-    parameters:
-      "so2,h2s,no2,benzene,toluene,ethylbenzene,xylenes,windSpeed,windDirection,temperature,humidity,pressure,solar,rain",
+    parameters: "ph,do,nh3n,cod,bod,tss,temperature,pressure,depth",
   });
 
   // Fetch human validation flags for the date range
@@ -262,209 +243,68 @@ export const getValidationTableData = async (options: {
     deviceName: device.name,
     location: device.location,
     parameters: {
-      so2: {
-        value: row.so2_avg !== null ? Number(row.so2_avg) : null,
-        unit: "ppb",
-        autoFlag: row.validation_flags?.so2 || "valid",
-        humanValidation: getHumanFlagsForHour(row.bucket, "so2", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "so2",
-          pendingRequests,
-        ),
+      ph: {
+        value: row.ph_avg !== null ? Number(row.ph_avg) : null,
+        unit: "pH",
+        autoFlag: row.validation_flags?.ph || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "ph", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "ph", pendingRequests),
       },
-      h2s: {
-        value: row.h2s_avg !== null ? Number(row.h2s_avg) : null,
-        unit: "ppb",
-        autoFlag: row.validation_flags?.h2s || "valid",
-        humanValidation: getHumanFlagsForHour(row.bucket, "h2s", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "h2s",
-          pendingRequests,
-        ),
+      do: {
+        value: row.do_avg !== null ? Number(row.do_avg) : null,
+        unit: "mg/L",
+        autoFlag: row.validation_flags?.do || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "do", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "do", pendingRequests),
       },
-      no2: {
-        value: row.no2_avg !== null ? Number(row.no2_avg) : null,
-        unit: "ppb",
-        autoFlag: row.validation_flags?.no2 || "valid",
-        humanValidation: getHumanFlagsForHour(row.bucket, "no2", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "no2",
-          pendingRequests,
-        ),
+      nh3n: {
+        value: row.nh3n_avg !== null ? Number(row.nh3n_avg) : null,
+        unit: "mg/L",
+        autoFlag: row.validation_flags?.nh3n || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "nh3n", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "nh3n", pendingRequests),
       },
-      benzene: {
-        value: row.benzene_avg !== null ? Number(row.benzene_avg) : null,
-        unit: "ppb",
-        autoFlag: btexAdjustedFlag(
-          row,
-          "benzene",
-          row.validation_flags?.benzene || "valid",
-        ),
-        humanValidation: getHumanFlagsForHour(row.bucket, "benzene", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "benzene",
-          pendingRequests,
-        ),
+      cod: {
+        value: row.cod_avg !== null ? Number(row.cod_avg) : null,
+        unit: "mg/L",
+        autoFlag: row.validation_flags?.cod || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "cod", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "cod", pendingRequests),
       },
-      toluene: {
-        value: row.toluene_avg !== null ? Number(row.toluene_avg) : null,
-        unit: "ppb",
-        autoFlag: btexAdjustedFlag(
-          row,
-          "toluene",
-          row.validation_flags?.toluene || "valid",
-        ),
-        humanValidation: getHumanFlagsForHour(row.bucket, "toluene", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "toluene",
-          pendingRequests,
-        ),
+      bod: {
+        value: row.bod_avg !== null ? Number(row.bod_avg) : null,
+        unit: "mg/L",
+        autoFlag: row.validation_flags?.bod || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "bod", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "bod", pendingRequests),
       },
-      ethylbenzene: {
-        value:
-          row.ethylbenzene_avg !== null ? Number(row.ethylbenzene_avg) : null,
-        unit: "ppb",
-        autoFlag: btexAdjustedFlag(
-          row,
-          "ethylbenzene",
-          row.validation_flags?.ethylbenzene || "valid",
-        ),
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "ethylbenzene",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "ethylbenzene",
-          pendingRequests,
-        ),
-      },
-      xylenes: {
-        value: row.xylenes_avg !== null ? Number(row.xylenes_avg) : null,
-        unit: "ppb",
-        autoFlag: btexAdjustedFlag(
-          row,
-          "xylenes",
-          row.validation_flags?.xylenes || "valid",
-        ),
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "xylenes",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "xylenes",
-          pendingRequests,
-        ),
-      },
-      windSpeed: {
-        value:
-          row["windspeed_avg"] !== null ? Number(row["windspeed_avg"]) : null,
-        unit: "km/h",
-        autoFlag: row.validation_flags?.windSpeed || "valid",
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "windSpeed",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "windSpeed",
-          pendingRequests,
-        ),
-      },
-      windDirection: {
-        value:
-          row["winddirection_avg"] !== null
-            ? Number(row["winddirection_avg"])
-            : null,
-        unit: "°",
-        autoFlag: row.validation_flags?.windDirection || "valid",
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "windDirection",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "windDirection",
-          pendingRequests,
-        ),
+      tss: {
+        value: row.tss_avg !== null ? Number(row.tss_avg) : null,
+        unit: "mg/L",
+        autoFlag: row.validation_flags?.tss || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "tss", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "tss", pendingRequests),
       },
       temperature: {
-        value:
-          row.temperature_avg !== null ? Number(row.temperature_avg) : null,
+        value: row.temperature_avg !== null ? Number(row.temperature_avg) : null,
         unit: "°C",
         autoFlag: row.validation_flags?.temperature || "valid",
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "temperature",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "temperature",
-          pendingRequests,
-        ),
-      },
-      humidity: {
-        value: row.humidity_avg !== null ? Number(row.humidity_avg) : null,
-        unit: "%",
-        autoFlag: row.validation_flags?.humidity || "valid",
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "humidity",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "humidity",
-          pendingRequests,
-        ),
+        humanValidation: getHumanFlagsForHour(row.bucket, "temperature", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "temperature", pendingRequests),
       },
       pressure: {
         value: row.pressure_avg !== null ? Number(row.pressure_avg) : null,
-        unit: "hPa",
+        unit: "kPa",
         autoFlag: row.validation_flags?.pressure || "valid",
-        humanValidation: getHumanFlagsForHour(
-          row.bucket,
-          "pressure",
-          humanFlags,
-        ),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "pressure",
-          pendingRequests,
-        ),
+        humanValidation: getHumanFlagsForHour(row.bucket, "pressure", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "pressure", pendingRequests),
       },
-      solar: {
-        value: row.solar_avg !== null ? Number(row.solar_avg) : null,
-        unit: "W/m²",
-        autoFlag: row.validation_flags?.solar || "valid",
-        humanValidation: getHumanFlagsForHour(row.bucket, "solar", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "solar",
-          pendingRequests,
-        ),
-      },
-      rain: {
-        value: row.rain_avg !== null ? Number(row.rain_avg) : null,
-        unit: "mm",
-        autoFlag: row.validation_flags?.rain || "valid",
-        humanValidation: getHumanFlagsForHour(row.bucket, "rain", humanFlags),
-        pendingApproval: getPendingApprovalForHour(
-          row.bucket,
-          "rain",
-          pendingRequests,
-        ),
+      depth: {
+        value: row.depth_avg !== null ? Number(row.depth_avg) : null,
+        unit: "m",
+        autoFlag: row.validation_flags?.depth || "valid",
+        humanValidation: getHumanFlagsForHour(row.bucket, "depth", humanFlags),
+        pendingApproval: getPendingApprovalForHour(row.bucket, "depth", pendingRequests),
       },
     },
     dataQuality: row.data_quality || "valid",

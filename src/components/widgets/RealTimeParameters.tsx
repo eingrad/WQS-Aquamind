@@ -80,21 +80,15 @@ export default function RealTimeParameters({
               const num = typeof raw === "string" ? parseFloat(raw) : raw;
               if (!isNaN(num)) mapped[key] = { value: num, at };
             };
-            set("so2", latest.so2Value);
-            set("h2s", latest.h2sValue);
-            set("no2", latest.no2Value);
-            // BTEX components (Synspec GC955)
-            set("benzene", latest.benzeneValue);
-            set("toluene", latest.tolueneValue);
-            set("ethylbenzene", latest.ethylbenzeneValue);
-            set("xylenes", latest.xylenesValue);
+            set("ph", latest.phValue);
+            set("do", latest.doValue);
+            set("nh3n", latest.nh3nValue);
+            set("cod", latest.codValue);
+            set("bod", latest.bodValue);
+            set("tss", latest.tssValue);
             set("temperature", latest.tempValue);
-            set("humidity", latest.humidityValue);
-            set("windSpeed", latest.wsValue);
-            set("windDirection", latest.wdValue);
-            set("solar", latest.solarValue);
             set("pressure", latest.pressureValue);
-            set("rain", latest.rainValue);
+            set("depth", latest.depthValue);
             setLiveData(mapped);
           }
         } catch (dbErr) {

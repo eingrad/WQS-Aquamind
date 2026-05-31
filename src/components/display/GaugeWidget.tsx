@@ -32,17 +32,15 @@ export default function GaugeWidget({ deviceId, parameter }: GaugeWidgetProps) {
           const readings = await getLatestReadings(deviceId, 1);
           if (readings.length > 0) {
             const keyMap: Record<string, string> = {
-              so2: "so2Value",
-              h2s: "h2sValue",
-              no2: "no2Value",
-              btex: "btexValue",
+              ph:          "phValue",
+              do:          "doValue",
+              nh3n:        "nh3nValue",
+              cod:         "codValue",
+              bod:         "bodValue",
+              tss:         "tssValue",
               temperature: "tempValue",
-              humidity: "humidityValue",
-              windSpeed: "wsValue",
-              windDirection: "wdValue",
-              solar: "solarValue",
-              pressure: "pressureValue",
-              rain: "rainValue",
+              pressure:    "pressureValue",
+              depth:       "depthValue",
             };
             const dbKey = keyMap[parameter];
             if (dbKey && readings[0][dbKey]) {
@@ -62,89 +60,82 @@ export default function GaugeWidget({ deviceId, parameter }: GaugeWidgetProps) {
   }, [deviceId, parameter]);
 
   // Gauge configuration per parameter
+  // Gauge zones based on Malaysia NWQS Class II limits
   const getGaugeConfig = () => {
     const configs: Record<
       string,
       { max: number; zones: [number, number, string][] }
     > = {
-      so2: {
-        max: 1,
+      ph: {
+        max: 14,
         zones: [
-          [0, 0.2, "#10b981"],
-          [0.2, 0.5, "#f59e0b"],
-          [0.5, 1, "#ef4444"],
+          [0,  6,  "#ef4444"], // below Class II (acidic)
+          [6,  9,  "#10b981"], // Class II range
+          [9,  14, "#ef4444"], // above Class II (alkaline)
         ],
       },
-      h2s: {
-        max: 0.1,
+      do: {
+        max: 20,
         zones: [
-          [0, 0.02, "#10b981"],
-          [0.02, 0.05, "#f59e0b"],
-          [0.05, 0.1, "#ef4444"],
+          [0,  3,  "#ef4444"], // critically low
+          [3,  5,  "#f59e0b"], // below Class II limit
+          [5,  20, "#10b981"], // Class II (≥5 mg/L)
         ],
       },
-      no2: {
-        max: 1,
+      nh3n: {
+        max: 2,
         zones: [
-          [0, 0.2, "#10b981"],
-          [0.2, 0.5, "#f59e0b"],
-          [0.5, 1, "#ef4444"],
+          [0,    0.2,  "#10b981"], // normal
+          [0.2,  0.3,  "#f59e0b"], // approaching limit
+          [0.3,  2,    "#ef4444"], // exceeds Class II (0.3 mg/L)
         ],
       },
-      btex: {
+      cod: {
         max: 100,
         zones: [
-          [0, 30, "#10b981"],
-          [30, 70, "#f59e0b"],
-          [70, 100, "#ef4444"],
+          [0,  20, "#10b981"], // normal
+          [20, 25, "#f59e0b"], // approaching limit
+          [25, 100,"#ef4444"], // exceeds Class II (25 mg/L)
+        ],
+      },
+      bod: {
+        max: 20,
+        zones: [
+          [0,   2.5, "#10b981"], // normal
+          [2.5, 3,   "#f59e0b"], // approaching limit
+          [3,   20,  "#ef4444"], // exceeds Class II (3 mg/L)
+        ],
+      },
+      tss: {
+        max: 200,
+        zones: [
+          [0,  40,  "#10b981"], // normal
+          [40, 50,  "#f59e0b"], // approaching limit
+          [50, 200, "#ef4444"], // exceeds Class II (50 mg/L)
         ],
       },
       temperature: {
         max: 50,
         zones: [
-          [0, 25, "#10b981"],
-          [25, 35, "#f59e0b"],
-          [35, 50, "#ef4444"],
-        ],
-      },
-      humidity: {
-        max: 100,
-        zones: [
-          [0, 40, "#f59e0b"],
-          [40, 80, "#10b981"],
-          [80, 100, "#3b82f6"],
+          [0,  20, "#3b82f6"], // cool
+          [20, 30, "#10b981"], // normal
+          [30, 50, "#f59e0b"], // warm / high
         ],
       },
       pressure: {
-        max: 1050,
+        max: 120,
         zones: [
-          [950, 1000, "#f59e0b"],
-          [1000, 1020, "#10b981"],
-          [1020, 1050, "#3b82f6"],
+          [80,  95,  "#f59e0b"], // low
+          [95,  106, "#10b981"], // normal
+          [106, 120, "#f59e0b"], // high
         ],
       },
-      windSpeed: {
-        max: 20,
-        zones: [
-          [0, 5, "#10b981"],
-          [5, 12, "#f59e0b"],
-          [12, 20, "#ef4444"],
-        ],
-      },
-      solar: {
-        max: 1200,
-        zones: [
-          [0, 400, "#6366f1"],
-          [400, 800, "#f59e0b"],
-          [800, 1200, "#ef4444"],
-        ],
-      },
-      rain: {
+      depth: {
         max: 50,
         zones: [
-          [0, 5, "#10b981"],
-          [5, 20, "#3b82f6"],
-          [20, 50, "#6366f1"],
+          [0,  2,  "#f59e0b"], // very shallow
+          [2,  30, "#10b981"], // normal
+          [30, 50, "#3b82f6"], // deep
         ],
       },
     };
@@ -152,9 +143,9 @@ export default function GaugeWidget({ deviceId, parameter }: GaugeWidgetProps) {
       configs[parameter] || {
         max: 100,
         zones: [
-          [0, 33, "#10b981"],
+          [0,  33, "#10b981"],
           [33, 66, "#f59e0b"],
-          [66, 100, "#ef4444"],
+          [66, 100,"#ef4444"],
         ],
       }
     );

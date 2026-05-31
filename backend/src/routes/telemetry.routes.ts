@@ -1,24 +1,11 @@
 import { Router } from "express";
 import * as telemetryController from "../controllers/telemetry.controller";
-import * as rawTelemetryController from "../controllers/telemetry-raw.controller";
 import { authenticate, authorize } from "../middleware/auth";
 
 const router = Router();
 
 // All telemetry routes require authentication
 router.use(authenticate);
-
-/**
- * @route   POST /api/sensors/raw
- * @desc    Store raw 5-second sensor reading in Redis buffer
- * @access  Technician or Admin
- * NEW ENDPOINT - For 5-second data collection
- */
-router.post(
-  "/raw",
-  authorize(["technician", "admin"]),
-  rawTelemetryController.storeRawReading
-);
 
 /**
  * @route   GET /api/sensors/readings/latest

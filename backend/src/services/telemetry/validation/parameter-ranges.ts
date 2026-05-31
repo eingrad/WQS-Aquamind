@@ -1,106 +1,81 @@
 /**
- * Instrument/Analyzer measurement capabilities
- * Values outside these ranges mean the sensor cannot accurately measure them
+ * Instrument/Sensor measurement capability ranges
+ * Values outside these ranges mean the sensor cannot accurately measure them.
  * Flag: exceeding_range (Yellow)
  */
 export const INSTRUMENT_RANGES = {
-  // Serinus 51 (combined H2S/SO2 UV fluorescence): 0-2 ppm = 0-2000 ppb
-  so2: { min: 0, max: 2000, unit: "ppb" },
-  h2s: { min: 0, max: 2000, unit: "ppb" },
-  // NOx analyzer: 0-20 ppm autoranging = 0-20000 ppb per channel
-  no2: { min: 0, max: 20000, unit: "ppb" },
-  no: { min: 0, max: 20000, unit: "ppb" },
-  nox: { min: 0, max: 40000, unit: "ppb" },
-  // Synspec GC955 BTEX (PID): 0-20 ppb standard, up to 300 ppb extended config.
-  // Each compound shares the same instrument range (single PID detector).
-  benzene: { min: 0, max: 300, unit: "ppb" },
-  toluene: { min: 0, max: 300, unit: "ppb" },
-  ethylbenzene: { min: 0, max: 300, unit: "ppb" },
-  xylenes: { min: 0, max: 300, unit: "ppb" },
-  temperature: { min: -40, max: 85, unit: "°C" },
-  humidity: { min: 0, max: 100, unit: "%" },
-  windSpeed: { min: 0, max: 60, unit: "m/s" },
-  windDirection: { min: 0, max: 360, unit: "°" },
-  solar: { min: 0, max: 2000, unit: "W/m²" },
-  pressure: { min: 300, max: 1200, unit: "hPa" },
-  // Per-reading rainfall (mm in the report interval, typically 1 minute).
-  rain: { min: 0, max: 200, unit: "mm" },
+  // pH electrode: full range 0–14, practical sensor range 2–12 for most probes
+  ph: { min: 0, max: 14, unit: "pH" },
+  // Dissolved Oxygen (optical or membrane sensor): 0–20 mg/L typical
+  do: { min: 0, max: 20, unit: "mg/L" },
+  // Ammonia-Nitrogen (ISE or colorimetric): 0–100 mg/L
+  nh3n: { min: 0, max: 100, unit: "mg/L" },
+  // COD (UV absorption or reactor digestion): 0–1000 mg/L
+  cod: { min: 0, max: 1000, unit: "mg/L" },
+  // BOD (5-day test or online sensor): 0–500 mg/L
+  bod: { min: 0, max: 500, unit: "mg/L" },
+  // TSS (turbidimeter/optical): 0–2000 mg/L
+  tss: { min: 0, max: 2000, unit: "mg/L" },
+  // Water temperature: Malaysia rivers 20–35°C; sensor range wider
+  temperature: { min: 0, max: 50, unit: "°C" },
+  // Atmospheric/water pressure: sensor range 80–120 kPa
+  pressure: { min: 80, max: 120, unit: "kPa" },
+  // Water depth: 0–50 m (standard submersible pressure transducer)
+  depth: { min: 0, max: 50, unit: "m" },
 };
 
 /**
- * Operational/Regulatory acceptable ranges based on Malaysia standards
- *
- * Two tables: 1-hour and 24-hour averaging periods, per contract.
- * Only parameters explicitly specified in the contract are validated.
- *
- * Values outside these ranges indicate regulatory violations.
- * Flag: out_of_range (Red)
+ * Operational/Regulatory acceptable ranges based on
+ * Malaysia National Water Quality Standards (NWQS) — Class II (River Water)
  *
  * References:
- * - New Malaysia Ambient Air Quality Standard (2020)
- * - Environmental Quality (Clean Air) Regulations 2014
- * - Malaysia Meteorological Department climate data
+ * - Environmental Quality Act 1974 (Water Quality)
+ * - Malaysia DOE National Water Quality Standards for Malaysia
+ *
+ * Class II limits are used as the primary operational threshold.
+ * Values outside these ranges indicate a regulatory violation.
+ * Flag: out_of_range (Red)
  */
 
 /**
- * 1-HOUR AVERAGE limits — only contract-specified gases plus environmentals.
- * NO, NOx, H2S, BTEX have no 1-hour standard in contract → not validated here.
+ * Short-term (1-hour) operational limits — Class II NWQS
  */
 export const OPERATIONAL_RANGES_1H = {
-  // Malaysia Ambient Air Quality Standard (1-hour): 95 ppb (250 µg/m³)
-  so2: { min: 0, max: 95, unit: "ppb" },
-
-  // Malaysia Ambient Air Quality Standard (1-hour): 149 ppb (280 µg/m³)
-  no2: { min: 0, max: 149, unit: "ppb" },
-
-  // Malaysia tropical climate: 21-32°C typical range
+  // pH: Class II 6.0–9.0
+  ph: { min: 6.0, max: 9.0, unit: "pH" },
+  // Dissolved Oxygen: Class II minimum 5 mg/L; no upper physical limit
+  do: { min: 5.0, max: 20, unit: "mg/L" },
+  // Ammonia-N: Class II maximum 0.3 mg/L
+  nh3n: { min: 0, max: 0.3, unit: "mg/L" },
+  // COD: Class II maximum 25 mg/L
+  cod: { min: 0, max: 25, unit: "mg/L" },
+  // BOD: Class II maximum 3 mg/L
+  bod: { min: 0, max: 3, unit: "mg/L" },
+  // TSS: Class II maximum 50 mg/L
+  tss: { min: 0, max: 50, unit: "mg/L" },
+  // Water temperature: Malaysia rivers 20–32°C typical; >40°C is critical
   temperature: { min: 20, max: 35, unit: "°C" },
-
-  // Malaysia average humidity: 80-90% typical
-  humidity: { min: 60, max: 100, unit: "%" },
-
-  // Tropical storm threshold: ~33 m/s (120 km/h)
-  windSpeed: { min: 0, max: 30, unit: "m/s" },
-
-  // Full compass range - no restrictions
-  windDirection: { min: 0, max: 360, unit: "°" },
-
-  // Malaysia equatorial region: typical max ~1200 W/m²
-  solar: { min: 0, max: 1400, unit: "W/m²" },
-
-  // Sea level pressure: 1013 hPa ± 50 hPa normal variation
-  pressure: { min: 980, max: 1040, unit: "hPa" },
-
-  // Extreme tropical rainfall: ~100 mm/h ≈ ~1.7 mm per minute reading
-  rain: { min: 0, max: 120, unit: "mm" },
+  // Atmospheric pressure near sea level in Malaysia
+  pressure: { min: 95, max: 106, unit: "kPa" },
 };
 
 /**
- * 24-HOUR AVERAGE limits — contract-specified gases and BTEX.
- * Xylene uses combined total xylene limit (700 µg/m³ ≈ 161 ppb).
- * NO, NOx have no 24-hour standard in contract → not validated.
+ * 24-hour average operational limits — Class II NWQS
+ * Same as 1H for water quality (standards are not time-averaged differently)
  */
 export const OPERATIONAL_RANGES_24H = {
-  // Malaysia AAQS (24-hour): 30 ppb (80 µg/m³)
-  so2: { min: 0, max: 30, unit: "ppb" },
-
-  // Malaysia AAQS (24-hour): 37 ppb (70 µg/m³)
-  no2: { min: 0, max: 37, unit: "ppb" },
-
-  // Contract 24-hour: 5 ppb (7 µg/m³)
-  h2s: { min: 0, max: 5, unit: "ppb" },
-
-  // BTEX 24-hour limits per contract.
-  // Lower bound is the GC955 detection limit (LOD); values below are flagged
-  // as below-LOD (treated as out_of_range against the operational floor).
-  benzene: { min: 0.03, max: 0.72, unit: "ppb" },      // 2.3 µg/m³
-  toluene: { min: 0.03, max: 106, unit: "ppb" },       // 400 µg/m³
-  ethylbenzene: { min: 0.02, max: 106, unit: "ppb" },  // 460 µg/m³
-  xylenes: { min: 0.02, max: 161, unit: "ppb" },       // 700 µg/m³ total xylene
+  ph: { min: 6.0, max: 9.0, unit: "pH" },
+  do: { min: 5.0, max: 20, unit: "mg/L" },
+  nh3n: { min: 0, max: 0.3, unit: "mg/L" },
+  cod: { min: 0, max: 25, unit: "mg/L" },
+  bod: { min: 0, max: 3, unit: "mg/L" },
+  tss: { min: 0, max: 50, unit: "mg/L" },
+  temperature: { min: 20, max: 35, unit: "°C" },
+  pressure: { min: 95, max: 106, unit: "kPa" },
 };
 
-// Default export retained as 1H map for any legacy import paths.
+// Default export for backward-compat import paths
 export const OPERATIONAL_RANGES = OPERATIONAL_RANGES_1H;
 
-// Backward compatibility - keep PARAMETER_RANGES as alias to INSTRUMENT_RANGES
+// Backward compatibility alias
 export const PARAMETER_RANGES = INSTRUMENT_RANGES;

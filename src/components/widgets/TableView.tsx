@@ -6,28 +6,20 @@ import { useUnits } from "../../context/UnitContext";
 
 interface DataRow {
   t: string;
-  so2: number;
-  h2s: number;
-  no2: number;
-  // BTEX components (Synspec GC955, all in ppb)
-  benzene: number;
-  toluene: number;
-  ethylbenzene: number;
-  xylenes: number;
-  solar: number;
+  ph: number;
+  do: number;
+  nh3n: number;
+  cod: number;
+  bod: number;
+  tss: number;
   temperature: number;
-  humidity: number;
   pressure: number;
-  rain: number;
-  windSpeed: number;
-  windDir: number;
+  depth: number;
 }
 
 type TableViewProps = {
   data: DataRow[];
   device: string;
-  // startDate and endDate are kept for potential future use but not currently used
-  // Backend already handles date filtering
   startDate?: string;
   endDate?: string;
   devices: any[];
@@ -38,10 +30,8 @@ export default function TableView({ data, device, devices }: TableViewProps) {
   const [itemsPerPage, setItemsPerPage] = useState(15);
   const { convert, getUnit } = useUnits();
 
-  // Backend already filters by date range, so use data directly
   const filteredData = data;
 
-  // Calculate pagination
   const totalItems = filteredData.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -82,166 +72,77 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
                   Location
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>SO₂</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("so2")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                  <div>pH</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("ph")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>H₂S</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("h2s")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                  <div>DO</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("do")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>NO₂</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("no2")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[110px]">
+                  <div>NH₃-N</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("nh3n")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>Benzene</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("benzene")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                  <div>COD</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("cod")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>Toluene</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("toluene")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                  <div>BOD</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("bod")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
-                  <div>Ethylbenzene</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("ethylbenzene")}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>Xylene</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("xylenes")}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
-                  <div>Solar Radiation</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("solar")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                  <div>TSS</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("tss")}</div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
                   <div>Temperature</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("temperature")}
-                  </div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("temperature")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>Humidity</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("humidity")}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[110px]">
                   <div>Pressure</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("pressure")}
-                  </div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("pressure")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>Rain</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("rain")}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
-                  <div>Wind Speed</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("windSpeed")}
-                  </div>
-                </th>
-                <th className="px-4 py-3 text-center font-semibold min-w-[120px]">
-                  <div>Wind Direction</div>
-                  <div className="text-xs font-normal text-gray-400">
-                    {getUnit("windDirection")}
-                  </div>
+                <th className="px-4 py-3 text-center font-semibold min-w-[100px]">
+                  <div>Depth</div>
+                  <div className="text-xs font-normal text-gray-400">{getUnit("depth")}</div>
                 </th>
               </tr>
             </thead>
             <tbody>
               {currentData.map((row, idx) => (
-                <tr
-                  key={idx}
-                  className="border-b border-white/5 hover:bg-white/5"
-                >
-                  <td className="px-4 py-3 text-left ">
-                    {formatDateTime(row.t)}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
+                <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                  <td className="px-4 py-3 text-left">{formatDateTime(row.t)}</td>
+                  <td className="px-4 py-3 text-center">
                     {devices.find((d) => d.id === device)?.location || "–"}
                   </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.so2, "so2") ?? 0, "so2")}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.h2s, "h2s") ?? 0, "h2s")}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(convert(row.no2, "no2") ?? 0, "no2")}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.benzene, "benzene") ?? 0,
-                      "benzene",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.toluene, "toluene") ?? 0,
-                      "toluene",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.ethylbenzene, "ethylbenzene") ?? 0,
-                      "ethylbenzene",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.xylenes, "xylenes") ?? 0,
-                      "xylenes",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.solar, "solar") ?? 0,
-                      "solar",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.temperature, "temperature") ?? 0,
-                      "temperature",
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(row.humidity, "humidity")}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(row.pressure, "pressure")}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(row.rain, "rain")}
-                  </td>
-                  <td className="px-4 py-3 text-center ">
-                    {formatPollutantValue(
-                      convert(row.windSpeed, "windSpeed") ?? 0,
-                      "windSpeed",
-                    )}
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.ph, "ph") ?? row.ph, "ph")}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {formatPollutantValue(row.windDir, "windDir")}
+                    {formatPollutantValue(convert(row.do, "do") ?? row.do, "do")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.nh3n, "nh3n") ?? row.nh3n, "nh3n")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.cod, "cod") ?? row.cod, "cod")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.bod, "bod") ?? row.bod, "bod")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.tss, "tss") ?? row.tss, "tss")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.temperature, "temperature") ?? row.temperature, "temperature")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.pressure, "pressure") ?? row.pressure, "pressure")}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    {formatPollutantValue(convert(row.depth, "depth") ?? row.depth, "depth")}
                   </td>
                 </tr>
               ))}
@@ -250,7 +151,6 @@ export default function TableView({ data, device, devices }: TableViewProps) {
         </div>
       </div>
 
-      {/* Pagination */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}

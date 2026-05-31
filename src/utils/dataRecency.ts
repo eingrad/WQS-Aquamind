@@ -22,16 +22,15 @@ export const hasRecentData = (
   const dataWithValues = data.filter((item) => {
     // Check if any sensor value is non-zero and non-null
     const sensorKeys = [
-      "so2",
-      "h2s",
-      "no2",
-      "btx",
+      "ph",
+      "do",
+      "nh3n",
+      "cod",
+      "bod",
+      "tss",
       "temperature",
-      "humidity",
-      "solar",
       "pressure",
-      "rain",
-      "windSpeed",
+      "depth",
     ];
     return sensorKeys.some((key) => {
       const value = item[key];

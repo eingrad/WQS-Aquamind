@@ -5,13 +5,12 @@ import { UnitProvider } from "./context/UnitContext";
 import { isAuthenticated } from "./services/auth.service";
 import { getStorageItem, STORAGE_KEYS } from "./utils/storage";
 import ErrorBoundary from "./components/common/ErrorBoundary";
-import PetronasLogin from "./pages/auth/login";
+import Login from "./pages/auth/login";
 import DashboardPage from "./pages/main/dashboard";
-import OverviewPage from "./pages/overview/map";
+import OverviewPage from "./pages/overview/newmap";
 import ReportsPage from "./pages/report/ReportsPage";
 import SettingsPage from "./pages/settings/SettingPage";
 import TelegramSetupGuide from "./pages/settings/TelegramSetupGuide";
-import WindDirectionMap from "./pages/overview/newmap";
 import DataValidationPage from "./pages/validation/DataValidationPage";
 import DataValidationApprovalPage from "./pages/validation/DataValidationApprovalPage";
 import ThresholdManagementPage from "./pages/alerts/ThresholdManagementPage";
@@ -95,7 +94,7 @@ export default function App() {
         <BrowserRouter>
           <DynamicTitle />
           <Routes>
-            <Route path="/login" element={<PetronasLogin />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<PrivateRoute element={<DashboardPage />} />} />
             <Route path="/analytics" element={<RoleRoute element={<AnalyticsPage />} allowedRoles={["admin", "qa_qc", "technician", "user"]} />} />
             <Route path="/overview" element={<PrivateRoute element={<OverviewPage />} />} />
@@ -107,8 +106,7 @@ export default function App() {
             <Route path="/parameters" element={<PrivateRoute element={<ParameterInfoPage />} />} />
             <Route path="/settings" element={<PrivateRoute element={<SettingsPage />} />} />
             <Route path="/telegram-setup" element={<PrivateRoute element={<TelegramSetupGuide />} />} />
-            <Route path="/newmap" element={<PrivateRoute element={<WindDirectionMap />} />} />
-            <Route path="/displays" element={<RoleRoute element={<DisplayBuilderPage />} allowedRoles={["admin", "qa_qc"]} />} />
+<Route path="/displays" element={<RoleRoute element={<DisplayBuilderPage />} allowedRoles={["admin", "qa_qc"]} />} />
             <Route path="/maintenance" element={<RoleRoute element={<MaintenancePage />} allowedRoles={["admin", "technician"]} />} />
             <Route path="/display/:slug" element={<DisplayViewerPage />} />
             <Route path="*" element={<Navigate to="/login" replace />} />

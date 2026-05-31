@@ -5,17 +5,15 @@ export interface SensorReading {
   recordId: string;
   deviceId: string;
   observedAt: string;
-  so2Value: string | null;
-  h2sValue: string | null;
-  no2Value: string | null;
-  btexValue: string | null;
+  phValue: string | null;
+  doValue: string | null;
+  nh3nValue: string | null;
+  codValue: string | null;
+  bodValue: string | null;
+  tssValue: string | null;
   tempValue: string | null;
-  humidityValue: string | null;
-  wsValue: string | null;
-  wdValue: string | null;
-  solarValue: string | null;
   pressureValue: string | null;
-  rainValue: string | null;
+  depthValue: string | null;
   dataQuality: string;
   device?: {
     name: string;
@@ -26,19 +24,19 @@ export interface SensorReading {
 
 export interface TimeSeriesBucket {
   bucket: string;
-  so2_avg?: number;
-  so2_min?: number;
-  so2_max?: number;
-  no2_avg?: number;
-  no2_min?: number;
-  no2_max?: number;
-  h2s_avg?: number;
-  btex_avg?: number;
+  ph_avg?: number;
+  ph_min?: number;
+  ph_max?: number;
+  do_avg?: number;
+  do_min?: number;
+  do_max?: number;
+  nh3n_avg?: number;
+  cod_avg?: number;
+  bod_avg?: number;
+  tss_avg?: number;
   temperature_avg?: number;
-  humidity_avg?: number;
-  windSpeed_avg?: number;
-  windDirection_avg?: number;
-  solar_avg?: number;
+  pressure_avg?: number;
+  depth_avg?: number;
   count: number;
 }
 
@@ -78,15 +76,15 @@ export const getHourlyAverages = async (params: {
   startDate: string;
   endDate: string;
   parameter:
-    | "so2"
-    | "h2s"
-    | "no2"
-    | "btex"
+    | "ph"
+    | "do"
+    | "nh3n"
+    | "cod"
+    | "bod"
+    | "tss"
     | "temperature"
-    | "humidity"
-    | "windSpeed"
-    | "windDirection"
-    | "solar";
+    | "pressure"
+    | "depth";
 }) => {
   const response = await api.get("/sensors/readings/hourly-avg", { params });
   return response.data.data;

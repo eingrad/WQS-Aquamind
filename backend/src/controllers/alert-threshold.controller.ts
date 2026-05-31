@@ -11,22 +11,15 @@ import * as thresholdService from "../services/alert-threshold.service";
 // against them. Keep this list in sync with backend/src/services/mqtt.service.ts
 // CHANNEL_MAP and the ranges in parameter-ranges.ts.
 const ALERT_PARAMETER_CODES = [
-  "so2",
-  "h2s",
-  "no2",
-  "no",
-  "nox",
-  "benzene",
-  "toluene",
-  "ethylbenzene",
-  "xylenes",
+  "ph",
+  "do",
+  "nh3n",
+  "cod",
+  "bod",
+  "tss",
   "temperature",
-  "humidity",
-  "windSpeed",
-  "windDirection",
-  "solar",
   "pressure",
-  "rain",
+  "depth",
 ] as const;
 
 const createThresholdSchema = z.object({

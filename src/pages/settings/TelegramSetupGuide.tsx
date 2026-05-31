@@ -80,7 +80,7 @@ const STEPS = [
   },
   {
     number: 2,
-    title: "Start the PETRONAS Alert Bot",
+    title: "Start the AquaMind Alert Bot",
     description: "Search for our bot on Telegram and initiate a conversation.",
     icon: Search,
     color: "from-teal-500 to-emerald-500",
@@ -107,7 +107,7 @@ const STEPS = [
             <span className="text-sm text-gray-300">
               Search for{" "}
               <code className="bg-teal-900/40 text-teal-300 px-2 py-0.5 rounded text-xs font-mono">
-                @PetronasMonitorBot
+                @AquaMindAlertBot
               </code>{" "}
               (or the bot name provided by your admin).
             </span>

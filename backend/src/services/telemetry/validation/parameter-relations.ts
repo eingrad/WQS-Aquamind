@@ -1,32 +1,23 @@
 /**
- * Parameter Relation Validation
+ * Water Quality Parameter Relation Validation
  * Detects suspicious cross-parameter readings that individually pass range checks
- * but together indicate sensor malfunction or data quality issues.
+ * but together indicate sensor malfunction or real water quality issues.
  *
  * Based on:
- * - Petrochemical industry standards
- * - Physical laws (thermodynamics, meteorology)
- * - PETRONAS regulatory requirements
+ * - Malaysia NWQS Class II standards
+ * - Aquatic chemistry principles (dissolved oxygen saturation, pH buffering)
  */
 
 export interface TelemetryReadings {
-  so2?: number;
-  h2s?: number;
-  no2?: number;
-  no?: number;
-  nox?: number;
-  // BTEX components — Synspec GC955 (ppb)
-  benzene?: number;
-  toluene?: number;
-  ethylbenzene?: number;
-  xylenes?: number;
-  temperature?: number;
-  humidity?: number;
-  windSpeed?: number;
-  windDirection?: number;
-  solar?: number;
-  pressure?: number;
-  rain?: number;
+  ph?: number;
+  do?: number;         // Dissolved Oxygen (mg/L)
+  nh3n?: number;       // Ammonia-Nitrogen (mg/L)
+  cod?: number;        // Chemical Oxygen Demand (mg/L)
+  bod?: number;        // Biochemical Oxygen Demand (mg/L)
+  tss?: number;        // Total Suspended Solids (mg/L)
+  temperature?: number; // Water Temperature (°C)
+  pressure?: number;   // Pressure (kPa)
+  depth?: number;      // Water Depth (m)
 }
 
 export interface RelationViolation {
@@ -37,22 +28,32 @@ export interface RelationViolation {
 }
 
 /**
- * Check H2S-SO2 correlation
- * Both are sulfur-based pollutants from petroleum refining
+ * Check DO vs Temperature relationship
+ * DO saturation decreases as water temperature rises.
+ * Very high DO at very high temperature is physically impossible.
  */
-const checkH2S_SO2Correlation = (
+const checkDO_TemperatureRelationship = (
   readings: TelemetryReadings
 ): RelationViolation | null => {
-  const { h2s, so2 } = readings;
+  const { do: doVal, temperature } = readings;
+  if (doVal === undefined || temperature === undefined) return null;
 
-  if (h2s === undefined || so2 === undefined) return null;
-
-  // High H2S (>30 ppb) should correlate with elevated SO2 (>20 ppb)
-  if (h2s > 30 && so2 < 20) {
+  // At 35°C DO saturation is ~6.9 mg/L; values much above this suggest sensor error
+  if (temperature > 33 && doVal > 9) {
     return {
-      name: "H2S-SO2 Correlation",
-      description: `High H2S (${h2s} ppb) but unexpectedly low SO2 (${so2} ppb)`,
-      affectedParameters: ["h2s", "so2"],
+      name: "DO-Temperature Saturation",
+      description: `Unusually high DO (${doVal} mg/L) at elevated water temperature (${temperature}°C) — exceeds saturation limit`,
+      affectedParameters: ["do", "temperature"],
+      severity: "warning",
+    };
+  }
+
+  // Very low temperature with very low DO is unusual for Malaysia rivers
+  if (temperature < 22 && doVal < 3) {
+    return {
+      name: "DO-Temperature Anomaly",
+      description: `Very low DO (${doVal} mg/L) at unexpectedly low temperature (${temperature}°C)`,
+      affectedParameters: ["do", "temperature"],
       severity: "warning",
     };
   }
@@ -61,56 +62,32 @@ const checkH2S_SO2Correlation = (
 };
 
 /**
- * Check temperature-humidity physics
- * Hot air holds more moisture, so high temp → lower relative humidity
+ * Check BOD vs DO relationship
+ * High organic load (BOD) depletes dissolved oxygen through microbial respiration.
+ * Very high BOD with very high DO is chemically inconsistent.
  */
-const checkTemperatureHumidityPhysics = (
+const checkBOD_DORelationship = (
   readings: TelemetryReadings
 ): RelationViolation | null => {
-  const { temperature, humidity } = readings;
+  const { bod, do: doVal } = readings;
+  if (bod === undefined || doVal === undefined) return null;
 
-  if (temperature === undefined || humidity === undefined) return null;
-
-  // Very high temperature with very high humidity is unusual for Malaysia
-  if (temperature > 33 && humidity > 92) {
+  // High BOD (>20 mg/L) should depress DO significantly; DO > 8 mg/L in that case is suspicious
+  if (bod > 20 && doVal > 8) {
     return {
-      name: "Temperature-Humidity Physics",
-      description: `Unusually high temp (${temperature}°C) with very high humidity (${humidity}%)`,
-      affectedParameters: ["temperature", "humidity"],
+      name: "BOD-DO Inconsistency",
+      description: `High organic load (BOD ${bod} mg/L) but unexpectedly high DO (${doVal} mg/L)`,
+      affectedParameters: ["bod", "do"],
       severity: "warning",
     };
   }
 
-  // Too cold and too dry for Malaysia's tropical climate
-  if (temperature < 22 && humidity < 65) {
+  // Critically low DO (<1 mg/L) with low BOD (<2 mg/L) may indicate sensor fault
+  if (doVal < 1 && bod < 2) {
     return {
-      name: "Temperature-Humidity Physics",
-      description: `Unusually low temp (${temperature}°C) with low humidity (${humidity}%)`,
-      affectedParameters: ["temperature", "humidity"],
-      severity: "warning",
-    };
-  }
-
-  return null;
-};
-
-/**
- * Check NO2-SO2 combustion relationship
- * Both produced during combustion/flaring events
- */
-const checkNO2_SO2Combustion = (
-  readings: TelemetryReadings
-): RelationViolation | null => {
-  const { no2, so2 } = readings;
-
-  if (no2 === undefined || so2 === undefined) return null;
-
-  // Elevated NO2 (>120 ppb) often accompanies SO2 (>30 ppb) during flaring
-  if (no2 > 120 && so2 < 30) {
-    return {
-      name: "NO2-SO2 Combustion",
-      description: `High NO2 (${no2} ppb) from combustion but unexpectedly low SO2 (${so2} ppb)`,
-      affectedParameters: ["no2", "so2"],
+      name: "DO-BOD Anomaly",
+      description: `Near-zero DO (${doVal} mg/L) with low BOD (${bod} mg/L) — possible DO sensor fault`,
+      affectedParameters: ["do", "bod"],
       severity: "warning",
     };
   }
@@ -119,43 +96,54 @@ const checkNO2_SO2Combustion = (
 };
 
 /**
- * Check BTEX-wind relationship.
- * VOCs disperse with wind, accumulate in calm conditions. The Synspec GC955
- * reports BTEX as 5 separate isomer channels — for this rule we sum them to
- * get total BTEX and apply the same dispersal-violation threshold as before.
+ * Check pH vs Ammonia relationship
+ * At high pH (>9), un-ionised (toxic) ammonia fraction increases dramatically.
+ * High pH with high NH3-N is a critical water quality signal.
  */
-const checkBTEX_WindRelationship = (
+const checkPH_AmmoniaRelationship = (
   readings: TelemetryReadings
 ): RelationViolation | null => {
-  const {
-    benzene,
-    toluene,
-    ethylbenzene,
-    xylenes,
-    windSpeed,
-  } = readings;
+  const { ph, nh3n } = readings;
+  if (ph === undefined || nh3n === undefined) return null;
 
-  if (windSpeed === undefined) return null;
-
-  // Need at least one BTEX component reading; otherwise skip the rule.
-  const components = [benzene, toluene, ethylbenzene, xylenes];
-  const present = components.filter((v) => v !== undefined) as number[];
-  if (present.length === 0) return null;
-
-  const totalBtex = present.reduce((a, b) => a + b, 0);
-
-  // Very high BTEX total with very high wind is unusual (should disperse)
-  if (totalBtex > 5 && windSpeed > 15) {
+  if (ph > 9 && nh3n > 1.0) {
     return {
-      name: "BTEX-Wind Relationship",
-      description: `High total BTEX (${totalBtex.toFixed(2)} ppb) despite strong wind (${windSpeed} m/s) dispersal`,
-      affectedParameters: [
-        "benzene",
-        "toluene",
-        "ethylbenzene",
-        "xylenes",
-        "windSpeed",
-      ],
+      name: "pH-Ammonia Toxicity",
+      description: `High pH (${ph}) combined with elevated NH₃-N (${nh3n} mg/L) increases un-ionised ammonia toxicity`,
+      affectedParameters: ["ph", "nh3n"],
+      severity: "critical",
+    };
+  }
+
+  // Very low pH with high ammonia is unusual (low pH suppresses free ammonia)
+  if (ph < 5 && nh3n > 5) {
+    return {
+      name: "pH-Ammonia Anomaly",
+      description: `Low pH (${ph}) with high NH₃-N (${nh3n} mg/L) — unusual combination, check sensors`,
+      affectedParameters: ["ph", "nh3n"],
+      severity: "warning",
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Check COD vs BOD relationship
+ * COD is always ≥ BOD because COD measures all oxidisable matter.
+ * BOD > COD indicates a sensor or calculation error.
+ */
+const checkCOD_BODRelationship = (
+  readings: TelemetryReadings
+): RelationViolation | null => {
+  const { cod, bod } = readings;
+  if (cod === undefined || bod === undefined) return null;
+
+  if (bod > cod) {
+    return {
+      name: "BOD > COD Violation",
+      description: `BOD (${bod} mg/L) exceeds COD (${cod} mg/L) — physically impossible, check sensors`,
+      affectedParameters: ["cod", "bod"],
       severity: "critical",
     };
   }
@@ -164,32 +152,7 @@ const checkBTEX_WindRelationship = (
 };
 
 /**
- * Check temperature-solar radiation relationship
- * High solar radiation → temperature increase
- */
-const checkTemperatureSolarRelationship = (
-  readings: TelemetryReadings
-): RelationViolation | null => {
-  const { temperature, solar } = readings;
-
-  if (temperature === undefined || solar === undefined) return null;
-
-  // Very high solar with low temperature is suspicious
-  if (solar > 1000 && temperature < 25) {
-    return {
-      name: "Temperature-Solar Radiation",
-      description: `Intense sun (${solar} W/m²) but cool temp (${temperature}°C)`,
-      affectedParameters: ["temperature", "solar"],
-      severity: "warning",
-    };
-  }
-
-  return null;
-};
-
-/**
  * Check all parameter relationships
- * Returns list of violations detected
  */
 export const checkParameterRelations = (
   readings: TelemetryReadings
@@ -197,34 +160,27 @@ export const checkParameterRelations = (
   const violations: RelationViolation[] = [];
 
   const checks = [
-    checkH2S_SO2Correlation,
-    checkTemperatureHumidityPhysics,
-    checkNO2_SO2Combustion,
-    checkBTEX_WindRelationship,
-    checkTemperatureSolarRelationship,
+    checkDO_TemperatureRelationship,
+    checkBOD_DORelationship,
+    checkPH_AmmoniaRelationship,
+    checkCOD_BODRelationship,
   ];
 
   for (const check of checks) {
     const violation = check(readings);
-    if (violation) {
-      violations.push(violation);
-    }
+    if (violation) violations.push(violation);
   }
 
   return violations;
 };
 
 /**
- * Get affected parameters from violations
+ * Get the set of affected parameters from a list of violations
  */
 export const getAffectedParameters = (
   violations: RelationViolation[]
 ): Set<string> => {
   const affected = new Set<string>();
-
-  violations.forEach((v) => {
-    v.affectedParameters.forEach((param) => affected.add(param));
-  });
-
+  violations.forEach((v) => v.affectedParameters.forEach((p) => affected.add(p)));
   return affected;
 };

@@ -15,20 +15,15 @@ import {
 import { CircleCheckBig } from "lucide-react";
 
 const parameterDisplayNames: Record<string, string> = {
-  so2: "SO₂",
-  h2s: "H₂S",
-  no2: "NO₂",
-  benzene: "Benzene",
-  toluene: "Toluene",
-  ethylbenzene: "Ethylbenzene",
-  xylenes: "Xylene",
-  windSpeed: "Wind Speed",
-  windDirection: "Wind Direction",
+  ph: "pH",
+  do: "DO",
+  nh3n: "NH₃-N",
+  cod: "COD",
+  bod: "BOD",
+  tss: "TSS",
   temperature: "Temperature",
-  humidity: "Humidity",
   pressure: "Pressure",
-  solar: "Solar Radiation",
-  rain: "Rain",
+  depth: "Depth",
 };
 
 export default function DataValidationApprovalPage() {

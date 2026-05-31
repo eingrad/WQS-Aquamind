@@ -18,26 +18,32 @@ interface QueryOptions {
  * Get telemetry readings with filtering and pagination
  */
 export const getReadings = async (options: QueryOptions) => {
-  const { page = 1, limit = 100, deviceId, startDate, endDate } = options;
+  const { page = 1, limit = 100, deviceId, startDate, endDate, dataQuality } = options;
 
   const where: any = {};
 
   if (deviceId) where.deviceId = deviceId;
+  if (dataQuality) where.dataQuality = dataQuality;
   if (startDate && endDate) {
-    where.receivedAt = {
+    where.observedAt = {
       gte: startDate,
       lte: endDate,
     };
   }
 
   const [data, total] = await Promise.all([
-    prisma.telemetryRaw.findMany({
+    prisma.telemetryProcessed.findMany({
       where,
-      orderBy: { receivedAt: "desc" },
+      orderBy: { observedAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
+      include: {
+        device: {
+          select: { name: true, deviceCode: true, location: true },
+        },
+      },
     }),
-    prisma.telemetryRaw.count({ where }),
+    prisma.telemetryProcessed.count({ where }),
   ]);
 
   return {
@@ -52,11 +58,16 @@ export const getReadings = async (options: QueryOptions) => {
 };
 
 /**
- * Get a single reading by rawId
+ * Get a single reading by recordId
  */
 export const getReadingById = async (id: string) => {
-  const reading = await prisma.telemetryRaw.findUnique({
-    where: { rawId: id },
+  const reading = await prisma.telemetryProcessed.findUnique({
+    where: { recordId: id },
+    include: {
+      device: {
+        select: { name: true, deviceCode: true, location: true },
+      },
+    },
   });
 
   if (!reading) {
@@ -75,10 +86,15 @@ export const getLatestReadings = async (
 ) => {
   const where = deviceId ? { deviceId } : {};
 
-  return await prisma.telemetryRaw.findMany({
+  return await prisma.telemetryProcessed.findMany({
     where,
-    orderBy: { receivedAt: "desc" },
+    orderBy: { observedAt: "desc" },
     take: limit,
+    include: {
+      device: {
+        select: { name: true, deviceCode: true, location: true },
+      },
+    },
   });
 };
 

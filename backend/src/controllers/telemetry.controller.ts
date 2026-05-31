@@ -196,7 +196,7 @@ export const getTimeSeries = async (
       startDate: new Date(query.startDate),
       endDate: new Date(query.endDate),
       interval: query.interval,
-      parameters: query.parameters || "so2,h2s,no2", // Provide default if undefined
+      parameters: query.parameters || "ph,do,nh3n", // Provide default if undefined
     });
 
     res.status(200).json({

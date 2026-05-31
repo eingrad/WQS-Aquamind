@@ -1,9 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import {
-  DEFAULT_UNITS,
+  BASE_UNITS,
   UNIT_OPTIONS,
-  convertValue,
-  getDisplayUnit,
+  convertUnit,
 } from "../utils/unitConversion";
 import { getStorageItem, setStorageItem } from "../utils/storage";
 
@@ -35,7 +34,7 @@ export function UnitProvider({ children }: { children: ReactNode }) {
   const [units, setUnits] = useState<Record<string, string>>(() => {
     // Load from localStorage on init
     const saved = getStorageItem<Record<string, string>>(STORAGE_KEY);
-    return saved && typeof saved === "object" ? { ...DEFAULT_UNITS, ...saved } : { ...DEFAULT_UNITS };
+    return saved && typeof saved === "object" ? { ...BASE_UNITS, ...saved } : { ...BASE_UNITS };
   });
 
   // Persist to localStorage whenever units change
@@ -48,15 +47,17 @@ export function UnitProvider({ children }: { children: ReactNode }) {
   };
 
   const resetUnits = () => {
-    setUnits({ ...DEFAULT_UNITS });
+    setUnits({ ...BASE_UNITS });
   };
 
   const convert = (value: number | null | undefined, parameter: string): number | null => {
-    return convertValue(value, parameter, units[parameter] || DEFAULT_UNITS[parameter]);
+    if (value == null) return null;
+    const targetUnit = units[parameter] || BASE_UNITS[parameter];
+    return convertUnit(value, parameter, BASE_UNITS[parameter], targetUnit) ?? value;
   };
 
   const getUnit = (parameter: string): string => {
-    return getDisplayUnit(parameter, units);
+    return units[parameter] || BASE_UNITS[parameter];
   };
 
   const getOptions = (parameter: string): string[] => {

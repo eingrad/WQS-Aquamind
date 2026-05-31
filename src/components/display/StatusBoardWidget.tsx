@@ -10,22 +10,20 @@ interface StatusBoardWidgetProps {
   parameters: string[];
 }
 
-// Default thresholds for status coloring
+// Malaysia NWQS Class II upper-bound thresholds for status coloring
 const DEFAULT_THRESHOLDS: Record<
   string,
   { warning: number; critical: number }
 > = {
-  so2: { warning: 0.2, critical: 0.5 },
-  h2s: { warning: 0.02, critical: 0.05 },
-  no2: { warning: 0.2, critical: 0.5 },
-  btex: { warning: 30, critical: 70 },
-  temperature: { warning: 35, critical: 40 },
-  humidity: { warning: 80, critical: 90 },
-  pressure: { warning: 1020, critical: 1030 },
-  windSpeed: { warning: 10, critical: 15 },
-  solar: { warning: 800, critical: 1000 },
-  rain: { warning: 10, critical: 30 },
-  windDirection: { warning: 999, critical: 999 }, // no threshold for direction
+  ph:          { warning: 8.5,  critical: 9.0  },
+  do:          { warning: 8.0,  critical: 10.0 },
+  nh3n:        { warning: 0.2,  critical: 0.3  },
+  cod:         { warning: 20,   critical: 25   },
+  bod:         { warning: 2.5,  critical: 3.0  },
+  tss:         { warning: 40,   critical: 50   },
+  temperature: { warning: 30,   critical: 35   },
+  pressure:    { warning: 105,  critical: 110  },
+  depth:       { warning: 10,   critical: 15   },
 };
 
 export default function StatusBoardWidget({
@@ -55,17 +53,15 @@ export default function StatusBoardWidget({
             const latest = readings[0];
             const mapped: Record<string, number> = {};
             const keyMap: Record<string, string> = {
-              so2: "so2Value",
-              h2s: "h2sValue",
-              no2: "no2Value",
-              btex: "btexValue",
+              ph:          "phValue",
+              do:          "doValue",
+              nh3n:        "nh3nValue",
+              cod:         "codValue",
+              bod:         "bodValue",
+              tss:         "tssValue",
               temperature: "tempValue",
-              humidity: "humidityValue",
-              windSpeed: "wsValue",
-              windDirection: "wdValue",
-              solar: "solarValue",
-              pressure: "pressureValue",
-              rain: "rainValue",
+              pressure:    "pressureValue",
+              depth:       "depthValue",
             };
             for (const p of parameters) {
               if (keyMap[p] && latest[keyMap[p]])

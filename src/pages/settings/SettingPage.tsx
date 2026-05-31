@@ -9,19 +9,11 @@ import { useUnits } from "../../context/UnitContext";
 import { UNIT_OPTIONS } from "../../utils/unitConversion";
 import { ChevronDown } from "lucide-react";
 
-// Parameters that have configurable units
+// Parameters that have configurable units (water quality params with >1 unit option)
 const UNIT_SETTINGS = [
-  { key: "so2", label: "Sulfur Dioxide (SO₂)" },
-  { key: "h2s", label: "Hydrogen Sulfide (H₂S)" },
-  { key: "no2", label: "Nitrogen Dioxide (NO₂)" },
-  { key: "btex", label: "Benzene, Toluene, Ethylbenzene, Xylene (BTEX)" },
-  { key: "solar", label: "Solar Radiation" },
   { key: "temperature", label: "Temperature" },
-  { key: "windSpeed", label: "Wind Speed" },
-  { key: "humidity", label: "Humidity" },
-  { key: "windDirection", label: "Wind Direction" },
-  { key: "pressure", label: "Atmospheric Pressure" },
-  { key: "rain", label: "Rainfall" },
+  { key: "pressure",    label: "Water Pressure" },
+  { key: "depth",       label: "Water Depth" },
 ];
 
 export default function SettingsPage() {
@@ -108,74 +100,25 @@ export default function SettingsPage() {
     }
   };
 
-  // Keys that the "BTEX" group control fans out to.
-  const BTEX_KEYS = ["benzene", "toluene", "ethylbenzene", "xylenes"];
-
-  // Handle unit change with feedback. The "btex" key is a virtual group
-  // that updates all four BTEX gases at once.
   const handleUnitChange = (parameter: string, unit: string) => {
-    if (parameter === "btex") {
-      BTEX_KEYS.forEach((key) => setUnit(key, unit));
-    } else {
-      setUnit(parameter, unit);
-    }
+    setUnit(parameter, unit);
     setUnitSaveMessage("Units updated and saved automatically");
     setTimeout(() => setUnitSaveMessage(""), 2000);
   };
 
-  // Format option labels for better readability
   const formatOptionLabel = (param: string, option: string): string => {
-    if (param === "so2") {
-      if (option === "ppm") return "Parts per million (ppm)";
-      if (option === "ppb") return "Parts per billion (ppb)";
-      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
-    }
-    if (param === "h2s") {
-      if (option === "ppm") return "Parts per million (ppm)";
-      if (option === "ppb") return "Parts per billion (ppb)";
-      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
-    }
-    if (param === "no2") {
-      if (option === "ppm") return "Parts per million (ppm)";
-      if (option === "ppb") return "Parts per billion (ppb)";
-      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
-    }
-    if (param === "btex") {
-      if (option === "ppm") return "Parts per million (ppm)";
-      if (option === "ppb") return "Parts per billion (ppb)";
-      if (option === "µg/m³") return "Micrograms per cubic meter (µg/m³)";
-    }
-    if (param === "solar") {
-      if (option === "W/m²") return "Watts per square meter (W/m²)";
-      if (option === "kWh/m²")
-        return "Kilowatt-hours per square meter (kWh/m²)";
-    }
     if (param === "temperature") {
       if (option === "°C") return "Celsius (°C)";
       if (option === "°F") return "Fahrenheit (°F)";
     }
-    if (param === "windSpeed") {
-      if (option === "m/s") return "Meters per second (m/s)";
-      if (option === "km/h") return "Kilometers per hour (km/h)";
-      if (option === "mph") return "Miles per hour (mph)";
-    }
-    if (param === "windDirection") {
-      if (option === "°") return "Degrees (°)";
-      if (option === "Cardinal") return "Cardinal (N, NE, E…)";
-    }
-    if (param === "humidity") {
-      if (option === "%") return "Relative Humidity (%)";
-      if (option === "g/m³") return "Absolute Humidity (g/m³)";
-    }
     if (param === "pressure") {
+      if (option === "kPa") return "Kilopascal (kPa)";
       if (option === "hPa") return "Hectopascal (hPa)";
-      if (option === "mmHg") return "Millimeters of Mercury (mmHg)";
-      if (option === "atm") return "Atmospheres (atm)";
       if (option === "psi") return "Pounds per sq inch (psi)";
     }
-    if (param === "rain") {
-      if (option === "mm") return "Millimeters (mm)";
-      if (option === "in") return "Inches (in)";
+    if (param === "depth") {
+      if (option === "m") return "Meters (m)";
+      if (option === "ft") return "Feet (ft)";
     }
     return option;
   };
@@ -194,13 +137,7 @@ export default function SettingsPage() {
                 const options = UNIT_OPTIONS[key] || [];
                 if (options.length <= 1) return null;
 
-                // For the BTEX group, the displayed value comes from the
-                // benzene unit — all four BTEX gases stay in sync via the
-                // fan-out in handleUnitChange.
-                const currentValue =
-                  key === "btex"
-                    ? units.benzene || options[0]
-                    : units[key] || options[0];
+                const currentValue = units[key] || options[0];
 
                 return (
                   <div key={key}>

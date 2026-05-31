@@ -9,17 +9,15 @@ interface ThresholdFormProps {
 }
 
 const parameters = [
-  { value: "so2", label: "SO₂" },
-  { value: "h2s", label: "H₂S" },
-  { value: "no2", label: "NO₂" },
-  { value: "btex", label: "BTEX" },
-  { value: "temp", label: "Temperature" },
-  { value: "humidity", label: "Humidity" },
-  { value: "ws", label: "Wind Speed" },
-  { value: "wd", label: "Wind Direction" },
-  { value: "solar", label: "Solar Radiation" },
-  { value: "pressure", label: "Pressure" },
-  { value: "rain", label: "Rain" },
+  { value: "ph",          label: "pH" },
+  { value: "do",          label: "Dissolved Oxygen (DO)" },
+  { value: "nh3n",        label: "NH₃-N" },
+  { value: "cod",         label: "COD" },
+  { value: "bod",         label: "BOD" },
+  { value: "tss",         label: "TSS" },
+  { value: "temperature", label: "Temperature" },
+  { value: "pressure",    label: "Pressure" },
+  { value: "depth",       label: "Depth" },
 ];
 
 const operators = [
@@ -42,7 +40,7 @@ export default function ThresholdForm({
   onSuccess,
 }: ThresholdFormProps) {
   const [formData, setFormData] = useState({
-    parameter: threshold?.parameter || "so2",
+    parameter: threshold?.parameter || "ph",
     thresholdType: threshold?.thresholdType || "warning",
     operator: threshold?.operator || ">",
     value: threshold?.value?.toString() || "",

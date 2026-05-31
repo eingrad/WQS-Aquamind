@@ -99,24 +99,16 @@ export const getMinuteBuffer = async (
   try {
     const buffer: Record<string, SensorReading[]> = {};
 
-    // Common parameters
     const parameters = [
-      "so2",
-      "h2s",
-      "no2",
-      "no",
-      "nox",
-      "benzene",
-      "toluene",
-      "ethylbenzene",
-      "xylenes",
+      "ph",
+      "do",
+      "nh3n",
+      "cod",
+      "bod",
+      "tss",
       "temperature",
-      "humidity",
-      "windSpeed",
-      "windDirection",
-      "solar",
       "pressure",
-      "rain",
+      "depth",
     ];
 
     for (const parameter of parameters) {
@@ -148,22 +140,15 @@ export const clearMinuteBuffer = async (
 
   try {
     const parameters = [
-      "so2",
-      "h2s",
-      "no2",
-      "no",
-      "nox",
-      "benzene",
-      "toluene",
-      "ethylbenzene",
-      "xylenes",
+      "ph",
+      "do",
+      "nh3n",
+      "cod",
+      "bod",
+      "tss",
       "temperature",
-      "humidity",
-      "windSpeed",
-      "windDirection",
-      "solar",
       "pressure",
-      "rain",
+      "depth",
     ];
 
     for (const parameter of parameters) {

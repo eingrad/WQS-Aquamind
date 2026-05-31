@@ -34,7 +34,7 @@ export default function AnalyticsPage() {
   const [devicesLoading, setDevicesLoading] = useState(true);
   const [device, setDevice] = useState("");
 
-  const [selectedParams, setSelectedParams] = useState<string[]>(["so2"]);
+  const [selectedParams, setSelectedParams] = useState<string[]>(["ph"]);
   const [timeAverage, setTimeAverage] = useState<TimeAverage>("1h");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
     () => setSelectedParams(PARAMETERS.map((p) => p.key)),
     [],
   );
-  const deselectAllParams = useCallback(() => setSelectedParams(["so2"]), []);
+  const deselectAllParams = useCallback(() => setSelectedParams(["ph"]), []);
 
   // ─── Effects ────────────────────────────────────────────────────────────────
 
@@ -170,12 +170,7 @@ export default function AnalyticsPage() {
           };
 
           selectedParams.forEach((param) => {
-            const key =
-              param === "windSpeed"
-                ? "windspeed_avg"
-                : param === "windDirection"
-                  ? "winddirection_avg"
-                  : `${param}_avg`;
+            const key = `${param}_avg`;
             if (item[key] != null) {
               const raw = parseFloat(item[key]);
               point[param] = convert(raw, param) ?? raw;

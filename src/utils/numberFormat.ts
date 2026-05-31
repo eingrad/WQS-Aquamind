@@ -23,32 +23,22 @@ export const formatSensorValue = (
  * Decimal places configuration for each parameter type
  */
 const PARAMETER_DECIMALS: Record<string, number> = {
-  // Pollutants (concentrations) — all gases stored in ppb
-  so2: 4, // ppb
-  h2s: 4, // ppb
-  no2: 4, // ppb
-  benzene: 4, // ppb
-  toluene: 4, // ppb
-  ethylbenzene: 4, // ppb
-  xylenes: 4, // ppb
-
-  // Meteorological
-  solar: 2, // W/m²
-  temperature: 2, // °C
-  humidity: 2, // %
-  pressure: 2, // hPa
-  rain: 2, // mm
-
-  // Wind
-  windSpeed: 2, // m/s
-  windDirection: 0, // degrees (no decimals for direction)
-  windDir: 0, // legacy alias
+  // Water quality (Malaysia NWQS)
+  ph:          2, // pH units
+  do:          2, // mg/L
+  nh3n:        3, // mg/L (small values need more precision)
+  cod:         1, // mg/L
+  bod:         1, // mg/L
+  tss:         1, // mg/L
+  temperature: 1, // °C
+  pressure:    1, // kPa
+  depth:       2, // m
 };
 
 /**
- * Format a pollutant/parameter value with parameter-specific decimal places
+ * Format a sensor value with parameter-specific decimal places
  * @param value - The numeric value to format
- * @param parameter - The parameter name (e.g., 'so2', 'temperature')
+ * @param parameter - The parameter name (e.g., 'ph', 'do', 'temperature')
  * @returns Formatted string with appropriate decimal places
  */
 export const formatPollutantValue = (

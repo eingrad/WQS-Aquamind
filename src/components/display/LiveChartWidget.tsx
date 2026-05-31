@@ -50,9 +50,7 @@ export default function LiveChartWidget({ deviceId, parameters }: LiveChartWidge
         const transformed: DataPoint[] = data.timeSeries.map((item: any) => {
           const result: any = { t: new Date(item.bucket).getTime() };
           parameters.forEach((param) => {
-            let avgKey = `${param}_avg`;
-            if (param === "windSpeed") avgKey = "windspeed_avg";
-            else if (param === "windDirection") avgKey = "winddirection_avg";
+            const avgKey = `${param}_avg`;
             result[param] = item[avgKey] !== null && item[avgKey] !== undefined
               ? parseFloat(item[avgKey])
               : null;

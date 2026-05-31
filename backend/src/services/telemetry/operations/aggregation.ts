@@ -141,9 +141,9 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
   let output: any;
 
   // Regulatory averaging period — drives the additional range/relation
-  // checks below. Only 1h and 24h have Malaysia AAQS standards.
-  // 1h → Malaysia AAQS 1-hour table (SO2, NO2, environmentals)
-  // 24h / 24h_ma → Malaysia AAQS 24-hour table (SO2, NO2, H2S, BTEX)
+  // checks below. Only 1h and 24h have Malaysia NWQS Class II standards.
+  // 1h → NWQS 1-hour limits (pH, DO, NH3-N, COD, BOD, TSS)
+  // 24h / 24h_ma → NWQS 24-hour limits
   const averagingPeriod: "1h" | "24h" | null =
     interval === "1h"
       ? "1h"

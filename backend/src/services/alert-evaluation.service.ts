@@ -103,8 +103,8 @@ export const batchEvaluateParameters = async (
 ) => {
   const results: EvaluationResult[] = [];
 
-  // aggregatedData keys are already the canonical parameter names
-  // (so2, h2s, no2, no, nox, btex, temperature, windSpeed, windDirection, …)
+  // aggregatedData keys are the canonical parameter names
+  // (ph, do, nh3n, cod, bod, tss, temperature, pressure, depth)
   for (const [parameter, value] of Object.entries(aggregatedData)) {
     if (value === null || value === undefined) continue;
 

@@ -65,17 +65,15 @@ export default function ParameterCardsWidget({
             const latest = readings[0];
             const mapped: Record<string, number> = {};
             const keyMap: Record<string, string> = {
-              so2: "so2Value",
-              h2s: "h2sValue",
-              no2: "no2Value",
-              btex: "btexValue",
+              ph:          "phValue",
+              do:          "doValue",
+              nh3n:        "nh3nValue",
+              cod:         "codValue",
+              bod:         "bodValue",
+              tss:         "tssValue",
               temperature: "tempValue",
-              humidity: "humidityValue",
-              windSpeed: "wsValue",
-              windDirection: "wdValue",
-              solar: "solarValue",
-              pressure: "pressureValue",
-              rain: "rainValue",
+              pressure:    "pressureValue",
+              depth:       "depthValue",
             };
             for (const p of parameters) {
               if (keyMap[p] && latest[keyMap[p]])

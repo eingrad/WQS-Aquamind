@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import logoSrc from "../../assets/petronas-logo-dark-whiteText.svg";
 import { login } from "../../services/auth.service";
 
-export default function PetronasLogin() {
+export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,16 +50,15 @@ export default function PetronasLogin() {
         />
         <div className="relative max-w-md">
           <div className="flex items-center gap-4 mb-6">
-            {/*<img src={logoSrc} alt="Petronas Logo" className="w-12 h-12" />*/}
             <div>
-              <h1 className="font-semibold text-2xl tracking-wide">PETRONAS</h1>
+              <h1 className="font-semibold text-2xl tracking-wide">AquaMind</h1>
               <p className="text-teal-300/80 text-sm">
-                Air Monitoring Dashboard
+                Water Quality Monitoring
               </p>
             </div>
           </div>
           <p className="text-teal-100/80 leading-relaxed">
-            Monitor SO₂, H₂S, NO₂, BTEX and met data across sites in real time.
+            Monitor pH, DO, NH₃-N, COD, BOD, TSS and depth across water monitoring stations in real time.
           </p>
         </div>
       </div>
@@ -70,7 +68,7 @@ export default function PetronasLogin() {
       <div className="flex flex-1 justify-center items-center p-6 sm:p-10">
         <div className="bg-[#142223]/70 shadow-xl backdrop-blur p-8 border border-white/5 rounded-2xl w-full max-w-lg">
           <div className="flex items-center gap-3 mb-6">
-            <img src={logoSrc} alt="Petronas Logo" className="w-50 h-30" />
+            <span className="font-bold text-teal-400 text-2xl tracking-wide">AquaMind</span>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-5">
@@ -80,7 +78,7 @@ export default function PetronasLogin() {
                 type="email"
                 autoFocus
                 className="bg-[#0d1717] px-4 py-3 border border-white/10 focus:border-teal-500/60 rounded-xl outline-none w-full"
-                placeholder="email@petronas.com"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

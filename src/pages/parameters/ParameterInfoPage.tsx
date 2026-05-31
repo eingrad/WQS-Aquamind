@@ -3,13 +3,9 @@ import Sidebar from "../../components/widgets/Sidebar";
 import Topbar from "../../components/widgets/Topbar";
 import { useParametersWithUnits } from "../../data/constants";
 import {
-  Wind,
   Thermometer,
   Droplets,
   Gauge,
-  CloudRain,
-  Compass,
-  Sun,
   FlaskConical,
   Search,
   ChevronDown,
@@ -26,7 +22,7 @@ import type { JSX } from "react";
 type ParameterInfo = {
   key: string;
   description: string;
-  category: "Environmental Compound" | "Meteorological";
+  category: "Water Quality" | "Physical";
   icon: JSX.Element;
   source: string;
   atmosphericBehaviour: string;
@@ -38,198 +34,169 @@ type ParameterInfo = {
 const ICON_CLASS = "w-6 h-6";
 
 const PARAMETER_INFO: ParameterInfo[] = [
-  // ── Environmental Compounds ────────────────────────────────────────────
+  // ── Water Quality Parameters ───────────────────────────────────────────
   {
-    key: "so2",
+    key: "ph",
     description:
-      "Sulfur dioxide (SO\u2082) is a combustion-related gas generated from sulfur-containing fuels and crude oil processing. It is widely used as a key indicator for refinery emissions, particularly those related to sulfur handling and fuel combustion.",
-    category: "Environmental Compound",
+      "pH measures the hydrogen ion concentration of water, indicating acidity or alkalinity on a scale of 0–14. Values below 7 are acidic; above 7 are alkaline. It is a fundamental indicator of overall water chemistry.",
+    category: "Water Quality",
     icon: <FlaskConical className={ICON_CLASS} />,
     source:
-      "In the Pengerang refinery area, SO\u2082 is mainly generated from sulfur recovery units, boilers, heaters, and flaring activities. Additional contributions may come from marine and support operations.",
+      "Natural sources include geological composition, organic matter decomposition, and dissolved CO₂. Anthropogenic sources include industrial discharges, agricultural runoff with fertilisers, and acid rain inputs to the catchment.",
     atmosphericBehaviour:
-      "SO\u2082 is moderately reactive and undergoes oxidation to form sulfate aerosols. This process contributes to secondary particulate matter (PM\u2082.\u2085), which can remain suspended in the atmosphere over a longer period. In humid environments, SO\u2082 can form acidic compounds that influence ambient air quality. Its dispersion is strongly dependent on wind conditions and atmospheric stability.",
+      "pH affects the solubility and bioavailability of nutrients, metals, and dissolved gases. Extreme values impair aquatic life and disrupt biochemical processes. Diurnal fluctuations occur due to photosynthesis (raising pH during daylight) and respiration (lowering pH at night).",
     meteorologicalInteraction:
-      "High relative humidity, typical of coastal environments such as Pengerang, enhances the conversion of SO\u2082 into sulfate particles through aqueous-phase reactions. Low wind speed conditions may result in localized accumulation near emission sources, especially within or around the refinery boundary. Solar radiation increases oxidation rates, while rainfall promotes removal through wet deposition. Atmospheric stability, particularly under high-pressure conditions, may limit vertical mixing and lead to higher ground-level concentrations.",
+      "Elevated temperatures generally lower pH due to changes in CO₂ solubility and biological activity. Rainfall runoff introduces acidity or alkalinity depending on catchment geology. Industrial and agricultural discharges are primary anthropogenic drivers of pH deviation.",
     relatedPollutants:
-      "SO\u2082 reacts with ammonia (NH\u2083) to form ammonium sulfate, a major component of PM\u2082.\u2085. It is often observed alongside nitrogen oxides (NO\u2093), as both originate from combustion processes. These interactions contribute to the formation of secondary pollutants and regional haze conditions.",
+      "Closely linked to dissolved oxygen (DO) and ammonia-nitrogen (NH₃-N). Higher pH increases the proportion of toxic free ammonia. Alkalinity and hardness interact with pH to determine buffering capacity. Correlated with BOD during decomposition events.",
     environmentalSignificance:
-      "SO\u2082 monitoring provides a direct indication of sulfur-related emissions from refinery operations. When combined with meteorological data, it supports identification of emission sources, evaluation of dispersion patterns, and assessment of potential impacts on surrounding environments.",
+      "Malaysia NWQS Class II: 6.0–9.0. Sustained deviations beyond this range impair aquatic ecosystems, affect fish reproduction, and may indicate industrial or agricultural pollution. Monitoring supports early detection of acid or alkaline discharge events.",
   },
   {
-    key: "no2",
+    key: "do",
     description:
-      "Nitrogen dioxide (NO\u2082) is a reactive gas formed during high-temperature combustion and is a major component of nitrogen oxides (NO\u2093). It is commonly used as an indicator of combustion efficiency and emission intensity.",
-    category: "Environmental Compound",
+      "Dissolved oxygen (DO) measures the concentration of oxygen dissolved in water. It is the most critical indicator of water body health, directly supporting aerobic aquatic life and governing the rate of organic matter decomposition.",
+    category: "Water Quality",
     icon: <FlaskConical className={ICON_CLASS} />,
     source:
-      "NO\u2082 is mainly produced from refinery combustion units, flaring systems, power generation equipment, and heavy-duty vehicles.",
+      "Oxygen enters water through atmospheric diffusion at the surface and photosynthesis by aquatic plants and algae. It is consumed by respiration of aquatic organisms, microbial oxidation of organic and inorganic matter, and chemical oxygen demand.",
     atmosphericBehaviour:
-      "NO\u2082 plays a key role in atmospheric chemistry. Under sunlight, it undergoes photolysis to form nitric oxide (NO) and atomic oxygen, which subsequently contributes to ozone (O\u2083) formation. This process is a major pathway for photochemical smog development.",
+      "DO concentrations are highly dynamic, varying with temperature, salinity, turbulence, and biological activity. Stratification in deeper water bodies can create hypoxic or anoxic zones in bottom layers that persist seasonally.",
     meteorologicalInteraction:
-      "Solar radiation is a primary driver for NO\u2082 photochemical reactions, particularly in ozone formation. Higher temperatures enhance reaction rates, while low wind speeds can lead to accumulation of NO\u2082 near emission sources. Rainfall contributes to atmospheric cleansing, reducing NO\u2082 levels. Atmospheric stability also affects how NO\u2082 is distributed vertically and horizontally.",
+      "Temperature inversely affects DO — warm water holds less oxygen. Periods of low flow, stagnation, or high organic loading deplete DO rapidly. Rainfall events can temporarily elevate DO through turbulent re-aeration and dilution of organic load.",
     relatedPollutants:
-      "NO\u2082 reacts with volatile organic compounds (VOCs), including BTEX, to form ozone and secondary organic aerosols. It is also linked with particulate matter formation through reactions with ammonia and other atmospheric compounds.",
+      "Low DO is strongly correlated with high BOD and COD, indicating elevated organic pollution load. NH₃-N oxidation through nitrification consumes additional DO. Algal blooms cause extreme diurnal DO swings — supersaturation by day, crash at night.",
     environmentalSignificance:
-      "NO\u2082 monitoring provides insight into combustion-related emissions and allows assessment of ozone formation potential. It is also useful for identifying emission patterns associated with refinery operations and transport activities.",
+      "Malaysia NWQS Class II: ≥7 mg/L. DO below 5 mg/L stresses most fish species; below 2 mg/L causes fish kills. A critical indicator for detecting organic pollution, eutrophication, and the health of aquatic ecosystems.",
   },
   {
-    key: "btex",
+    key: "nh3n",
     description:
-      "BTEX refers to a group of volatile organic compounds (VOCs) \u2014 Benzene, Toluene, Ethylbenzene, and Xylene \u2014 commonly present in petroleum products. These compounds are important indicators of hydrocarbon emissions in refinery environments.",
-    category: "Environmental Compound",
+      "Ammoniacal nitrogen (NH₃-N) represents the total concentration of ammonia (NH₃) and ammonium (NH₄⁺) in water, expressed as nitrogen equivalents. It is a key indicator of organic nitrogen pollution and sewage contamination.",
+    category: "Water Quality",
     icon: <FlaskConical className={ICON_CLASS} />,
     source:
-      "BTEX emissions are mainly from storage tanks, fuel handling systems, loading activities, and fugitive emissions from pipelines and equipment.",
+      "Primary sources include domestic sewage, livestock and aquaculture effluents, industrial wastewater from food processing and chemical plants, and decomposition of nitrogenous organic matter such as plant material and animal waste.",
     atmosphericBehaviour:
-      "BTEX compounds are highly volatile and can disperse quickly depending on wind conditions. Their atmospheric lifetime varies; benzene is more stable, while toluene and xylene degrade more rapidly. These compounds participate in photochemical reactions and contribute to secondary pollutant formation.",
+      "NH₃ and NH₄⁺ exist in dynamic equilibrium in water, with the ratio determined by pH and temperature. At higher pH (>8) and elevated temperatures, the toxic un-ionized free ammonia (NH₃) fraction predominates, increasing toxicity to aquatic life without a change in total concentration.",
     meteorologicalInteraction:
-      "Temperature plays a significant role in BTEX emissions, with higher temperatures increasing evaporation rates. Solar radiation promotes reactions with NO\u2082, leading to ozone formation. Low wind speeds may result in localized accumulation, while higher wind speeds enhance dispersion. Atmospheric mixing height also influences vertical distribution.",
+      "Rising temperatures shift equilibrium toward toxic free ammonia, amplifying ecological impact. Rainfall dilutes NH₃-N in receiving waters, while low-flow dry periods cause accumulation near discharge points. Nitrification (biological oxidation of NH₃) is temperature-dependent and slows in cold conditions.",
     relatedPollutants:
-      "BTEX reacts with NO\u2082 in the presence of sunlight to form ozone and contributes to photochemical smog. It is also closely associated with total VOC (TVOC) levels and hydrocarbon emission profiles.",
+      "Strongly linked to DO depletion through nitrification, which consumes approximately 4.6 mg O₂ per mg NH₃-N oxidised. High NH₃-N correlates with BOD and COD in sewage-polluted waters. Elevated NH₃-N is also associated with phosphorus inputs that drive eutrophication.",
     environmentalSignificance:
-      "BTEX monitoring is essential for identifying fugitive emissions and evaluating hydrocarbon release from refinery operations. It also supports assessment of photochemical pollution potential and overall air quality conditions.",
+      "Malaysia NWQS Class II: <0.3 mg/L. Ammonia is acutely toxic to fish at sub-mg/L concentrations. Monitoring detects sewage discharge, agricultural runoff, and aquaculture pond effluents. A primary driver of eutrophication and oxygen depletion in receiving waters.",
   },
   {
-    key: "h2s",
+    key: "cod",
     description:
-      "Hydrogen sulfide (H\u2082S) is a sulfur-containing gas commonly associated with petroleum processing and organic decomposition processes.",
-    category: "Environmental Compound",
+      "Chemical oxygen demand (COD) measures the total amount of oxygen required to chemically oxidise all organic matter — both biodegradable and recalcitrant — in a water sample. It provides a rapid, comprehensive measure of organic pollution load.",
+    category: "Water Quality",
     icon: <FlaskConical className={ICON_CLASS} />,
     source:
-      "H\u2082S is generated from crude processing units, sulfur recovery systems, and wastewater treatment facilities.",
+      "Industrial effluents, agricultural runoff, domestic wastewater, leachate from waste disposal sites, and natural organic matter decomposition. Recalcitrant industrial organics that resist biological breakdown contribute significantly to COD above BOD.",
     atmosphericBehaviour:
-      "H\u2082S is generally short-lived and disperses rapidly but is often detected close to its source. It can be oxidized into sulfur dioxide and other sulfur compounds over time.",
+      "COD reflects the total oxidisable organic loading of a water body. Unlike BOD, it captures refractory compounds not susceptible to biological breakdown. High COD with persistent elevated readings indicates continuous or chronic organic pollution from industrial or domestic sources.",
     meteorologicalInteraction:
-      "Wind direction is critical for identifying emission sources and determining transport pathways. Low wind speeds may lead to accumulation and increased odour impact. Higher temperatures can increase emission rates from process systems. Humidity may influence odour perception and gas behaviour.",
+      "Rainfall dilution temporarily reduces COD concentrations but increases total pollutant load through runoff. Low-flow dry periods concentrate organics, elevating COD. Industrial discharge events cause acute COD spikes identifiable before BOD tests can be completed.",
     relatedPollutants:
-      "H\u2082S is part of the sulfur cycle and may contribute to SO\u2082 formation through oxidation. It is often associated with odour-related pollutants and may occur together with other reduced sulfur compounds.",
+      "COD is always ≥ BOD₅ for a given sample; the COD:BOD ratio indicates biodegradability. High COD with a normal BOD ratio suggests presence of recalcitrant industrial organics. Correlated with TSS when significant particulate organic matter is present.",
     environmentalSignificance:
-      "H\u2082S monitoring is important for early detection of sulfur-related emissions and for assessing odour impact in the refinery area. It also supports identification of process-related emission events.",
+      "Malaysia NWQS Class II: <25 mg/L. COD monitoring enables rapid detection of industrial and domestic pollution events. Essential for effluent compliance assessment and estimation of oxygen demand on receiving water bodies.",
+  },
+  {
+    key: "bod",
+    description:
+      "Biochemical oxygen demand (BOD₅) measures the amount of dissolved oxygen consumed by microorganisms to biologically decompose organic matter over a standard 5-day incubation at 20°C. It quantifies the biodegradable organic fraction.",
+    category: "Water Quality",
+    icon: <FlaskConical className={ICON_CLASS} />,
+    source:
+      "Domestic sewage, food and beverage processing effluents, agricultural runoff carrying organic matter, and naturally decomposing plant material. Treated wastewater effluent still carries residual BOD that exerts oxygen demand on receiving waters.",
+    atmosphericBehaviour:
+      "BOD reflects the biodegradable fraction of organic matter in water. Elevated BOD drives oxygen depletion in receiving waters through microbial respiration, creating hypoxic conditions. Organic loading from a single event can depress DO for extended periods downstream.",
+    meteorologicalInteraction:
+      "Temperature strongly affects BOD — warmer conditions accelerate biological degradation, increasing oxygen consumption rate. Low-flow periods during dry seasons concentrate BOD load and reduce re-aeration, compounding DO depletion. Wet season turbulence aids re-aeration but increases total organic load.",
+    relatedPollutants:
+      "BOD is directly linked to DO depletion — each unit of BOD5 exerts oxygen demand consuming approximately 1 mg/L of DO. High BOD correlates with elevated NH₃-N through decomposition of nitrogenous organics. Also associated with bacterial indicators of sewage contamination.",
+    environmentalSignificance:
+      "Malaysia NWQS Class II: <3 mg/L. BOD is the primary indicator of domestic sewage and organic pollution. Sustained high BOD leads to oxygen crashes, fish kills, and eutrophication. BOD monitoring is essential for effluent consent compliance and catchment water quality management.",
+  },
+  {
+    key: "tss",
+    description:
+      "Total suspended solids (TSS) measures the mass of all inorganic and organic particles retained on a 0.45 µm filter, expressed in mg/L. It directly represents the particulate matter load and turbidity of the water body.",
+    category: "Water Quality",
+    icon: <FlaskConical className={ICON_CLASS} />,
+    source:
+      "Soil erosion from construction sites and disturbed land, agricultural runoff, storm water from impervious surfaces, industrial discharge, algal growth and biomass, and resuspension of bottom sediments during high-flow events.",
+    atmosphericBehaviour:
+      "Elevated TSS increases water turbidity, reducing light penetration and inhibiting submerged plant photosynthesis. Suspended particles serve as transport vectors for adsorbed pollutants including heavy metals, phosphorus, and pesticides, extending their downstream reach.",
+    meteorologicalInteraction:
+      "Rainfall events and high flow velocities cause bed sediment resuspension and surface runoff, sharply increasing TSS. Extended dry periods promote settling and clarity. Active land clearing or construction dramatically and persistently elevates TSS in downstream waters.",
+    relatedPollutants:
+      "High TSS correlates with elevated COD and BOD when particles carry organic matter. Adsorbed phosphorus transported by TSS contributes to downstream eutrophication. Turbidity from TSS suppresses DO through reduced photosynthesis and increases treatment costs for water supply.",
+    environmentalSignificance:
+      "Malaysia NWQS Class II: <50 mg/L. TSS monitoring identifies erosion impacts, construction and industrial discharge, and storm event responses. High turbidity degrades aquatic habitat, impacts drinking water treatment, and signals wider catchment disturbance.",
   },
 
-  // ── Meteorological Parameters ──────────────────────────────────────────
+  // ── Physical Parameters ────────────────────────────────────────────────
   {
     key: "temperature",
     description:
-      "Temperature represents the thermal condition of the atmosphere.",
-    category: "Meteorological",
+      "Water temperature measures the thermal state of the water body, governing all physical, chemical, and biological processes. It is a master variable that controls reaction rates and the metabolic function of aquatic organisms.",
+    category: "Physical",
     icon: <Thermometer className={ICON_CLASS} />,
-    source: "Solar heating, atmospheric circulation, and land use patterns.",
-    atmosphericBehaviour:
-      "Temperature directly affects the release of volatile compounds such as BTEX from refinery systems and controls the rate of chemical reactions in the atmosphere.",
-    meteorologicalInteraction:
-      "Higher temperatures increase evaporation from storage and process units, leading to higher concentrations of VOCs. They also enhance photochemical reactions, contributing to ozone formation. In contrast, lower temperatures under stable conditions may limit dispersion. Temperature works closely with solar radiation and humidity in controlling reaction rates and pollutant transformation.",
-    relatedPollutants:
-      "Temperature influences emission rates of VOCs (especially BTEX) and controls photochemical reaction rates involving NO\u2082 and ozone formation.",
-    environmentalSignificance:
-      "Temperature is measured to understand how emission rates and atmospheric reactions vary under different conditions. It is a fundamental driver of atmospheric chemistry and pollutant dispersion behaviour.",
-  },
-  {
-    key: "humidity",
-    description:
-      "Relative humidity indicates the amount of moisture present in the air.",
-    category: "Meteorological",
-    icon: <Droplets className={ICON_CLASS} />,
     source:
-      "Evaporation from water bodies, transpiration from vegetation, and atmospheric processes.",
+      "Solar radiation, atmospheric heat exchange, groundwater inputs, and thermal effluent from industrial cooling systems. Riparian shading and flow rate influence the degree of solar heating along a watercourse.",
     atmosphericBehaviour:
-      "Humidity influences chemical transformation and particle formation in the atmosphere, particularly in coastal environments such as Pengerang.",
+      "Temperature governs dissolved oxygen solubility (inversely), chemical reaction rates, and the metabolic activity of aquatic organisms. Thermal stratification in deeper water bodies creates distinct layers with differing oxygen and chemical profiles.",
     meteorologicalInteraction:
-      "High humidity enhances the conversion of SO\u2082 into sulfate particles and may influence the formation of secondary particulate matter. It can also increase the perception of odorous gases such as H\u2082S. Humidity interacts with temperature and pressure to determine atmospheric conditions and pollutant behaviour.",
+      "Solar radiation is the dominant driver of diurnal and seasonal temperature variation. Prolonged hot weather raises water temperature, reducing DO capacity and accelerating biological processes. Industrial thermal discharges cause localised thermal pollution that disrupts aquatic communities.",
     relatedPollutants:
-      "Humidity is closely linked to SO\u2082-to-sulfate conversion, secondary PM\u2082.\u2085 formation, and H\u2082S odour perception.",
+      "Temperature amplifies the impact of all water quality stressors: warmer water holds less DO, increases free ammonia toxicity from NH₃-N, accelerates BOD decomposition, and enhances algal bloom development driving eutrophication.",
     environmentalSignificance:
-      "Humidity is measured to evaluate its influence on chemical transformation and particle formation in the atmosphere, particularly in coastal environments such as Pengerang.",
-  },
-  {
-    key: "windSpeed",
-    description: "Wind speed is the rate at which air moves across a location.",
-    category: "Meteorological",
-    icon: <Wind className={ICON_CLASS} />,
-    source: "Pressure gradients, thermal convection, and geographic features.",
-    atmosphericBehaviour:
-      "Wind speed directly controls the dispersion and dilution of pollutants emitted from the refinery. It determines how far and how quickly emissions travel from their source.",
-    meteorologicalInteraction:
-      "Low wind speeds may lead to accumulation of pollutants near the refinery boundary, resulting in higher localized concentrations. Higher wind speeds promote dispersion and reduce pollutant levels but may transport pollutants over a wider area. Wind speed works together with wind direction to define pollutant transport and dispersion patterns.",
-    relatedPollutants:
-      "Wind speed affects the ground-level concentrations of all emitted pollutants including SO\u2082, NO\u2082, H\u2082S, and BTEX.",
-    environmentalSignificance:
-      "Wind speed is measured to assess the dispersion and dilution of pollutants emitted from the refinery. It is critical for dispersion modelling and emission impact assessment.",
-  },
-  {
-    key: "windDirection",
-    description:
-      "Wind direction indicates the direction from which the wind originates.",
-    category: "Meteorological",
-    icon: <Compass className={ICON_CLASS} />,
-    source:
-      "Synoptic weather patterns, sea-land breezes, and topographic channelling.",
-    atmosphericBehaviour:
-      "Wind direction determines the transport pathway of pollutants from emission sources to receptor areas. It is essential for source attribution analysis.",
-    meteorologicalInteraction:
-      "By correlating pollutant concentration with wind direction, it is possible to confirm whether emissions originate from specific refinery units or external sources. Wind direction, combined with wind speed, forms the basis of dispersion analysis and source identification.",
-    relatedPollutants:
-      "Wind direction is used alongside all pollutant measurements for source identification and transport pathway analysis.",
-    environmentalSignificance:
-      "Wind direction is measured to identify potential emission sources and determine pollutant transport pathways in the refinery area.",
+      "Not a standalone NWQS parameter but critically influences all others. Essential for interpreting DO, NH₃-N toxicity, and BOD data. Monitoring detects thermal pollution from industrial cooling water discharge and supports prediction of seasonal water quality trends.",
   },
   {
     key: "pressure",
     description:
-      "Atmospheric pressure represents the force exerted by the air in the atmosphere.",
-    category: "Meteorological",
+      "Water pressure at the sensor depth, measured in kPa. In open-channel and river monitoring, it reflects the hydrostatic pressure from the overlying water column and serves as the basis for continuous water level measurement.",
+    category: "Physical",
     icon: <Gauge className={ICON_CLASS} />,
-    source: "Atmospheric dynamics, weather systems, and altitude.",
+    source:
+      "Hydrostatic pressure from the water column above the sensor, increasing linearly with depth (approximately 9.81 kPa per metre). Water level is affected by flow regime, tidal influence, dam operations, and rainfall response.",
     atmosphericBehaviour:
-      "Pressure indicates atmospheric stability and mixing conditions, which directly influence how pollutants are distributed vertically and horizontally.",
+      "Pressure changes directly reflect water level fluctuations, which indicate flow regime, catchment response to rainfall, and potential flood conditions. Steady pressure indicates stable flow; rapid increases signal storm events or upstream releases.",
     meteorologicalInteraction:
-      "High-pressure systems are associated with stable conditions that may trap pollutants near the ground, while low-pressure systems enhance mixing and dispersion. Pressure affects temperature profiles, wind patterns, and overall atmospheric stability.",
+      "Heavy rainfall events cause rapid water level and pressure rises as catchment runoff reaches the monitoring point. Extended dry periods reduce water level and pressure readings. Tidal forcing creates predictable pressure oscillations at estuarine stations.",
     relatedPollutants:
-      "Pressure influences the dispersion of all monitored pollutants through its effect on atmospheric stability and mixing height.",
+      "Water level changes alter pollutant dilution, TSS resuspension, and downstream transport rates. High-flow events cause pressure spikes accompanied by elevated TSS and reduced contact time for treatment processes. Low pressure (low level) concentrates pollutants.",
     environmentalSignificance:
-      "Pressure is measured to understand atmospheric stability and mixing conditions, which influence how pollutants are distributed in the Pengerang area.",
+      "Pressure data supports hydrological assessment, real-time flood early warning, and calibration of depth-dependent sensors. Essential for mass loading calculations that convert concentration data into pollutant loads for regulatory reporting and catchment management.",
   },
   {
-    key: "solar",
+    key: "depth",
     description:
-      "Solar radiation is the energy from sunlight reaching the Earth's surface.",
-    category: "Meteorological",
-    icon: <Sun className={ICON_CLASS} />,
+      "Water depth at the monitoring station, derived from the pressure sensor reading and sensor installation depth. It indicates the volume of water above the sensor and provides continuous hydrological context for all water quality measurements.",
+    category: "Physical",
+    icon: <Droplets className={ICON_CLASS} />,
     source:
-      "Solar electromagnetic radiation. Varies with time of day, cloud cover, and season.",
+      "Determined by the flow regime, rainfall catchment response, tidal influence, reservoir and dam operations, and the channel or estuary morphology at the monitoring site.",
     atmosphericBehaviour:
-      "Solar radiation drives photochemical reactions in the atmosphere, particularly those involving refinery emissions. It is the primary energy source for ozone-forming reactions.",
+      "Depth directly affects mixing dynamics, stratification potential, and light penetration to the bed. Shallow water is more susceptible to rapid thermal changes and pollutant concentration fluctuations than deep water with greater buffering volume.",
     meteorologicalInteraction:
-      "Higher solar radiation increases ozone formation through reactions involving NO\u2082 and BTEX. It also enhances overall atmospheric reactivity, particularly during daytime. Solar radiation works together with temperature to control reaction intensity and pollutant transformation.",
+      "Rainfall events cause rapid depth increases as runoff enters the channel. Extended dry periods reduce depth, concentrating all dissolved and suspended parameters. Tidal cycles create predictable and regular depth variations at estuarine and coastal monitoring stations.",
     relatedPollutants:
-      "Solar radiation is the key driver of NO\u2082 photolysis, ozone formation, and photochemical reactions involving BTEX.",
+      "Low depth concentrates dissolved and suspended parameters, amplifying apparent pollution. High depth after storm events dilutes pollutants but significantly increases TSS through bank erosion and bed scour. Depth is essential context for interpreting all concentration measurements.",
     environmentalSignificance:
-      "Solar radiation is measured as it drives photochemical reactions in the atmosphere, particularly those involving refinery emissions.",
-  },
-  {
-    key: "rain",
-    description: "Precipitation refers to rainfall over a given period.",
-    category: "Meteorological",
-    icon: <CloudRain className={ICON_CLASS} />,
-    source:
-      "Atmospheric moisture condensation, convective and frontal weather systems.",
-    atmosphericBehaviour:
-      "Rain reduces concentrations of gases and particles through wet deposition. This results in temporary improvement in air quality, depending on the intensity and duration of rainfall.",
-    meteorologicalInteraction:
-      "Rainfall is influenced by humidity, temperature, and pressure, and directly affects pollutant removal processes. It is a natural air-cleansing mechanism that removes particulates and soluble gases from the atmosphere.",
-    relatedPollutants:
-      "Rain removes SO\u2082, NO\u2082, particulate matter, and other soluble pollutants through wet deposition. Acid rain can form from dissolved SO\u2082 and NO\u2082.",
-    environmentalSignificance:
-      "Rainfall is measured to assess its role in removing pollutants from the atmosphere through wet deposition.",
+      "Depth monitoring enables flow estimation (using rating curves), flood early warning, and pollutant load calculations. Continuous depth data reveals the hydrological dynamics driving water quality variability and is essential for understanding pollutant transport in receiving waters.",
   },
 ];
 
-const CATEGORIES = ["Environmental Compound", "Meteorological"] as const;
+const CATEGORIES = ["Water Quality", "Physical"] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Environmental Compound": "bg-red-500/10 text-red-400 border-red-500/20",
-  Meteorological: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  "Water Quality": "bg-teal-500/10 text-teal-400 border-teal-500/20",
+  Physical: "bg-blue-500/10 text-blue-400 border-blue-500/20",
 };
 
 /* ── Section config for expanded detail ────────────────────────────────────── */
@@ -241,27 +208,27 @@ const DETAIL_SECTIONS: {
 }[] = [
   {
     field: "source",
-    label: "WHERE DOES IT COME FROM",
+    label: "SOURCE OF CONTAMINATION",
     icon: <Factory className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "atmosphericBehaviour",
-    label: "ATMOSPHERIC BEHAVIOUR",
-    icon: <Cloud className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />,
+    label: "BEHAVIOUR IN WATER",
+    icon: <Droplets className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "meteorologicalInteraction",
-    label: "METEOROLOGICAL INTERACTION",
-    icon: <Wind className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />,
+    label: "INFLUENCING FACTORS",
+    icon: <Cloud className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "relatedPollutants",
-    label: "RELATED POLLUTANTS",
+    label: "RELATED PARAMETERS",
     icon: <Link2 className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "environmentalSignificance",
-    label: "ENVIRONMENTAL SIGNIFICANCE",
+    label: "REGULATORY SIGNIFICANCE",
     icon: <Leaf className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />,
   },
 ];
@@ -295,7 +262,7 @@ export default function ParameterInfoPage() {
       />
 
       <div className="flex flex-col flex-1 min-w-0 relative">
-        {/* Ambient atmospheric glows */}
+        {/* Ambient glows */}
         <div className="fixed top-0 left-[20%] w-[40rem] h-[40rem] bg-teal-900/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="fixed bottom-0 right-[10%] w-[30rem] h-[30rem] bg-blue-900/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -318,8 +285,9 @@ export default function ParameterInfoPage() {
                 </span>
               </h1>
               <p className="text-gray-400 text-base sm:text-lg max-w-3xl leading-relaxed">
-                Comprehensive specifications for all environmental and
-                meteorological parameters monitored at station in SK Pengerang.
+                Comprehensive specifications for all water quality and physical
+                parameters monitored at the continuous water quality monitoring
+                station (Malaysia NWQS Class II).
               </p>
             </div>
           </div>
@@ -335,7 +303,6 @@ export default function ParameterInfoPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 sm:py-3.5 bg-transparent border-none rounded-xl text-sm sm:text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 transition-all font-medium"
               />
-              {/* Animated bottom border for input */}
               <div
                 className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-teal-500/0 via-teal-500/30 to-teal-500/0 scale-x-0 transition-transform duration-500 origin-left block"
                 style={{ transform: search ? "scaleX(1)" : "scaleX(0)" }}
@@ -363,13 +330,13 @@ export default function ParameterInfoPage() {
               </button>
               {CATEGORIES.map((cat) => {
                 const isActive = activeCategory === cat;
-                const isEnv = cat === "Environmental Compound";
-                const activeColorClass = isEnv
-                  ? "text-red-100 shadow-[0_0_20px_rgba(248,113,113,0.2)]"
+                const isWq = cat === "Water Quality";
+                const activeColorClass = isWq
+                  ? "text-teal-100 shadow-[0_0_20px_rgba(20,184,166,0.2)]"
                   : "text-blue-100 shadow-[0_0_20px_rgba(96,165,250,0.2)]";
-                const activeBg = isEnv ? "bg-red-500/20" : "bg-blue-300/20";
-                const activeBorder = isEnv
-                  ? "border-red-400/50"
+                const activeBg = isWq ? "bg-teal-500/20" : "bg-blue-300/20";
+                const activeBorder = isWq
+                  ? "border-teal-400/50"
                   : "border-blue-300/50";
 
                 return (
@@ -404,7 +371,7 @@ export default function ParameterInfoPage() {
             {filtered.map((info, idx) => {
               const param = getParam(info.key);
               const isExpanded = expandedKey === info.key;
-              const isEnv = info.category === "Environmental Compound";
+              const isWq = info.category === "Water Quality";
 
               return (
                 <div
@@ -413,8 +380,8 @@ export default function ParameterInfoPage() {
                     isExpanded ? "2xl:col-span-2" : "2xl:col-span-1"
                   } ${
                     isExpanded
-                      ? isEnv
-                        ? "border-red-500/30 shadow-[0_0_40px_rgba(239,68,68,0.06)]"
+                      ? isWq
+                        ? "border-teal-500/30 shadow-[0_0_40px_rgba(20,184,166,0.06)]"
                         : "border-blue-400/30 shadow-[0_0_40px_rgba(96,165,250,0.06)]"
                       : "border-white/5 hover:border-white/10"
                   }`}
@@ -426,8 +393,8 @@ export default function ParameterInfoPage() {
                   {/* Subtle Top Gradient Line */}
                   <div
                     className={`absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
-                      isEnv
-                        ? "bg-gradient-to-r from-red-500/0 via-red-500/50 to-red-500/0"
+                      isWq
+                        ? "bg-gradient-to-r from-teal-500/0 via-teal-500/50 to-teal-500/0"
                         : "bg-gradient-to-r from-blue-400/0 via-blue-400/50 to-blue-400/0"
                     }`}
                   />
@@ -439,10 +406,10 @@ export default function ParameterInfoPage() {
                   >
                     <div
                       className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 border ${
-                        isEnv
+                        isWq
                           ? isExpanded
-                            ? "bg-red-500/10 text-red-400 border-red-500/20 shadow-[inset_0_0_20px_rgba(239,68,68,0.2)]"
-                            : "bg-red-500/5 border-red-500/10 text-red-400/70 group-hover:bg-red-500/10 group-hover:border-red-500/20 group-hover:text-red-400 group-hover:shadow-[inset_0_0_20px_rgba(239,68,68,0.1)]"
+                            ? "bg-teal-500/10 text-teal-400 border-teal-500/20 shadow-[inset_0_0_20px_rgba(20,184,166,0.2)]"
+                            : "bg-teal-500/5 border-teal-500/10 text-teal-400/70 group-hover:bg-teal-500/10 group-hover:border-teal-500/20 group-hover:text-teal-400 group-hover:shadow-[inset_0_0_20px_rgba(20,184,166,0.1)]"
                           : isExpanded
                             ? "bg-blue-400/10 text-blue-400 border-blue-400/20 shadow-[inset_0_0_20px_rgba(96,165,250,0.2)]"
                             : "bg-blue-400/5 border-blue-400/10 text-blue-400/70 group-hover:bg-blue-400/10 group-hover:border-blue-400/20 group-hover:text-blue-400 group-hover:shadow-[inset_0_0_20px_rgba(96,165,250,0.1)]"
@@ -478,17 +445,17 @@ export default function ParameterInfoPage() {
                     <div
                       className={`absolute top-6 right-6 sm:relative sm:top-0 sm:right-0 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 ${
                         isExpanded
-                          ? isEnv
-                            ? "bg-red-500/10 border-red-500/30 text-red-400 rotate-180"
+                          ? isWq
+                            ? "bg-teal-500/10 border-teal-500/30 text-teal-400 rotate-180"
                             : "bg-blue-500/10 border-blue-500/30 text-blue-400 rotate-180"
                           : "bg-transparent border-white/5 text-gray-500 group-hover:bg-white/5 group-hover:text-gray-300"
                       }`}
                     >
-                      <ChevronDown className={`w-5 h-5 transition-colors`} />
+                      <ChevronDown className="w-5 h-5 transition-colors" />
                     </div>
                   </button>
 
-                  {/* Expanded Details with CSS Grid animation */}
+                  {/* Expanded Details */}
                   <div
                     className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
                       isExpanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"

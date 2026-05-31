@@ -1,7 +1,6 @@
 import type { JSX } from "react";
 import { useState, useMemo } from "react";
 import { getStorageItem, STORAGE_KEYS } from "../../utils/storage";
-import logoSrc from "../../assets/petronas-logo-dark-whiteText.svg";
 import {
   CircleGauge,
   MapPin,
@@ -188,11 +187,9 @@ export default function Sidebar({
             className="block transition-all duration-300 hover:scale-105 active:scale-95 group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
             onClick={() => setIsOpen(false)}
           >
-            <img
-              src={logoSrc}
-              alt="PETRONAS"
-              className="w-35 h-20 transition-all duration-300 group-hover:brightness-110 group-hover:drop-shadow-[0_0_15px_rgba(20,184,166,0.2)]"
-            />
+            <span className="font-bold text-teal-400 text-xl tracking-widest transition-all duration-300 group-hover:brightness-110">
+              AquaMind
+            </span>
           </a>
         </div>
 

@@ -30,8 +30,8 @@ export interface TokenPayload {
 export const generateAccessToken = (payload: TokenPayload): string => {
   return jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
-    issuer: "petronas-monitoring",
-    audience: "petronas-api",
+    issuer: "aquamind-api",
+    audience: "aquamind-client",
   } as jwt.SignOptions);
 };
 
@@ -43,8 +43,8 @@ export const generateRefreshToken = (payload: TokenPayload): string => {
   const jti = crypto.randomUUID();
   return jwt.sign({ ...payload, jti }, JWT_REFRESH_SECRET, {
     expiresIn: JWT_REFRESH_EXPIRES_IN,
-    issuer: "petronas-monitoring",
-    audience: "petronas-api",
+    issuer: "aquamind-api",
+    audience: "aquamind-client",
   } as jwt.SignOptions);
 };
 
@@ -54,8 +54,8 @@ export const generateRefreshToken = (payload: TokenPayload): string => {
 export const verifyToken = (token: string): TokenPayload => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET, {
-      issuer: "petronas-monitoring",
-      audience: "petronas-api",
+      issuer: "aquamind-api",
+      audience: "aquamind-client",
     }) as TokenPayload;
     return decoded;
   } catch (error) {
@@ -78,8 +78,8 @@ export const verifyToken = (token: string): TokenPayload => {
 export const verifyRefreshToken = (token: string): TokenPayload & { exp?: number } => {
   try {
     const decoded = jwt.verify(token, JWT_REFRESH_SECRET, {
-      issuer: "petronas-monitoring",
-      audience: "petronas-api",
+      issuer: "aquamind-api",
+      audience: "aquamind-client",
     }) as TokenPayload & { exp?: number };
     return decoded;
   } catch (error) {

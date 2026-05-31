@@ -219,21 +219,15 @@ export const getPendingApprovals = async () => {
 
       //Calculate 1-hour aggregated value for the parameter
       const paramMap: Record<string, string> = {
-        so2: "so2_value",
-        h2s: "h2s_value",
-        no2: "no2_value",
-        // BTEX components (Synspec GC955)
-        benzene: "benzene_value",
-        toluene: "toluene_value",
-        ethylbenzene: "ethylbenzene_value",
-        xylenes: "xylenes_value",
-        windSpeed: "ws_value",
-        windDirection: "wd_value",
+        ph: "ph_value",
+        do: "do_value",
+        nh3n: "nh3_n_value",
+        cod: "cod_value",
+        bod: "bod_value",
+        tss: "tss_value",
         temperature: "temp_value",
-        humidity: "humidity_value",
         pressure: "pressure_value",
-        solar: "solar_value",
-        rain: "rain_value",
+        depth: "depth_value",
       };
       const columnName =
         paramMap[approval.parameterCode] || `${approval.parameterCode}_value`;
@@ -312,21 +306,15 @@ export const getAllApprovals = async (status?: string) => {
 
       //Calculate 1-hour aggregated value for the parameter
       const paramMap: Record<string, string> = {
-        so2: "so2_value",
-        h2s: "h2s_value",
-        no2: "no2_value",
-        // BTEX components (Synspec GC955)
-        benzene: "benzene_value",
-        toluene: "toluene_value",
-        ethylbenzene: "ethylbenzene_value",
-        xylenes: "xylenes_value",
-        windSpeed: "ws_value",
-        windDirection: "wd_value",
+        ph: "ph_value",
+        do: "do_value",
+        nh3n: "nh3_n_value",
+        cod: "cod_value",
+        bod: "bod_value",
+        tss: "tss_value",
         temperature: "temp_value",
-        humidity: "humidity_value",
         pressure: "pressure_value",
-        solar: "solar_value",
-        rain: "rain_value",
+        depth: "depth_value",
       };
       const columnName =
         paramMap[approval.parameterCode] || `${approval.parameterCode}_value`;

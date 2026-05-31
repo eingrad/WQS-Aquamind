@@ -1,23 +1,26 @@
-version: "3.8"
+# Explicit project name so this stack is isolated in Docker Desktop and
+# its volumes/network are namespaced as "aquamind-wqs_*" regardless of the
+# folder it runs from (otherwise Compose defaults to the folder name "backend").
+name: aquamind-wqs
 
 services:
   # PostgreSQL with TimescaleDB Extension
   database:
     image: timescale/timescaledb:latest-pg15
-    container_name: petronas-db
+    container_name: aquamind-db
     environment:
-      POSTGRES_USER: petronas
+      POSTGRES_USER: aquamind
       POSTGRES_PASSWORD: secure_password_change_me
-      POSTGRES_DB: petronas_db
+      POSTGRES_DB: aquamind_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - aquamind_postgres_data:/var/lib/postgresql/data
     networks:
-      - petronas-network
+      - aquamind-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U petronas"]
+      test: ["CMD-SHELL", "pg_isready -U aquamind"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,13 +28,13 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    container_name: petronas-redis
+    container_name: aquamind-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
-      - redis_data:/data
+      - aquamind_redis_data:/data
     networks:
-      - petronas-network
+      - aquamind-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -39,34 +42,31 @@ services:
       timeout: 3s
       retries: 5
 
-  # MQTT Broker (Eclipse Mosquitto) - Optional, for Week 8
+  # MQTT Broker (Eclipse Mosquitto)
   mqtt:
     image: eclipse-mosquitto:2
-    container_name: petronas-mqtt
+    container_name: aquamind-mqtt
     ports:
-      - "1883:1883" # MQTT
-      - "9001:9001" # WebSocket
+      - "1884:1883"  # MQTT
+      - "9002:9001"  # WebSocket
     volumes:
       - ./mqtt/config:/mosquitto/config
-      - mqtt_data:/mosquitto/data
-      - mqtt_logs:/mosquitto/log
+      - aquamind_mqtt_data:/mosquitto/data
+      - aquamind_mqtt_logs:/mosquitto/log
     networks:
-      - petronas-network
+      - aquamind-network
     restart: unless-stopped
-    # Uncomment when ready to use MQTT
-    # profiles:
-    #   - mqtt
 
 volumes:
-  postgres_data:
+  aquamind_postgres_data:
     driver: local
-  redis_data:
+  aquamind_redis_data:
     driver: local
-  mqtt_data:
+  aquamind_mqtt_data:
     driver: local
-  mqtt_logs:
+  aquamind_mqtt_logs:
     driver: local
 
 networks:
-  petronas-network:
+  aquamind-network:
     driver: bridge

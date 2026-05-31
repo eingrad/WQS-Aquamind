@@ -12,7 +12,7 @@ interface ReadingInput {
   deviceId: string;
   observedAt: Date;
   readings: Record<string, number>;
-  dataCounts?: Record<string, number>; // Optional: count of 5s readings per parameter
+  dataCounts?: Record<string, number>; // Optional: reading count per parameter (for quality check)
 }
 
 /**
@@ -66,66 +66,35 @@ export const createReading = async (input: ReadingInput) => {
     }
   }
 
-  // Map frontend parameter names to database field names
+  // Map parameter names to database field names (water quality)
   const telemetryRecord = await prisma.telemetryProcessed.create({
     data: {
       deviceId,
       observedAt,
-      so2Value:
-        readings.so2 !== undefined ? new Prisma.Decimal(readings.so2) : null,
-      h2sValue:
-        readings.h2s !== undefined ? new Prisma.Decimal(readings.h2s) : null,
-      no2Value:
-        readings.no2 !== undefined ? new Prisma.Decimal(readings.no2) : null,
-      noValue:
-        readings.no !== undefined ? new Prisma.Decimal(readings.no) : null,
-      noxValue:
-        readings.nox !== undefined ? new Prisma.Decimal(readings.nox) : null,
-      // BTEX components (Synspec GC955 channel 34/35/36/59)
-      benzeneValue:
-        readings.benzene !== undefined
-          ? new Prisma.Decimal(readings.benzene)
-          : null,
-      tolueneValue:
-        readings.toluene !== undefined
-          ? new Prisma.Decimal(readings.toluene)
-          : null,
-      ethylbenzeneValue:
-        readings.ethylbenzene !== undefined
-          ? new Prisma.Decimal(readings.ethylbenzene)
-          : null,
-      xylenesValue:
-        readings.xylenes !== undefined
-          ? new Prisma.Decimal(readings.xylenes)
-          : null,
+      phValue:
+        readings.ph !== undefined ? new Prisma.Decimal(readings.ph) : null,
+      doValue:
+        readings.do !== undefined ? new Prisma.Decimal(readings.do) : null,
+      nh3nValue:
+        readings.nh3n !== undefined ? new Prisma.Decimal(readings.nh3n) : null,
+      codValue:
+        readings.cod !== undefined ? new Prisma.Decimal(readings.cod) : null,
+      bodValue:
+        readings.bod !== undefined ? new Prisma.Decimal(readings.bod) : null,
+      tssValue:
+        readings.tss !== undefined ? new Prisma.Decimal(readings.tss) : null,
       tempValue:
         readings.temperature !== undefined
           ? new Prisma.Decimal(readings.temperature)
-          : null,
-      humidityValue:
-        readings.humidity !== undefined
-          ? new Prisma.Decimal(readings.humidity)
-          : null,
-      wsValue:
-        readings.windSpeed !== undefined
-          ? new Prisma.Decimal(readings.windSpeed)
-          : null,
-      wdValue:
-        readings.windDirection !== undefined
-          ? new Prisma.Decimal(readings.windDirection)
-          : null,
-      solarValue:
-        readings.solar !== undefined
-          ? new Prisma.Decimal(readings.solar)
           : null,
       pressureValue:
         readings.pressure !== undefined
           ? new Prisma.Decimal(readings.pressure)
           : null,
-      rainValue:
-        readings.rain !== undefined ? new Prisma.Decimal(readings.rain) : null,
+      depthValue:
+        readings.depth !== undefined ? new Prisma.Decimal(readings.depth) : null,
       dataQuality: validation.hasIssues ? "flagged" : "valid",
-      processingFlags: validation.flags as Prisma.InputJsonValue, // Store all validation flags
+      processingFlags: validation.flags as Prisma.InputJsonValue,
     },
   });
 

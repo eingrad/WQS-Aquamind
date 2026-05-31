@@ -26,7 +26,7 @@ const greenIcon = new L.Icon({
 });
 
 export default function StationMap({
-  stationName = "PETRONAS Air Quality Monitoring Station",
+  stationName = "AquaMind Water Quality Monitoring Station",
   location = "Pengerang",
   latitude = 1.366694,
   longitude = 104.108306,

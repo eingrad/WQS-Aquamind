@@ -81,7 +81,7 @@ app.use(`${API_PREFIX}/displays`, displayRoutes);
 
 app.get(API_PREFIX, (req: Request, res: Response) => {
   res.json({
-    message: "PETRONAS Monitoring System API",
+    message: "AquaMind Water Quality Monitoring API",
     version: "1.0.0",
   });
 });
@@ -115,15 +115,8 @@ const server = app.listen(PORT, async () => {
   logger.info(`📝 Environment: ${process.env.NODE_ENV || "development"}`);
   logger.info(`🌐 API URL: http://localhost:${PORT}${API_PREFIX}`);
 
-  // Start aggregation worker (for 5-second data processing)
-  try {
-    const { startWorker } =
-      await import("./services/telemetry/worker/aggregation.worker");
-    startWorker();
-    logger.info("✅ Aggregation worker started");
-  } catch (error) {
-    logger.error("Failed to start aggregation worker:", error);
-  }
+  // Aggregation worker disabled — sensor sends 1-minute pre-averaged data,
+  // so MQTT handler saves directly to DB (no buffering needed).
 
   // Start MQTT subscriber (for live sensor data ingestion)
   try {

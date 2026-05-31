@@ -53,58 +53,7 @@ export const buildAggregationColumns = (
       // analytics independently.
       const maintCountCol = `COUNT(*) FILTER (WHERE ${maintenanceFilterFor(p)}) as ${p}_maintenance_count`;
 
-      // Special handling for wind direction (vector mean) - convert to 0-360° range
-      if (p === "windDirection") {
-        if (isMovingAvg) {
-          return `
-            MOD((DEGREES(ATAN2(
-              AVG(SIN(RADIANS(tp.${col}))) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW),
-              AVG(COS(RADIANS(tp.${col}))) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW)
-            )) + 360)::numeric, 360) as ${p}_avg,
-            MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
-            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
-            ${countCol},
-            ${maintCountCol}
-          `;
-        } else {
-          return `
-            MOD((DEGREES(ATAN2(
-              AVG(SIN(RADIANS(tp.${col}))),
-              AVG(COS(RADIANS(tp.${col})))
-            )) + 360)::numeric, 360) as ${p}_avg,
-            MIN(tp.${col}) as ${p}_min,
-            MAX(tp.${col}) as ${p}_max,
-            ${countCol},
-            ${maintCountCol}
-          `;
-        }
-      }
-
-      // Rain is an incremental quantity (mm fallen during each reading
-      // interval), so the bucket value must be SUM not AVG. The _avg
-      // alias is kept for downstream compatibility — it now carries the
-      // total mm in that bucket. min/max stay as the per-reading extremes.
-      if (p === "rain") {
-        if (isMovingAvg) {
-          return `
-            SUM(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
-            MIN(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_min,
-            MAX(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_max,
-            ${countCol},
-            ${maintCountCol}
-          `;
-        } else {
-          return `
-            SUM(tp.${col}) as ${p}_avg,
-            MIN(tp.${col}) as ${p}_min,
-            MAX(tp.${col}) as ${p}_max,
-            ${countCol},
-            ${maintCountCol}
-          `;
-        }
-      }
-
-      // Regular arithmetic mean for other parameters
+      // Arithmetic mean for all water quality parameters
       if (isMovingAvg) {
         return `
           AVG(tp.${col}) OVER (ORDER BY tb.bucket ROWS BETWEEN 7 PRECEDING AND CURRENT ROW) as ${p}_avg,
@@ -141,35 +90,13 @@ export const buildBaseAggregationColumns = (paramList: string[]): string => {
       // through buildMovingAverageColumns as `<param>_maintenance_count`.
       const maintCountCol = `COUNT(*) FILTER (WHERE ${maintenanceFilterFor(p)}) as ${p}_base_maintenance_count`;
 
-      if (p === "windDirection") {
-        return `
-          MOD((DEGREES(ATAN2(
-            AVG(SIN(RADIANS(tp.${col}))),
-            AVG(COS(RADIANS(tp.${col})))
-          )) + 360)::numeric, 360) as ${p}_base_avg,
-          MIN(tp.${col}) as ${p}_base_min,
-          MAX(tp.${col}) as ${p}_base_max,
-          ${countCol},
-          ${maintCountCol}
-        `;
-      } else if (p === "rain") {
-        // Incremental quantity — bucket total is SUM, not AVG.
-        return `
-          SUM(tp.${col}) as ${p}_base_avg,
-          MIN(tp.${col}) as ${p}_base_min,
-          MAX(tp.${col}) as ${p}_base_max,
-          ${countCol},
-          ${maintCountCol}
-        `;
-      } else {
-        return `
-          AVG(tp.${col}) as ${p}_base_avg,
-          MIN(tp.${col}) as ${p}_base_min,
-          MAX(tp.${col}) as ${p}_base_max,
-          ${countCol},
-          ${maintCountCol}
-        `;
-      }
+      return `
+        AVG(tp.${col}) as ${p}_base_avg,
+        MIN(tp.${col}) as ${p}_base_min,
+        MAX(tp.${col}) as ${p}_base_max,
+        ${countCol},
+        ${maintCountCol}
+      `;
     })
     .join(",");
 };

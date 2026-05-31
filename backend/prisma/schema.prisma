@@ -1,6 +1,8 @@
-// PETRONAS Monitoring System - Database Schema
-// 11 Tables: users, roles, user_roles, devices, telemetry_raw, telemetry_processed,
-//           validation_status, approval_requests, audit_logs, notifications, reports
+// AquaMind Water Quality Monitoring System - Database Schema
+// Tables: users, roles, user_roles, devices, telemetry_raw, telemetry_processed,
+//         validation_status, approval_requests, audit_logs, notifications, reports,
+//         maintenance_log, alert_thresholds, alert_history, notification_preferences,
+//         revoked_tokens, custom_displays
 
 generator client {
   provider = "prisma-client-js"
@@ -90,7 +92,6 @@ model Device {
   updatedAt  DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
-  telemetryRaw        TelemetryRaw[]
   telemetryProcessed  TelemetryProcessed[]
   validationStatuses  ValidationStatus[]
   approvalRequests    ApprovalRequest[]
@@ -103,55 +104,23 @@ model Device {
 }
 
 // ============================================================================
-// 5. TELEMETRY_RAW TABLE
-// ============================================================================
-model TelemetryRaw {
-  rawId      String   @id @default(dbgenerated("gen_random_uuid()")) @map("raw_id") @db.Uuid
-  deviceId   String   @map("device_id") @db.Uuid
-  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz
-  payload    Json     @db.JsonB
-  protocol   String   @db.VarChar(20)
-  checksum   String?  @db.VarChar(64)
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
-
-  // Relations
-  device             Device               @relation(fields: [deviceId], references: [id])
-  telemetryProcessed TelemetryProcessed[]
-
-  @@index([deviceId, receivedAt(sort: Desc)], name: "idx_telemetry_raw_device")
-  @@index([receivedAt(sort: Desc)], name: "idx_telemetry_raw_received")
-  @@map("telemetry_raw")
-}
-
-// ============================================================================
-// 6. TELEMETRY_PROCESSED TABLE (TimescaleDB Hypertable)
+// 5. TELEMETRY_PROCESSED TABLE (TimescaleDB Hypertable)
 // ============================================================================
 model TelemetryProcessed {
   recordId        String   @default(dbgenerated("gen_random_uuid()")) @map("record_id") @db.Uuid
   deviceId        String   @map("device_id") @db.Uuid
-  rawId           String?  @map("raw_id") @db.Uuid
   observedAt      DateTime @map("observed_at") @db.Timestamptz
   
-  // Air Quality Parameters (all stored in ppb)
-  so2Value          Decimal? @map("so2_value") @db.Decimal(11, 4)
-  h2sValue          Decimal? @map("h2s_value") @db.Decimal(11, 4)
-  no2Value          Decimal? @map("no2_value") @db.Decimal(11, 4)
-  noValue           Decimal? @map("no_value") @db.Decimal(11, 4)
-  noxValue          Decimal? @map("nox_value") @db.Decimal(11, 4)
-  // BTEX components (Synspec GC955, all in ppb)
-  benzeneValue      Decimal? @map("benzene_value") @db.Decimal(11, 4)
-  tolueneValue      Decimal? @map("toluene_value") @db.Decimal(11, 4)
-  ethylbenzeneValue Decimal? @map("ethylbenzene_value") @db.Decimal(11, 4)
-  xylenesValue      Decimal? @map("xylenes_value") @db.Decimal(11, 4)
-  
-  // Meteorological Parameters
-  tempValue       Decimal? @map("temp_value") @db.Decimal(5, 2)
-  humidityValue   Decimal? @map("humidity_value") @db.Decimal(5, 2)
-  wsValue         Decimal? @map("ws_value") @db.Decimal(5, 2)
-  wdValue         Decimal? @map("wd_value") @db.Decimal(5, 2)
-  solarValue      Decimal? @map("solar_value") @db.Decimal(7, 2)
-  pressureValue   Decimal? @map("pressure_value") @db.Decimal(7, 2)
-  rainValue       Decimal? @map("rain_value") @db.Decimal(6, 2)
+  // Water Quality Parameters (Malaysia NWQS)
+  phValue         Decimal? @map("ph_value") @db.Decimal(5, 3)       // pH (dimensionless, 0–14)
+  doValue         Decimal? @map("do_value") @db.Decimal(6, 3)       // Dissolved Oxygen (mg/L)
+  nh3nValue       Decimal? @map("nh3_n_value") @db.Decimal(8, 4)    // Ammonia-Nitrogen (mg/L)
+  codValue        Decimal? @map("cod_value") @db.Decimal(8, 3)      // Chemical Oxygen Demand (mg/L)
+  bodValue        Decimal? @map("bod_value") @db.Decimal(8, 3)      // Biochemical Oxygen Demand (mg/L)
+  tssValue        Decimal? @map("tss_value") @db.Decimal(8, 3)      // Total Suspended Solids (mg/L)
+  tempValue       Decimal? @map("temp_value") @db.Decimal(5, 2)     // Water Temperature (°C)
+  pressureValue   Decimal? @map("pressure_value") @db.Decimal(7, 2) // Pressure (kPa)
+  depthValue      Decimal? @map("depth_value") @db.Decimal(7, 3)    // Water Depth (m)
   
   // Metadata
   dataQuality     String   @default("pending") @map("data_quality") @db.VarChar(20)
@@ -162,7 +131,6 @@ model TelemetryProcessed {
 
   // Relations
   device              Device             @relation(fields: [deviceId], references: [id])
-  telemetryRaw        TelemetryRaw?      @relation(fields: [rawId], references: [rawId])
   validationStatuses  ValidationStatus[]
   alertHistory        AlertHistory[]
   approvalRequests    ApprovalRequest[]

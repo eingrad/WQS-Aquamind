@@ -18,100 +18,67 @@ export default function ValidationTableRow({
       <td className="px-4 py-3 border-r border-white/5">{row.location}</td>
       <StatusCell
         rowId={row.id}
-        parameter="so2"
-        value={row.so2}
-        status={row.so2Status}
-        validatedByHuman={row.so2ValidatedByHuman}
-        flaggedByHuman={row.so2FlaggedByHuman}
-        pendingAdminApproval={row.so2PendingAdminApproval}
+        parameter="ph"
+        value={row.ph}
+        status={row.phStatus}
+        validatedByHuman={row.phValidatedByHuman}
+        flaggedByHuman={row.phFlaggedByHuman}
+        pendingAdminApproval={row.phPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
       <StatusCell
         rowId={row.id}
-        parameter="h2s"
-        value={row.h2s}
-        status={row.h2sStatus}
-        validatedByHuman={row.h2sValidatedByHuman}
-        flaggedByHuman={row.h2sFlaggedByHuman}
-        pendingAdminApproval={row.h2sPendingAdminApproval}
+        parameter="do"
+        value={row.do}
+        status={row.doStatus}
+        validatedByHuman={row.doValidatedByHuman}
+        flaggedByHuman={row.doFlaggedByHuman}
+        pendingAdminApproval={row.doPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
       <StatusCell
         rowId={row.id}
-        parameter="no2"
-        value={row.no2}
-        status={row.no2Status}
-        validatedByHuman={row.no2ValidatedByHuman}
-        flaggedByHuman={row.no2FlaggedByHuman}
-        pendingAdminApproval={row.no2PendingAdminApproval}
+        parameter="nh3n"
+        value={row.nh3n}
+        status={row.nh3nStatus}
+        validatedByHuman={row.nh3nValidatedByHuman}
+        flaggedByHuman={row.nh3nFlaggedByHuman}
+        pendingAdminApproval={row.nh3nPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
       <StatusCell
         rowId={row.id}
-        parameter="benzene"
-        value={row.benzene ?? null}
-        status={row.benzeneStatus ?? "no_data"}
-        validatedByHuman={row.benzeneValidatedByHuman}
-        flaggedByHuman={row.benzeneFlaggedByHuman}
-        pendingAdminApproval={row.benzenePendingAdminApproval}
+        parameter="cod"
+        value={row.cod}
+        status={row.codStatus}
+        validatedByHuman={row.codValidatedByHuman}
+        flaggedByHuman={row.codFlaggedByHuman}
+        pendingAdminApproval={row.codPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
       <StatusCell
         rowId={row.id}
-        parameter="toluene"
-        value={row.toluene ?? null}
-        status={row.tolueneStatus ?? "no_data"}
-        validatedByHuman={row.tolueneValidatedByHuman}
-        flaggedByHuman={row.tolueneFlaggedByHuman}
-        pendingAdminApproval={row.toluenePendingAdminApproval}
+        parameter="bod"
+        value={row.bod}
+        status={row.bodStatus}
+        validatedByHuman={row.bodValidatedByHuman}
+        flaggedByHuman={row.bodFlaggedByHuman}
+        pendingAdminApproval={row.bodPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
       <StatusCell
         rowId={row.id}
-        parameter="ethylbenzene"
-        value={row.ethylbenzene ?? null}
-        status={row.ethylbenzeneStatus ?? "no_data"}
-        validatedByHuman={row.ethylbenzeneValidatedByHuman}
-        flaggedByHuman={row.ethylbenzeneFlaggedByHuman}
-        pendingAdminApproval={row.ethylbenzenePendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
-        parameter="xylenes"
-        value={row.xylenes ?? null}
-        status={row.xylenesStatus ?? "no_data"}
-        validatedByHuman={row.xylenesValidatedByHuman}
-        flaggedByHuman={row.xylenesFlaggedByHuman}
-        pendingAdminApproval={row.xylenesPendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
-        parameter="windSpeed"
-        value={row.windSpeed}
-        status={row.windSpeedStatus}
-        validatedByHuman={row.windSpeedValidatedByHuman}
-        flaggedByHuman={row.windSpeedFlaggedByHuman}
-        pendingAdminApproval={row.windSpeedPendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
-        parameter="windDirection"
-        value={row.windDirection}
-        status={row.windDirectionStatus}
-        validatedByHuman={row.windDirectionValidatedByHuman}
-        flaggedByHuman={row.windDirectionFlaggedByHuman}
-        pendingAdminApproval={row.windDirectionPendingAdminApproval}
+        parameter="tss"
+        value={row.tss}
+        status={row.tssStatus}
+        validatedByHuman={row.tssValidatedByHuman}
+        flaggedByHuman={row.tssFlaggedByHuman}
+        pendingAdminApproval={row.tssPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />
@@ -128,17 +95,6 @@ export default function ValidationTableRow({
       />
       <StatusCell
         rowId={row.id}
-        parameter="humidity"
-        value={row.humidity}
-        status={row.humidityStatus}
-        validatedByHuman={row.humidityValidatedByHuman}
-        flaggedByHuman={row.humidityFlaggedByHuman}
-        pendingAdminApproval={row.humidityPendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
         parameter="pressure"
         value={row.pressure}
         status={row.pressureStatus}
@@ -150,23 +106,12 @@ export default function ValidationTableRow({
       />
       <StatusCell
         rowId={row.id}
-        parameter="rain"
-        value={row.rain}
-        status={row.rainStatus}
-        validatedByHuman={row.rainValidatedByHuman}
-        flaggedByHuman={row.rainFlaggedByHuman}
-        pendingAdminApproval={row.rainPendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
-        parameter="solar"
-        value={row.solar}
-        status={row.solarStatus}
-        validatedByHuman={row.solarValidatedByHuman}
-        flaggedByHuman={row.solarFlaggedByHuman}
-        pendingAdminApproval={row.solarPendingAdminApproval}
+        parameter="depth"
+        value={row.depth}
+        status={row.depthStatus}
+        validatedByHuman={row.depthValidatedByHuman}
+        flaggedByHuman={row.depthFlaggedByHuman}
+        pendingAdminApproval={row.depthPendingAdminApproval}
         selectedCells={selectedCells}
         onCellClick={onCellClick}
       />

@@ -2,64 +2,8 @@ import api from "./api";
 
 /**
  * Live Data Service
- * Handles real-time polling of wind rose and pollution rose data
- * Data updates every 10 seconds
+ * Handles real-time polling of sensor readings from Redis cache
  */
-
-export interface WindRoseData {
-  timestamp: string;
-  deviceId: string;
-  directions: {
-    [direction: string]: {
-      [speedBin: string]: number;
-    };
-  };
-}
-
-export interface PollutionRoseData {
-  timestamp: string;
-  deviceId: string;
-  parameter: string;
-  directions: {
-    [direction: string]: {
-      [concentrationBin: string]: number;
-    };
-  };
-}
-
-export type RoseRange = "realtime" | "1h" | "1d";
-
-/**
- * Fetch wind rose data
- * @param deviceId - Device UUID
- * @param range - Time window: "realtime" (default), "1h", or "1d"
- */
-export const getWindRoseData = async (
-  deviceId: string,
-  range: RoseRange = "realtime",
-): Promise<WindRoseData> => {
-  const response = await api.get(`/live/wind-rose`, {
-    params: { deviceId, range },
-  });
-  return response.data.data;
-};
-
-/**
- * Fetch pollution rose data
- * @param deviceId - Device UUID
- * @param parameter - Pollutant parameter (SO2, H2S, NO2, BTEX)
- * @param range - Time window: "realtime" (default), "1h", or "1d"
- */
-export const getPollutionRoseData = async (
-  deviceId: string,
-  parameter: string = "SO2",
-  range: RoseRange = "realtime",
-): Promise<PollutionRoseData> => {
-  const response = await api.get(`/live/pollution-rose`, {
-    params: { deviceId, parameter, range },
-  });
-  return response.data.data;
-};
 
 export interface RealtimeReading {
   value: number;
@@ -75,7 +19,7 @@ export interface RealTimeParamsData {
 /**
  * Fetch latest real-time sensor readings
  * @param deviceId - Device UUID
- * @returns Latest readings from Redis (pushed by MQTT subscriber every 5-10s)
+ * @returns Latest readings from Redis (pushed by MQTT subscriber every minute)
  */
 export const getRealTimeParams = async (
   deviceId: string,

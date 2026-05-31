@@ -177,64 +177,42 @@ export default function DataValidationPage() {
             year: "2-digit",
           }),
           location: record.location,
-          so2: record.parameters.so2?.value || null,
-          so2Status: (record.parameters.so2?.humanValidation?.status ||
-            record.parameters.so2?.autoFlag ||
+          ph: record.parameters.ph?.value ?? null,
+          phStatus: (record.parameters.ph?.humanValidation?.status ||
+            record.parameters.ph?.autoFlag ||
             "no_data") as ValidationStatus,
-          so2PendingAdminApproval:
-            !!record.parameters.so2?.pendingApproval?.isPending,
-          h2s: record.parameters.h2s?.value || null,
-          h2sStatus: (record.parameters.h2s?.humanValidation?.status ||
-            record.parameters.h2s?.autoFlag ||
+          phPendingAdminApproval:
+            !!record.parameters.ph?.pendingApproval?.isPending,
+          do: record.parameters.do?.value ?? null,
+          doStatus: (record.parameters.do?.humanValidation?.status ||
+            record.parameters.do?.autoFlag ||
             "no_data") as ValidationStatus,
-          h2sPendingAdminApproval:
-            !!record.parameters.h2s?.pendingApproval?.isPending,
-          no2: record.parameters.no2?.value || null,
-          no2Status: (record.parameters.no2?.humanValidation?.status ||
-            record.parameters.no2?.autoFlag ||
+          doPendingAdminApproval:
+            !!record.parameters.do?.pendingApproval?.isPending,
+          nh3n: record.parameters.nh3n?.value ?? null,
+          nh3nStatus: (record.parameters.nh3n?.humanValidation?.status ||
+            record.parameters.nh3n?.autoFlag ||
             "no_data") as ValidationStatus,
-          no2PendingAdminApproval:
-            !!record.parameters.no2?.pendingApproval?.isPending,
-          benzene: record.parameters.benzene?.value ?? null,
-          benzeneStatus: (record.parameters.benzene?.humanValidation?.status ||
-            record.parameters.benzene?.autoFlag ||
+          nh3nPendingAdminApproval:
+            !!record.parameters.nh3n?.pendingApproval?.isPending,
+          cod: record.parameters.cod?.value ?? null,
+          codStatus: (record.parameters.cod?.humanValidation?.status ||
+            record.parameters.cod?.autoFlag ||
             "no_data") as ValidationStatus,
-          benzenePendingAdminApproval:
-            !!record.parameters.benzene?.pendingApproval?.isPending,
-          toluene: record.parameters.toluene?.value ?? null,
-          tolueneStatus: (record.parameters.toluene?.humanValidation?.status ||
-            record.parameters.toluene?.autoFlag ||
+          codPendingAdminApproval:
+            !!record.parameters.cod?.pendingApproval?.isPending,
+          bod: record.parameters.bod?.value ?? null,
+          bodStatus: (record.parameters.bod?.humanValidation?.status ||
+            record.parameters.bod?.autoFlag ||
             "no_data") as ValidationStatus,
-          toluenePendingAdminApproval:
-            !!record.parameters.toluene?.pendingApproval?.isPending,
-          ethylbenzene: record.parameters.ethylbenzene?.value ?? null,
-          ethylbenzeneStatus: (record.parameters.ethylbenzene?.humanValidation
-            ?.status ||
-            record.parameters.ethylbenzene?.autoFlag ||
+          bodPendingAdminApproval:
+            !!record.parameters.bod?.pendingApproval?.isPending,
+          tss: record.parameters.tss?.value ?? null,
+          tssStatus: (record.parameters.tss?.humanValidation?.status ||
+            record.parameters.tss?.autoFlag ||
             "no_data") as ValidationStatus,
-          ethylbenzenePendingAdminApproval:
-            !!record.parameters.ethylbenzene?.pendingApproval?.isPending,
-          xylenes: record.parameters.xylenes?.value ?? null,
-          xylenesStatus: (record.parameters.xylenes?.humanValidation
-            ?.status ||
-            record.parameters.xylenes?.autoFlag ||
-            "no_data") as ValidationStatus,
-          xylenesPendingAdminApproval:
-            !!record.parameters.xylenes?.pendingApproval?.isPending,
-          windSpeed: record.parameters.windSpeed?.value ?? null,
-          windSpeedStatus: (record.parameters.windSpeed?.humanValidation
-            ?.status ||
-            record.parameters.windSpeed?.autoFlag ||
-            "no_data") as ValidationStatus,
-          windSpeedPendingAdminApproval:
-            !!record.parameters.windSpeed?.pendingApproval?.isPending,
-          windDirection: record.parameters.windDirection?.value ?? null,
-          windDirectionStatus: (record.parameters.windDirection?.humanValidation
-            ?.status ||
-            record.parameters.windDirection?.autoFlag ||
-            "no_data") as ValidationStatus,
-          windDirectionPendingAdminApproval:
-            !!record.parameters.windDirection?.pendingApproval?.isPending,
+          tssPendingAdminApproval:
+            !!record.parameters.tss?.pendingApproval?.isPending,
           temperature: record.parameters.temperature?.value ?? null,
           temperatureStatus: (record.parameters.temperature?.humanValidation
             ?.status ||
@@ -242,13 +220,6 @@ export default function DataValidationPage() {
             "no_data") as ValidationStatus,
           temperaturePendingAdminApproval:
             !!record.parameters.temperature?.pendingApproval?.isPending,
-          humidity: record.parameters.humidity?.value ?? null,
-          humidityStatus: (record.parameters.humidity?.humanValidation
-            ?.status ||
-            record.parameters.humidity?.autoFlag ||
-            "no_data") as ValidationStatus,
-          humidityPendingAdminApproval:
-            !!record.parameters.humidity?.pendingApproval?.isPending,
           pressure: record.parameters.pressure?.value ?? null,
           pressureStatus: (record.parameters.pressure?.humanValidation
             ?.status ||
@@ -256,18 +227,12 @@ export default function DataValidationPage() {
             "no_data") as ValidationStatus,
           pressurePendingAdminApproval:
             !!record.parameters.pressure?.pendingApproval?.isPending,
-          rain: record.parameters.rain?.value ?? null,
-          rainStatus: (record.parameters.rain?.humanValidation?.status ||
-            record.parameters.rain?.autoFlag ||
+          depth: record.parameters.depth?.value ?? null,
+          depthStatus: (record.parameters.depth?.humanValidation?.status ||
+            record.parameters.depth?.autoFlag ||
             "no_data") as ValidationStatus,
-          rainPendingAdminApproval:
-            !!record.parameters.rain?.pendingApproval?.isPending,
-          solar: record.parameters.solar?.value ?? null,
-          solarStatus: (record.parameters.solar?.humanValidation?.status ||
-            record.parameters.solar?.autoFlag ||
-            "no_data") as ValidationStatus,
-          solarPendingAdminApproval:
-            !!record.parameters.solar?.pendingApproval?.isPending,
+          depthPendingAdminApproval:
+            !!record.parameters.depth?.pendingApproval?.isPending,
         }))
       : filteredData.slice(startIndex, endIndex);
 
@@ -298,14 +263,15 @@ export default function DataValidationPage() {
       const updates: any = { ...row };
 
       const parameters = [
-        "so2",
-        "h2s",
-        "no2",
-        "windSpeed",
-        "windDirection",
+        "ph",
+        "do",
+        "nh3n",
+        "cod",
+        "bod",
+        "tss",
         "temperature",
-        "humidity",
-        "solar",
+        "pressure",
+        "depth",
       ];
       parameters.forEach((param) => {
         const cellKey = `${row.id}:${param}`;

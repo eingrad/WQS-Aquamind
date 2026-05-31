@@ -95,7 +95,7 @@ export const sendEmailNotification = async (
     // Send email
     const info = await transporter.sendMail({
       from:
-        process.env.SMTP_FROM || "PETRONAS Monitoring <noreply@petronas.com>",
+        process.env.SMTP_FROM || "AquaMind Monitoring <noreply@aquamind.local>",
       to: email,
       subject,
       text: body,
@@ -471,7 +471,7 @@ function formatEmailHtml(
             <br>Login Here: Link will be add later.</p>
           </div>
           <div class="footer">
-            <p>PETRONAS Air Quality Monitoring System Dashboard - Automated Alert Notification</p>
+            <p>AquaMind Water Quality Monitoring System - Automated Alert Notification</p>
           </div>
         </div>
       </body>

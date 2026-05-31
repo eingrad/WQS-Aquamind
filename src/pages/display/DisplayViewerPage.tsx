@@ -150,7 +150,7 @@ function DisplayViewerContent() {
 
         {/* Footer */}
         <div className="mt-8 text-center text-xs text-white/20">
-          PETRONAS Monitoring System • Auto-refreshing every 10s
+          AquaMind Water Quality Monitoring • Auto-refreshing every 10s
         </div>
       </main>
     </div>
