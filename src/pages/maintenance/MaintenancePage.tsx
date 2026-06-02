@@ -200,56 +200,56 @@ export default function MaintenancePage() {
     return (
       <div
         key={log.id}
-        className="bg-[#121b1b] border border-white/5 rounded-xl p-4 hover:border-white/10 transition"
+        className="bg-[#ffffff] border border-slate-200 rounded-xl p-4 hover:border-slate-200 transition"
       >
         <div className="flex justify-between items-start mb-3 gap-2">
           <div>
             <h3 className="font-semibold">{deviceLabel}</h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               {log.device?.location ?? ""}
             </p>
           </div>
           {active && (
-            <span className="px-2 py-1 rounded text-xs font-medium border bg-blue-500/20 text-blue-300 border-blue-500/30">
+            <span className="px-2 py-1 rounded text-xs font-medium border bg-blue-500/20 text-blue-600 border-blue-500/30">
               ACTIVE
             </span>
           )}
           {upcoming && (
-            <span className="px-2 py-1 rounded text-xs font-medium border bg-amber-500/20 text-amber-300 border-amber-500/30">
+            <span className="px-2 py-1 rounded text-xs font-medium border bg-amber-500/20 text-amber-600 border-amber-500/30">
               UPCOMING
             </span>
           )}
           {!active && !upcoming && (
-            <span className="px-2 py-1 rounded text-xs font-medium border bg-gray-500/20 text-gray-300 border-gray-500/30">
+            <span className="px-2 py-1 rounded text-xs font-medium border bg-gray-500/20 text-slate-700 border-gray-500/30">
               PAST
             </span>
           )}
         </div>
 
-        <div className="bg-white/5 rounded-lg p-3 mb-3 text-sm space-y-1">
+        <div className="bg-slate-100 rounded-lg p-3 mb-3 text-sm space-y-1">
           <div>
-            <span className="text-gray-400">Start: </span>
+            <span className="text-slate-500">Start: </span>
             {formatDateTime(log.startTime)}
           </div>
           <div>
-            <span className="text-gray-400">End: </span>
+            <span className="text-slate-500">End: </span>
             {formatDateTime(log.endTime)}
           </div>
           {log.reason && (
             <div>
-              <span className="text-gray-400">Reason: </span>
+              <span className="text-slate-500">Reason: </span>
               {log.reason}
             </div>
           )}
           {log.description && (
             <div>
-              <span className="text-gray-400">Notes: </span>
+              <span className="text-slate-500">Notes: </span>
               {log.description}
             </div>
           )}
           {log.performedBy && (
             <div>
-              <span className="text-gray-400">By: </span>
+              <span className="text-slate-500">By: </span>
               {log.performedBy}
             </div>
           )}
@@ -259,7 +259,7 @@ export default function MaintenancePage() {
           {active && (
             <button
               onClick={() => setEndDialog({ open: true, log })}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-amber-500/20 text-amber-600 hover:bg-amber-500/30 transition"
             >
               <StopCircle size={14} />
               End Now
@@ -267,7 +267,7 @@ export default function MaintenancePage() {
           )}
           <button
             onClick={() => setDeleteDialog({ open: true, log })}
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-red-500/20 text-red-300 hover:bg-red-500/30 transition"
+            className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm bg-red-500/20 text-red-600 hover:bg-red-500/30 transition"
           >
             <Trash2 size={14} />
             Delete
@@ -278,7 +278,7 @@ export default function MaintenancePage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1a1a] text-white overflow-hidden">
+    <div className="flex h-screen bg-[#ffffff] text-slate-800 overflow-hidden">
       <Sidebar
         active="Maintenance"
         isOpen={sidebarOpen}
@@ -296,36 +296,36 @@ export default function MaintenancePage() {
             <div className="flex items-center">
               <button
                 onClick={openForm}
-                className="flex text-sm text-black items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg transition"
+                className="flex text-sm text-black items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
               >
                 <Plus size={15} />
                 Schedule Maintenance
               </button>
-              <p className="text-gray-400 pl-4 text-sm mt-1">
+              <p className="text-slate-500 pl-4 text-sm mt-1">
                 Maintenance windows mark device data as excluded from
                 analytics, reports, and alerts.
               </p>
             </div>
 
             {error && (
-              <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400">
+              <div className="p-4 bg-red-900/20 border border-red-500/50 rounded-lg text-red-600">
                 {error}
               </div>
             )}
 
             {isLoading ? (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-slate-500">
                 Loading maintenance logs...
               </div>
             ) : logs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 bg-[#121b1b] border border-white/5 rounded-xl text-center">
-                <div className="p-4 rounded-full bg-white/5 mb-4 animate-pulse">
-                  <Wrench className="w-8 h-8 text-teal-500/50" />
+              <div className="flex flex-col items-center justify-center py-12 bg-[#ffffff] border border-slate-200 rounded-xl text-center">
+                <div className="p-4 rounded-full bg-slate-100 mb-4 animate-pulse">
+                  <Wrench className="w-8 h-8 text-blue-500/50" />
                 </div>
-                <h3 className="text-white font-medium text-lg mb-2">
+                <h3 className="text-slate-800 font-medium text-lg mb-2">
                   No Maintenance Windows
                 </h3>
-                <p className="text-white/50 text-sm max-w-sm mx-auto mb-6">
+                <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
                   Schedule a maintenance window to mark device data for
                   exclusion during downtime.
                 </p>
@@ -334,7 +334,7 @@ export default function MaintenancePage() {
               <div className="space-y-8">
                 {grouped.active.length > 0 && (
                   <section>
-                    <h2 className="text-sm font-semibold text-blue-300 mb-3">
+                    <h2 className="text-sm font-semibold text-blue-600 mb-3">
                       ACTIVE ({grouped.active.length})
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
@@ -345,7 +345,7 @@ export default function MaintenancePage() {
 
                 {grouped.upcoming.length > 0 && (
                   <section>
-                    <h2 className="text-sm font-semibold text-amber-300 mb-3">
+                    <h2 className="text-sm font-semibold text-amber-600 mb-3">
                       UPCOMING ({grouped.upcoming.length})
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
@@ -356,7 +356,7 @@ export default function MaintenancePage() {
 
                 {grouped.past.length > 0 && (
                   <section>
-                    <h2 className="text-sm font-semibold text-gray-300 mb-3">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-3">
                       PAST ({grouped.past.length})
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
@@ -373,12 +373,12 @@ export default function MaintenancePage() {
       {/* Form modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-[#121b1b] border border-white/10 rounded-xl w-full max-w-md p-5 space-y-4">
+          <div className="bg-[#ffffff] border border-slate-200 rounded-xl w-full max-w-md p-5 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">Schedule Maintenance</h3>
               <button
                 onClick={() => setShowForm(false)}
-                className="p-1 rounded hover:bg-white/10"
+                className="p-1 rounded hover:bg-slate-100"
               >
                 <X size={18} />
               </button>
@@ -386,11 +386,11 @@ export default function MaintenancePage() {
 
             <div className="space-y-3">
               <label className="block text-sm">
-                <span className="text-gray-300">Device</span>
+                <span className="text-slate-700">Device</span>
                 <select
                   value={formDeviceId}
                   onChange={(e) => setFormDeviceId(e.target.value)}
-                  className="mt-1 w-full bg-[#0f1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-[#ffffff] border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 >
                   <option value="">— Select device —</option>
                   {devices.map((d) => (
@@ -403,31 +403,31 @@ export default function MaintenancePage() {
               </label>
 
               <label className="block text-sm">
-                <span className="text-gray-300">Start time</span>
+                <span className="text-slate-700">Start time</span>
                 <input
                   type="datetime-local"
                   value={formStart}
                   onChange={(e) => setFormStart(e.target.value)}
-                  className="mt-1 w-full bg-[#0f1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-[#ffffff] border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 />
               </label>
 
               <label className="block text-sm">
-                <span className="text-gray-300">End time</span>
+                <span className="text-slate-700">End time</span>
                 <input
                   type="datetime-local"
                   value={formEnd}
                   onChange={(e) => setFormEnd(e.target.value)}
-                  className="mt-1 w-full bg-[#0f1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-[#ffffff] border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 />
               </label>
 
               <label className="block text-sm">
-                <span className="text-gray-300">Reason</span>
+                <span className="text-slate-700">Reason</span>
                 <select
                   value={formReason}
                   onChange={(e) => setFormReason(e.target.value)}
-                  className="mt-1 w-full bg-[#0f1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-[#ffffff] border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 >
                   {REASONS.map((r) => (
                     <option key={r} value={r}>
@@ -438,31 +438,31 @@ export default function MaintenancePage() {
               </label>
 
               <label className="block text-sm">
-                <span className="text-gray-300">Description (optional)</span>
+                <span className="text-slate-700">Description (optional)</span>
                 <textarea
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   rows={3}
-                  className="mt-1 w-full bg-[#0f1a1a] border border-white/10 rounded-lg px-3 py-2 text-sm"
+                  className="mt-1 w-full bg-[#ffffff] border border-slate-200 rounded-lg px-3 py-2 text-sm"
                 />
               </label>
 
               {formError && (
-                <p className="text-sm text-red-400">{formError}</p>
+                <p className="text-sm text-red-600">{formError}</p>
               )}
             </div>
 
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowForm(false)}
-                className="px-4 py-2 rounded-lg text-sm bg-white/5 hover:bg-white/10"
+                className="px-4 py-2 rounded-lg text-sm bg-slate-100 hover:bg-slate-100"
               >
                 Cancel
               </button>
               <button
                 onClick={submitForm}
                 disabled={formSubmitting}
-                className="px-4 py-2 rounded-lg text-sm bg-teal-600 hover:bg-teal-700 text-black disabled:opacity-50"
+                className="px-4 py-2 rounded-lg text-sm bg-blue-600 hover:bg-blue-700 text-black disabled:opacity-50"
               >
                 {formSubmitting ? "Saving..." : "Save"}
               </button>

@@ -17,8 +17,6 @@ import ThresholdManagementPage from "./pages/alerts/ThresholdManagementPage";
 import AlertHistoryPage from "./pages/alerts/AlertHistoryPage";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ParameterInfoPage from "./pages/parameters/ParameterInfoPage";
-import DisplayBuilderPage from "./pages/display/DisplayBuilderPage";
-import DisplayViewerPage from "./pages/display/DisplayViewerPage";
 import MaintenancePage from "./pages/maintenance/MaintenancePage";
 
 /** Known role IDs — mirrors backend seed.ts */
@@ -106,9 +104,7 @@ export default function App() {
             <Route path="/parameters" element={<PrivateRoute element={<ParameterInfoPage />} />} />
             <Route path="/settings" element={<PrivateRoute element={<SettingsPage />} />} />
             <Route path="/telegram-setup" element={<PrivateRoute element={<TelegramSetupGuide />} />} />
-<Route path="/displays" element={<RoleRoute element={<DisplayBuilderPage />} allowedRoles={["admin", "qa_qc"]} />} />
             <Route path="/maintenance" element={<RoleRoute element={<MaintenancePage />} allowedRoles={["admin", "technician"]} />} />
-            <Route path="/display/:slug" element={<DisplayViewerPage />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>

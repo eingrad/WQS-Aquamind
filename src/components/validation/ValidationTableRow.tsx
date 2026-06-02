@@ -13,9 +13,9 @@ export default function ValidationTableRow({
   onCellClick,
 }: ValidationTableRowProps) {
   return (
-    <tr className="border-b border-white/5 hover:bg-white/5">
-      <td className="px-4 py-3 border-r border-white/5">{row.time}</td>
-      <td className="px-4 py-3 border-r border-white/5">{row.location}</td>
+    <tr className="border-b border-slate-200 hover:bg-slate-100">
+      <td className="px-4 py-3 border-r border-slate-200">{row.time}</td>
+      <td className="px-4 py-3 border-r border-slate-200">{row.location}</td>
       <StatusCell
         rowId={row.id}
         parameter="ph"

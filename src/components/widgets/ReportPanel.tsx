@@ -120,25 +120,25 @@ export default function ReportPanel({
   };
 
   return (
-    <div className="fixed right-0 top-0 h-full w-full sm:w-[400px] bg-[#0f1a1a] border-l border-white/10 z-[1000] p-6 overflow-y-auto flex flex-col">
+    <div className="fixed right-0 top-0 h-full w-full sm:w-[400px] bg-[#ffffff] border-l border-slate-200 z-[1000] p-6 overflow-y-auto flex flex-col">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-white">Reports</h2>
+        <h2 className="text-lg font-semibold text-slate-800">Reports</h2>
         <button onClick={onClose}>
-          <X className="text-white w-5 h-5" />
+          <X className="text-slate-800 w-5 h-5" />
         </button>
       </div>
 
       <div className="space-y-6 text-sm flex-grow">
         {/* Device Dropdown */}
         <div>
-          <label className="block text-sm mb-3 text-white">
+          <label className="block text-sm mb-3 text-slate-800">
             Devices Name<span className="text-red-500"> *</span>
           </label>
           <div className="relative">
             <select
               value={selectedDevice}
               onChange={(e) => setSelectedDevice(e.target.value)}
-              className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+              className="w-full px-4 py-3 pr-10 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
             >
               <option value="">-- Select Device --</option>
               {devices.map((device) => (
@@ -147,14 +147,14 @@ export default function ReportPanel({
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-teal-400 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-600 pointer-events-none" />
           </div>
         </div>
 
         {/* Frequency Checkboxes */}
-        <div className="pt-4 border-t border-white/10 mt-auto">
+        <div className="pt-4 border-t border-slate-200 mt-auto">
           <div>
-            <label className="block mb-4 text-white">
+            <label className="block mb-4 text-slate-800">
               Report Frequency<span className="text-red-500"> *</span>
             </label>
             <div className="flex gap-18">
@@ -169,7 +169,7 @@ export default function ReportPanel({
                     onChange={() =>
                       setFrequency(frequency === item ? "" : item)
                     }
-                    className="w-4 h-4 accent-teal-500"
+                    className="w-4 h-4 accent-blue-500"
                   />
                   <span>{item}</span>
                 </label>
@@ -179,9 +179,9 @@ export default function ReportPanel({
         </div>
 
         {/* Date Range Picker */}
-        <div className="pt-4 border-t border-white/10 mt-auto">
+        <div className="pt-4 border-t border-slate-200 mt-auto">
           <div>
-            <label className="block mb-4 text-white">Date Range</label>
+            <label className="block mb-4 text-slate-800">Date Range</label>
             <DateRangePicker
               startDate={startDate}
               endDate={endDate}
@@ -193,8 +193,8 @@ export default function ReportPanel({
         </div>
 
         {/* Export Type Checkboxes */}
-        <div className="pt-4 border-t border-white/10 mt-auto">
-          <label className="block mb-4 text-gray-300">Export Format</label>
+        <div className="pt-4 border-t border-slate-200 mt-auto">
+          <label className="block mb-4 text-slate-700">Export Format</label>
           <div className="flex gap-25">
             {["CSV", "PDF", "TXT"].map((item) => (
               <label key={item} className="flex items-center gap-2">
@@ -204,7 +204,7 @@ export default function ReportPanel({
                   onChange={() =>
                     setExportType(exportType === item ? "" : item)
                   }
-                  className="w-4 h-4 accent-teal-500"
+                  className="w-4 h-4 accent-blue-500"
                 />
                 <span>{item}</span>
               </label>
@@ -215,23 +215,23 @@ export default function ReportPanel({
 
       {/* Error message */}
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-400 text-sm">
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-600 text-sm">
           {error}
         </div>
       )}
 
-      <div className="pt-4 border-t border-white/10 flex justify-between mt-auto">
+      <div className="pt-4 border-t border-slate-200 flex justify-between mt-auto">
         <button
           onClick={generateReport}
           disabled={isGenerating}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isGenerating ? "Generating..." : "Generate Report"}
         </button>
         <button
           onClick={onClose}
           disabled={isGenerating}
-          className="border border-white/20 px-4 py-2 rounded-md text-sm text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="border border-slate-200 px-4 py-2 rounded-md text-sm text-slate-800 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancel
         </button>

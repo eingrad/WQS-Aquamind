@@ -32,7 +32,7 @@ export default function ExposureLimitsDisplay({
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="text-sm font-semibold text-gray-300 px-2">
+      <div className="text-sm font-semibold text-slate-700 px-2">
         NWQS Class Standards ({displayUnit})
       </div>
 
@@ -52,7 +52,7 @@ export default function ExposureLimitsDisplay({
             >
               {range.category}
             </span>
-            <span className="text-gray-400 text-sm">
+            <span className="text-slate-500 text-sm">
               {formatRange(range)} {displayUnit}
             </span>
           </div>

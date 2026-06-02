@@ -88,7 +88,7 @@ export default function OverviewPage() {
   }, [resetView]);
 
   return (
-    <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden">
+    <div className="relative flex flex-col lg:flex-row bg-[#ffffff] min-h-screen text-slate-800 w-full overflow-x-hidden">
       <Sidebar active="Overview" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
       <div className="flex flex-col flex-1">

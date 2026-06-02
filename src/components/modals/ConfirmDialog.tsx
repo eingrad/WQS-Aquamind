@@ -30,7 +30,7 @@ export default function ConfirmDialog({
       case "warning":
         return "bg-yellow-600 hover:bg-yellow-700";
       case "info":
-        return "bg-teal-600 hover:bg-teal-700";
+        return "bg-blue-600 hover:bg-blue-700";
       case "success":
         return "bg-green-600 hover:bg-green-700";
       default:
@@ -45,7 +45,7 @@ export default function ConfirmDialog({
       case "warning":
         return "text-yellow-500";
       case "info":
-        return "text-teal-500";
+        return "text-blue-500";
       case "success":
         return "text-green-500";
       default:
@@ -71,10 +71,10 @@ export default function ConfirmDialog({
 
       {/* Modal */}
       <div className="fixed inset-0 z-[1101] flex items-center justify-center p-4">
-        <div className="bg-[#0f1a1a] border border-white/10 rounded-lg shadow-2xl max-w-md w-full p-6 animate-scale-in">
+        <div className="bg-[#ffffff] border border-slate-200 rounded-lg shadow-2xl max-w-md w-full p-6 animate-scale-in">
           {/* Icon */}
           <div className="flex items-center justify-center mb-4">
-            <div className={`p-3 rounded-full bg-white/5 ${getIconColor()}`}>
+            <div className={`p-3 rounded-full bg-slate-100 ${getIconColor()}`}>
               {type === "success" ? (
                 <CheckCircle size={32} />
               ) : (
@@ -84,26 +84,26 @@ export default function ConfirmDialog({
           </div>
 
           {/* Title */}
-          <h3 className="text-xl font-semibold text-white text-center mb-2">
+          <h3 className="text-xl font-semibold text-slate-800 text-center mb-2">
             {title}
           </h3>
 
           {/* Message */}
-          <p className="text-white/70 text-center mb-6 whitespace-pre-line">{message}</p>
+          <p className="text-slate-500 text-center mb-6 whitespace-pre-line">{message}</p>
 
           {/* Actions */}
           <div className={`flex gap-3 ${onCancel ? "" : "justify-center"}`}>
             {onCancel && (
               <button
                 onClick={onCancel}
-                className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-md font-medium transition-colors"
+                className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-100 text-slate-800 rounded-md font-medium transition-colors"
               >
                 {cancelText}
               </button>
             )}
             <button
               onClick={onConfirm}
-              className={`${onCancel ? "flex-1" : "px-8"} px-4 py-2 ${getButtonColor()} text-white rounded-md font-medium transition-colors`}
+              className={`${onCancel ? "flex-1" : "px-8"} px-4 py-2 ${getButtonColor()} text-slate-800 rounded-md font-medium transition-colors`}
             >
               {confirmText}
             </button>

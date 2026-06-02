@@ -33,13 +33,13 @@ export default function ValidationSidebar({
       <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 h-full w-[400px] bg-[#0f1a1a] shadow-2xl shadow-black/50 z-50 flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-[400px] bg-[#ffffff] shadow-2xl shadow-black/50 z-50 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-          <h3 className="text-lg font-semibold text-white">Validate Data</h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-800">Validate Data</h3>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-white/10 rounded transition-colors"
+            className="p-1.5 hover:bg-slate-100 rounded transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -48,14 +48,14 @@ export default function ValidationSidebar({
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
           {/* Validation Type */}
           <div>
-            <label className="block text-sm text-white mb-2">
+            <label className="block text-sm text-slate-800 mb-2">
               Select Validation Type<span className="text-red-500"> *</span>
             </label>
             <div className="relative">
               <select
                 value={validationType}
                 onChange={(e) => onValidationTypeChange(e.target.value)}
-                className="w-full px-4 py-3 pr-10 rounded-lg bg-[#1a2a2a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                className="w-full px-4 py-3 pr-10 rounded-lg bg-[#e2e8f0] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
               >
                 <option value="Addition">Addition</option>
                 <option value="Multiplication">Multiplication</option>
@@ -64,7 +64,7 @@ export default function ValidationSidebar({
               </select>
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg
-                  className="w-4 h-4 text-teal-400"
+                  className="w-4 h-4 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -82,7 +82,7 @@ export default function ValidationSidebar({
 
           {/* Validate Value Input */}
           <div>
-            <label className="block text-sm text-white mb-2">
+            <label className="block text-sm text-slate-800 mb-2">
               Enter Validate Value<span className="text-red-500"> *</span>
             </label>
             <input
@@ -90,7 +90,7 @@ export default function ValidationSidebar({
               value={validateValue}
               onChange={(e) => onValidateValueChange(e.target.value)}
               placeholder="Enter value..."
-              className="w-full px-4 py-3 pr-10 rounded-lg bg-[#1a2a2a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+              className="w-full px-4 py-3 pr-10 rounded-lg bg-[#e2e8f0] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
             />
           </div>
 
@@ -112,7 +112,7 @@ export default function ValidationSidebar({
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       validationMode === "Corrected"
-                        ? "border-white-500 bg-teal-500"
+                        ? "border-white-500 bg-blue-500"
                         : "border-gray-500"
                     }`}
                   >
@@ -121,7 +121,7 @@ export default function ValidationSidebar({
                     )}
                   </div>
                 </div>
-                <div className="flex-1 bg-teal-600/80 text-sm text-white font-medium py-2.5 px-4 rounded-lg text-center">
+                <div className="flex-1 bg-blue-600/80 text-sm text-white font-medium py-2.5 px-4 rounded-lg text-center">
                   Corrected
                 </div>
               </label>
@@ -141,7 +141,7 @@ export default function ValidationSidebar({
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                       validationMode === "Estimated"
-                        ? "border-white-500 bg-teal-500"
+                        ? "border-white-500 bg-blue-500"
                         : "border-gray-500"
                     }`}
                   >
@@ -150,7 +150,7 @@ export default function ValidationSidebar({
                     )}
                   </div>
                 </div>
-                <div className="flex-1 bg-teal-600/80 text-sm text-white font-medium py-2.5 px-4 rounded-lg text-center">
+                <div className="flex-1 bg-blue-600/80 text-sm text-white font-medium py-2.5 px-4 rounded-lg text-center">
                   Estimated
                 </div>
               </label>
@@ -158,11 +158,11 @@ export default function ValidationSidebar({
           </div>
         </div>
         {/* Footer with Submit Button */}
-        <div className="px-6 py-4 border-t border-white/10">
+        <div className="px-6 py-4 border-t border-slate-200">
           <button
             onClick={onSubmit}
             disabled={!validateValue}
-            className="w-full bg-teal-600 hover:bg-teal-700 text-sm disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-sm disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
           >
             Apply Validation
           </button>

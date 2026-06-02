@@ -230,7 +230,7 @@ export default function DashboardPage() {
   const currentDevice = devices.find((d) => d.id === device);
 
   return (
-    <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 overflow-x-hidden min-w-0">
+    <div className="flex bg-[#ffffff] min-h-screen text-slate-700 overflow-x-hidden min-w-0">
       <Sidebar
         active="Dashboard"
         isOpen={sidebarOpen}
@@ -245,7 +245,7 @@ export default function DashboardPage() {
         />
 
         {/* Controls */}
-        <div className="bg-[#0f1717] px-4 sm:px-6 py-4 border-white/5 border-b">
+        <div className="bg-[#ffffff] px-4 sm:px-6 py-4 border-slate-200 border-b">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 flex-wrap">
             {/* Left Side */}
             <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2">
@@ -255,7 +255,7 @@ export default function DashboardPage() {
                   value={device}
                   onChange={(e) => setDevice(e.target.value)}
                   disabled={devicesLoading}
-                  className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none disabled:opacity-50"
+                  className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#ffffff] to-[#ffffff] border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none disabled:opacity-50"
                 >
                   {devicesLoading ? (
                     <option>Loading devices...</option>
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                       <option
                         value={d.id}
                         key={d.id}
-                        className="bg-[#1a2a2a] text-white"
+                        className="bg-[#e2e8f0] text-slate-800"
                       >
                         {d.name}
                       </option>
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg
-                    className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                    className="w-4 h-4 text-blue-600 group-hover:text-blue-600 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -308,33 +308,33 @@ export default function DashboardPage() {
                     onChange={(e) =>
                       setAverage(e.target.value as typeof average)
                     }
-                    className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                    className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#ffffff] to-[#ffffff] border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                   >
-                    <option value="raw" className="bg-[#1a2a2a] text-white">
+                    <option value="raw" className="bg-[#e2e8f0] text-slate-800">
                       Raw Data
                     </option>
-                    <option value="30m" className="bg-[#1a2a2a] text-white">
+                    <option value="30m" className="bg-[#e2e8f0] text-slate-800">
                       30 Minute Avg
                     </option>
-                    <option value="1h" className="bg-[#1a2a2a] text-white">
+                    <option value="1h" className="bg-[#e2e8f0] text-slate-800">
                       1 Hour Avg
                     </option>
-                    <option value="8h" className="bg-[#1a2a2a] text-white">
+                    <option value="8h" className="bg-[#e2e8f0] text-slate-800">
                       8 Hour Avg
                     </option>
-                    <option value="8h_ma" className="bg-[#1a2a2a] text-white">
+                    <option value="8h_ma" className="bg-[#e2e8f0] text-slate-800">
                       8 Hour Moving Avg
                     </option>
-                    <option value="24h" className="bg-[#1a2a2a] text-white">
+                    <option value="24h" className="bg-[#e2e8f0] text-slate-800">
                       24 Hour Avg
                     </option>
-                    <option value="24h_ma" className="bg-[#1a2a2a] text-white">
+                    <option value="24h_ma" className="bg-[#e2e8f0] text-slate-800">
                       24 Hour Moving Avg
                     </option>
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg
-                      className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                      className="w-4 h-4 text-blue-600 group-hover:text-blue-600 transition-colors"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -351,16 +351,16 @@ export default function DashboardPage() {
               )}
 
               {view === "table" && (
-                <button className="bg-teal-600 px-4 py-2 rounded-lg font-medium text-black text-sm hover:bg-teal-700 transition-colors">
+                <button className="bg-blue-600 px-4 py-2 rounded-lg font-medium text-black text-sm hover:bg-blue-700 transition-colors">
                   Filter
                 </button>
               )}
             </div>
 
             {/* Right Side - View Toggle */}
-            <div className="ml-auto flex items-center gap-2 bg-[#1a2a2a] rounded-md p-1 relative">
+            <div className="ml-auto flex items-center gap-2 bg-[#e2e8f0] rounded-md p-1 relative">
               <div
-                className={`absolute top-1 bottom-1 bg-teal-600 rounded transition-all duration-300 ease-in-out ${
+                className={`absolute top-1 bottom-1 bg-blue-600 rounded transition-all duration-300 ease-in-out ${
                   view === "graph" ? "left-1" : "left-[calc(50%+0.25rem)]"
                 }`}
                 style={{ width: "calc(50% - 0.375rem)" }}
@@ -369,8 +369,8 @@ export default function DashboardPage() {
                 onClick={() => setView("graph")}
                 className={`px-4 py-1.5 rounded text-sm transition-colors duration-300 relative z-10 ${
                   view === "graph"
-                    ? "text-white"
-                    : "text-gray-400 hover:text-white"
+                    ? "text-slate-800"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 Widget View
@@ -379,8 +379,8 @@ export default function DashboardPage() {
                 onClick={() => setView("table")}
                 className={`px-4 py-1.5 rounded text-sm transition-colors duration-300 relative z-10 ${
                   view === "table"
-                    ? "text-white"
-                    : "text-gray-400 hover:text-white"
+                    ? "text-slate-800"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 Table View
@@ -438,13 +438,13 @@ export default function DashboardPage() {
                       <select
                         value={params[0]}
                         onChange={(e) => setParams([e.target.value])}
-                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                        className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#ffffff] to-[#ffffff] border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                       >
                         {PARAMETERS.map((p) => (
                           <option
                             key={p.key}
                             value={p.key}
-                            className="bg-[#1a2a2a] text-white"
+                            className="bg-[#e2e8f0] text-slate-800"
                           >
                             {p.label}
                           </option>
@@ -452,7 +452,7 @@ export default function DashboardPage() {
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg
-                          className="w-4 h-4 text-teal-400 group-hover:text-teal-300 transition-colors"
+                          className="w-4 h-4 text-blue-600 group-hover:text-blue-600 transition-colors"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -470,11 +470,11 @@ export default function DashboardPage() {
                 >
                   {chartLoading ? (
                     <div className="h-96 flex items-center justify-center">
-                      <div className="text-teal-400">Loading chart data...</div>
+                      <div className="text-blue-600">Loading chart data...</div>
                     </div>
                   ) : chartError ? (
                     <div className="h-96 flex items-center justify-center">
-                      <div className="text-red-400">{chartError}</div>
+                      <div className="text-red-600">{chartError}</div>
                     </div>
                   ) : chartData.length === 0 ? (
                     <div className="h-96">
@@ -492,7 +492,7 @@ export default function DashboardPage() {
             </div>
           ) : tableLoading ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="text-teal-400">Loading table data...</div>
+              <div className="text-blue-600">Loading table data...</div>
             </div>
           ) : !hasRecentTableData || tableData.length === 0 ? (
             <EmptyState

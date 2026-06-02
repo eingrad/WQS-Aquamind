@@ -336,7 +336,7 @@ export default function DataValidationPage() {
   // Handle flag submission from sidebar
 
   return (
-    <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden min-w-0">
+    <div className="relative flex flex-col lg:flex-row bg-[#ffffff] min-h-screen text-slate-800 w-full overflow-x-hidden min-w-0">
       <Sidebar
         active="Data Validation"
         isOpen={sidebarOpen}
@@ -380,7 +380,7 @@ export default function DataValidationPage() {
                 <div
                   className={`w-3 h-3 rounded-full ${validationStatusColors[status]}`}
                 />
-                <span className="text-gray-300">{label}</span>
+                <span className="text-slate-700">{label}</span>
               </div>
             ))}
           </div>
@@ -392,7 +392,7 @@ export default function DataValidationPage() {
           {isLoading && (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
-              <span className="ml-3 text-gray-400">
+              <span className="ml-3 text-slate-500">
                 Loading validation data...
               </span>
             </div>
@@ -401,20 +401,20 @@ export default function DataValidationPage() {
           {/* Error State */}
           {error && !isLoading && (
             <div className="mx-4 mb-4 p-4 bg-red-900/20 border border-red-500/50 rounded-lg">
-              <p className="text-red-400">{error}</p>
+              <p className="text-red-600">{error}</p>
             </div>
           )}
 
           {/* Table */}
           {!isLoading && !error && currentData.length === 0 ? (
-            <div className="mx-4 mt-6 bg-[#121b1b] border border-white/5 rounded-xl p-16 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-5 animate-pulse">
-                <LandPlot className="w-8 h-8 text-teal-500/50" />
+            <div className="mx-4 mt-6 bg-[#ffffff] border border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-5 animate-pulse">
+                <LandPlot className="w-8 h-8 text-blue-500/50" />
               </div>
-              <h3 className="text-white font-medium text-lg mb-2">
+              <h3 className="text-slate-800 font-medium text-lg mb-2">
                 No Validation Data
               </h3>
-              <p className="text-white/50 text-sm max-w-sm mx-auto mb-2">
+              <p className="text-slate-500 text-sm max-w-sm mx-auto mb-2">
                 No telemetry data found for the selected device and date range.
                 Try adjusting the filters above.
               </p>

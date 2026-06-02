@@ -121,7 +121,7 @@ export default function DeviceInfoPanel({
 
   return (
     <div
-      className="fixed right-0 top-0 h-screen w-full sm:w-[300px] md:w-[320px] xl:w-[350px] bg-[#111a1a] border border-white/5 z-[999] overflow-y-auto"
+      className="fixed right-0 top-0 h-screen w-full sm:w-[300px] md:w-[320px] xl:w-[350px] bg-[#ffffff] border border-slate-200 z-[999] overflow-y-auto"
       onWheel={(e) => e.stopPropagation()}
     >
       <div className="p-4">
@@ -130,7 +130,7 @@ export default function DeviceInfoPanel({
           <div className="font-bold text-lg">Device Information</div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-red-400 transition text-xl font-semibold"
+            className="text-slate-500 hover:text-red-600 transition text-xl font-semibold"
             aria-label="Close"
           >
             ×
@@ -144,10 +144,10 @@ export default function DeviceInfoPanel({
         />
 
         {loading ? (
-          <div className="text-sm text-gray-400 animate-pulse space-y-3">
-            <div className="h-4 bg-white/5 rounded w-3/4"></div>
-            <div className="h-4 bg-white/5 rounded w-1/2"></div>
-            <div className="h-4 bg-white/5 rounded w-2/3"></div>
+          <div className="text-sm text-slate-500 animate-pulse space-y-3">
+            <div className="h-4 bg-slate-100 rounded w-3/4"></div>
+            <div className="h-4 bg-slate-100 rounded w-1/2"></div>
+            <div className="h-4 bg-slate-100 rounded w-2/3"></div>
           </div>
         ) : (
           <>
@@ -186,8 +186,8 @@ export default function DeviceInfoPanel({
               </div>
             </div>
 
-            <div className="mt-4 bg-[#1a2a2a] p-3 rounded-md w-full max-w-xs">
-              <h3 className="text-sm font-semibold text-teal-400 mb-1">
+            <div className="mt-4 bg-[#e2e8f0] p-3 rounded-md w-full max-w-xs">
+              <h3 className="text-sm font-semibold text-blue-600 mb-1">
                 Parameters
               </h3>
               {latestReading?.bucket && (

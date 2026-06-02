@@ -21,9 +21,9 @@ const parameterLabels: Record<string, string> = {
 };
 
 const severityColors = {
-  warning: "bg-yellow-500/20 text-yellow-400",
-  critical: "bg-orange-500/20 text-orange-400",
-  emergency: "bg-red-500/20 text-red-400",
+  warning: "bg-yellow-500/20 text-yellow-600",
+  critical: "bg-orange-500/20 text-orange-600",
+  emergency: "bg-red-500/20 text-red-600",
 };
 
 export default function AlertHistoryPage() {
@@ -90,7 +90,7 @@ export default function AlertHistoryPage() {
           border-radius: 4px;
         }
         .alert-table-scroll::-webkit-scrollbar-thumb {
-          background: #14b8a6;
+          background: #2563eb;
           border-radius: 4px;
         }
         .alert-table-scroll::-webkit-scrollbar-thumb:hover {
@@ -98,11 +98,11 @@ export default function AlertHistoryPage() {
         }
         .alert-table-scroll {
           scrollbar-width: thin;
-          scrollbar-color: #14b8a6 #1f2937;
+          scrollbar-color: #2563eb #1f2937;
         }
       `}</style>
 
-      <div className="flex h-screen bg-[#0a0f0f] text-white overflow-hidden">
+      <div className="flex h-screen bg-[#f1f5f9] text-slate-800 overflow-hidden">
         <Sidebar active="Alert History" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -113,7 +113,7 @@ export default function AlertHistoryPage() {
               {/* Header & Filters */}
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                 <div>
-                  <h3 className="text-gray-400 mt-2">
+                  <h3 className="text-slate-500 mt-2">
                     View and acknowledge triggered alerts
                   </h3>
                 </div>
@@ -125,14 +125,14 @@ export default function AlertHistoryPage() {
                       onChange={(e) =>
                         setFilter({ ...filter, thresholdType: e.target.value })
                       }
-                      className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                      className="w-full px-4 py-3 pr-10 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                     >
                       <option value="">All Severities</option>
                       <option value="warning">Warning</option>
                       <option value="critical">Critical</option>
                       <option value="emergency">Emergency</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                   </div>
 
                   <div className="relative">
@@ -141,32 +141,32 @@ export default function AlertHistoryPage() {
                       onChange={(e) =>
                         setFilter({ ...filter, acknowledged: e.target.value })
                       }
-                      className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                      className="w-full px-4 py-3 pr-10 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                     >
                       <option value="">All Status</option>
                       <option value="false">Unacknowledged</option>
                       <option value="true">Acknowledged</option>
                     </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-[#121b1b] border border-white/5 rounded-xl p-4">
-                  <div className="text-gray-400 text-sm">Total Alerts</div>
+                <div className="bg-[#ffffff] border border-slate-200 rounded-xl p-4">
+                  <div className="text-slate-500 text-sm">Total Alerts</div>
                   <div className="text-2xl font-bold mt-1">{alerts.length}</div>
                 </div>
                 <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-                  <div className="text-yellow-400 text-sm">Warning</div>
-                  <div className="text-2xl font-bold mt-1 text-yellow-400">
+                  <div className="text-yellow-600 text-sm">Warning</div>
+                  <div className="text-2xl font-bold mt-1 text-yellow-600">
                     {alerts.filter((a) => a.thresholdType === "warning").length}
                   </div>
                 </div>
                 <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4">
-                  <div className="text-orange-400 text-sm">Critical</div>
-                  <div className="text-2xl font-bold mt-1 text-orange-400">
+                  <div className="text-orange-600 text-sm">Critical</div>
+                  <div className="text-2xl font-bold mt-1 text-orange-600">
                     {
                       alerts.filter((a) => a.thresholdType === "critical")
                         .length
@@ -174,8 +174,8 @@ export default function AlertHistoryPage() {
                   </div>
                 </div>
                 <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
-                  <div className="text-red-400 text-sm">Emergency</div>
-                  <div className="text-2xl font-bold mt-1 text-red-400">
+                  <div className="text-red-600 text-sm">Emergency</div>
+                  <div className="text-2xl font-bold mt-1 text-red-600">
                     {
                       alerts.filter((a) => a.thresholdType === "emergency")
                         .length
@@ -186,46 +186,46 @@ export default function AlertHistoryPage() {
 
               {/* Alerts Table or Empty State */}
               {!isLoading && alerts.length === 0 ? (
-                <div className="bg-[#121b1b] border border-white/5 rounded-xl p-16 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-5 animate-pulse">
-                    <BellOff className="w-8 h-8 text-teal-500/50" />
+                <div className="bg-[#ffffff] border border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-5 animate-pulse">
+                    <BellOff className="w-8 h-8 text-blue-500/50" />
                   </div>
-                  <h3 className="text-white font-medium text-lg mb-2">
+                  <h3 className="text-slate-800 font-medium text-lg mb-2">
                     No Alert History Yet
                   </h3>
-                  <p className="text-white/50 text-sm max-w-sm mx-auto mb-4">
+                  <p className="text-slate-500 text-sm max-w-sm mx-auto mb-4">
                     Set up alert thresholds to get notified when parameter
                     values exceed safe limits.
                   </p>
                 </div>
               ) : (
-                <div className="bg-[#121b1b] border border-white/5 rounded-xl overflow-hidden">
+                <div className="bg-[#ffffff] border border-slate-200 rounded-xl overflow-hidden">
                   <div className="overflow-x-auto alert-table-scroll">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-white/5">
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                        <tr className="border-b border-slate-200">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Time
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Device
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Parameter
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Value
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Threshold
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Severity
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Status
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                             Action
                           </th>
                         </tr>
@@ -235,7 +235,7 @@ export default function AlertHistoryPage() {
                           <tr>
                             <td
                               colSpan={8}
-                              className="px-4 py-8 text-center text-gray-400"
+                              className="px-4 py-8 text-center text-slate-500"
                             >
                               Loading alerts...
                             </td>
@@ -244,7 +244,7 @@ export default function AlertHistoryPage() {
                           paginatedAlerts.map((alert) => (
                             <tr
                               key={alert.id}
-                              className="border-b border-white/5 hover:bg-white/5 transition"
+                              className="border-b border-slate-200 hover:bg-slate-100 transition"
                             >
                               <td className="px-4 py-3 text-sm whitespace-nowrap">
                                 {new Date(alert.observedAt).toLocaleString(
@@ -265,10 +265,10 @@ export default function AlertHistoryPage() {
                                 {parameterLabels[alert.parameter] ||
                                   alert.parameter}
                               </td>
-                              <td className="px-4 py-3 text-sm font-bold text-teal-400 whitespace-nowrap">
+                              <td className="px-4 py-3 text-sm font-bold text-blue-600 whitespace-nowrap">
                                 {Number(alert.actualValue).toFixed(2)}
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-400 whitespace-nowrap">
+                              <td className="px-4 py-3 text-sm text-slate-500 whitespace-nowrap">
                                 {alert.threshold.operator}{" "}
                                 {Number(alert.thresholdValue).toFixed(2)}
                               </td>
@@ -283,12 +283,12 @@ export default function AlertHistoryPage() {
                               </td>
                               <td className="px-4 py-3 text-sm whitespace-nowrap">
                                 {alert.acknowledged ? (
-                                  <span className="text-green-400 flex items-center gap-1">
+                                  <span className="text-green-600 flex items-center gap-1">
                                     <CheckCircle size={14} />
                                     Acknowledged
                                   </span>
                                 ) : (
-                                  <span className="text-yellow-400">
+                                  <span className="text-yellow-600">
                                     Pending
                                   </span>
                                 )}
@@ -297,7 +297,7 @@ export default function AlertHistoryPage() {
                                 {!alert.acknowledged && (
                                   <button
                                     onClick={() => handleAcknowledge(alert.id)}
-                                    className="px-3 py-1 text-xs bg-teal-600 hover:bg-teal-700 rounded transition"
+                                    className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition"
                                   >
                                     Acknowledge
                                   </button>
@@ -312,7 +312,7 @@ export default function AlertHistoryPage() {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="border-t border-white/5 p-4">
+                    <div className="border-t border-slate-200 p-4">
                       <Pagination
                         currentPage={currentPage}
                         totalPages={totalPages}

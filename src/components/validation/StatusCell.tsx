@@ -80,7 +80,7 @@ export default function StatusCell({
 
   if (value === null) {
     return (
-      <td className="w-[10%] px-4 py-3 text-center border-r border-white/5">
+      <td className="w-[10%] px-4 py-3 text-center border-r border-slate-200">
         <div className={`${bgColor} px-3 py-2 rounded`}>&nbsp;</div>
       </td>
     );
@@ -98,11 +98,11 @@ export default function StatusCell({
       : "bg-green-600";
 
   return (
-    <td className="w-[10%] px-4 py-3 text-center border-r border-white/5">
+    <td className="w-[10%] px-4 py-3 text-center border-r border-slate-200">
       <div
         className={`${bgTransparent} px-3 py-2 rounded ${textColor} relative ${
-          isClickable ? "cursor-pointer hover:ring-1 hover:ring-teal-100" : ""
-        } ${isSelected ? "ring-2 ring-teal-100" : ""}`}
+          isClickable ? "cursor-pointer hover:ring-1 hover:ring-blue-100" : ""
+        } ${isSelected ? "ring-2 ring-blue-100" : ""}`}
         onClick={handleClick}
         title={humanValidation ? getTooltipText() : undefined}
       >
@@ -123,11 +123,11 @@ export default function StatusCell({
             }
           >
             {pendingAdminApproval ? (
-              <Flag className="w-5 h-3 text-white" />
+              <Flag className="w-5 h-3 text-slate-800" />
             ) : humanValidation ? (
-              <User className="w-5 h-3 text-white" />
+              <User className="w-5 h-3 text-slate-800" />
             ) : (
-              <Check className="w-5 h-3 text-white" />
+              <Check className="w-5 h-3 text-slate-800" />
             )}
           </div>
         )}

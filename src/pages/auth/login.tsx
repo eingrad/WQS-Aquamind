@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../services/auth.service";
+import aquamindLogo from "../../assets/aquamind-logo.png";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,26 +39,23 @@ export default function Login() {
   };
 
   return (
-    <div className="flex bg-[#0f1a1a] w-full min-h-screen text-gray-100">
+    <div className="flex bg-[#ffffff] w-full min-h-screen text-slate-700">
       {/* Left brand / hero side */}
-      <div className="hidden relative lg:flex justify-center items-center bg-linear-to-br from-[#0d2f2e] to-[#0a201f] p-12 lg:w-1/2 overflow-hidden">
+      <div className="hidden relative lg:flex justify-center items-center bg-linear-to-br from-[#bfdbfe] to-[#dbeafe] p-12 lg:w-1/2 overflow-hidden">
         <div
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage:
-              "radial-gradient(800px 300px at 20% 10%, #23c1b522, transparent), radial-gradient(600px 400px at 80% 90%, #15a79f33, transparent)",
+              "radial-gradient(800px 300px at 20% 10%, #3b82f622, transparent), radial-gradient(600px 400px at 80% 90%, #2563eb33, transparent)",
           }}
         />
         <div className="relative max-w-md">
           <div className="flex items-center gap-4 mb-6">
             <div>
-              <h1 className="font-semibold text-2xl tracking-wide">AquaMind</h1>
-              <p className="text-teal-300/80 text-sm">
-                Water Quality Monitoring
-              </p>
+              <img src={aquamindLogo} alt="AquaMind" className="h-20 w-auto" />
             </div>
           </div>
-          <p className="text-teal-100/80 leading-relaxed">
+          <p className="text-slate-600 leading-relaxed">
             Monitor pH, DO, NH₃-N, COD, BOD, TSS and depth across water monitoring stations in real time.
           </p>
         </div>
@@ -66,18 +64,14 @@ export default function Login() {
       {/* Right pa
       nel: login form */}
       <div className="flex flex-1 justify-center items-center p-6 sm:p-10">
-        <div className="bg-[#142223]/70 shadow-xl backdrop-blur p-8 border border-white/5 rounded-2xl w-full max-w-lg">
-          <div className="flex items-center gap-3 mb-6">
-            <span className="font-bold text-teal-400 text-2xl tracking-wide">AquaMind</span>
-          </div>
-
+        <div className="bg-[#ffffff]/70 shadow-xl backdrop-blur p-8 border border-slate-200 rounded-2xl w-full max-w-lg">
           <form onSubmit={onSubmit} className="space-y-5">
             <div>
               <label className="block mb-1 text-md">Email</label>
               <input
                 type="email"
                 autoFocus
-                className="bg-[#0d1717] px-4 py-3 border border-white/10 focus:border-teal-500/60 rounded-xl outline-none w-full"
+                className="bg-[#ffffff] px-4 py-3 border border-slate-200 focus:border-blue-500/60 rounded-xl outline-none w-full"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -90,14 +84,14 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((s) => !s)}
-                  className="text-teal-300 text-xs hover:underline"
+                  className="text-blue-600 text-xs hover:underline"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
               </div>
               <input
                 type={showPassword ? "text" : "password"}
-                className="bg-[#0d1717] px-4 py-3 border border-white/10 focus:border-teal-500/60 rounded-xl outline-none w-full"
+                className="bg-[#ffffff] px-4 py-3 border border-slate-200 focus:border-blue-500/60 rounded-xl outline-none w-full"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -109,19 +103,19 @@ export default function Login() {
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  className="accent-teal-500"
+                  className="accent-blue-500"
                   checked={remember}
                   onChange={(e) => setRemember(e.target.checked)}
                 />
                 Remember me
               </label>
-              <a href="#" className="text-teal-300 text-sm hover:underline">
+              <a href="#" className="text-blue-600 text-sm hover:underline">
                 Forgot password?
               </a>
             </div>
 
             {error && (
-              <div className="bg-rose-500/10 p-3 border border-rose-500/40 rounded-lg text-rose-200 text-sm">
+              <div className="bg-rose-500/10 p-3 border border-rose-500/40 rounded-lg text-rose-700 text-sm">
                 {error}
               </div>
             )}
@@ -129,7 +123,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-teal-500 hover:bg-teal-400 disabled:opacity-60 py-3 rounded-xl w-full font-semibold text-black transition disabled:cursor-not-allowed"
+              className="bg-blue-500 hover:bg-blue-400 disabled:opacity-60 py-3 rounded-xl w-full font-semibold text-black transition disabled:cursor-not-allowed"
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>

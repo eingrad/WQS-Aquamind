@@ -92,13 +92,13 @@ export default function WindRoseOverlay({
 
         {/* Show a visible card when no data, or transparent chart when data exists */}
         {!loading && !windData?.directions ? (
-          <div className="w-full h-full flex items-center justify-center rounded-xl bg-[#0f1a1a]/95 backdrop-blur-md border border-teal-500/30 shadow-2xl">
+          <div className="w-full h-full flex items-center justify-center rounded-xl bg-[#ffffff]/95 backdrop-blur-md border border-blue-500/30 shadow-2xl">
             <div className="text-center px-8">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                <Wind className="w-8 h-8 text-teal-400" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                <Wind className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-white mb-2">No Wind Data</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">No Wind Data</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">
                 The device may be offline or no wind<br />data has been recorded yet.
               </p>
             </div>

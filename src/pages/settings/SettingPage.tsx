@@ -124,7 +124,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 w-screen max-w-screen overflow-x-hidden">
+    <div className="flex bg-[#ffffff] min-h-screen text-slate-700 w-screen max-w-screen overflow-x-hidden">
       <Sidebar active="Settings" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
       <div className="flex flex-col flex-1">
         <Topbar title="Settings" view={view} setView={setView} onMenuToggle={() => setSidebarOpen(true)} />
@@ -141,14 +141,14 @@ export default function SettingsPage() {
 
                 return (
                   <div key={key}>
-                    <label className="block mb-1 text-sm text-gray-300">
+                    <label className="block mb-1 text-sm text-slate-700">
                       {label}
                     </label>
                     <div className="relative">
                       <select
                         value={currentValue}
                         onChange={(e) => handleUnitChange(key, e.target.value)}
-                        className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0d1717] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                        className="w-full px-4 py-3 pr-10 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                       >
                         {options.map((option) => (
                           <option key={option} value={option}>
@@ -156,7 +156,7 @@ export default function SettingsPage() {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-teal-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-600 pointer-events-none" />
                     </div>
                   </div>
                 );
@@ -164,19 +164,19 @@ export default function SettingsPage() {
             </div>
 
             {/* Reset & Feedback */}
-            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-white/10">
+            <div className="flex items-center gap-3 mt-6 pt-4 border-t border-slate-200">
               <button
                 onClick={() => {
                   resetUnits();
                   setUnitSaveMessage("Units reset to defaults");
                   setTimeout(() => setUnitSaveMessage(""), 2000);
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                className="px-4 py-2 bg-gray-600 hover:bg-slate-200 rounded-lg text-sm transition-colors"
               >
                 Reset to Defaults
               </button>
               {unitSaveMessage && (
-                <div className="flex items-center text-sm text-emerald-400">
+                <div className="flex items-center text-sm text-emerald-600">
                   ✓ {unitSaveMessage}
                 </div>
               )}
@@ -187,7 +187,7 @@ export default function SettingsPage() {
           <Card title="Notification Preferences">
             <div className="space-y-6">
               {preferencesLoading && (
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-slate-500">
                   Loading preferences...
                 </div>
               )}
@@ -195,10 +195,10 @@ export default function SettingsPage() {
               {/* In-App Notifications */}
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="block text-sm font-medium text-gray-200">
+                  <label className="block text-sm font-medium text-slate-700">
                     In-App Notifications
                   </label>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Get notified within the dashboard
                   </p>
                 </div>
@@ -230,10 +230,10 @@ export default function SettingsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="block text-sm font-medium text-gray-200">
+                    <label className="block text-sm font-medium text-slate-700">
                       Email Notifications
                     </label>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                       Receive alerts via email
                     </p>
                   </div>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
                         emailAddress: e.target.value,
                       }))
                     }
-                    className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg w-full text-sm"
+                    className="bg-[#ffffff] px-3 py-2 border border-slate-200 rounded-lg w-full text-sm"
                   />
                 )}
               </div>
@@ -280,10 +280,10 @@ export default function SettingsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="block text-sm font-medium text-gray-200">
+                    <label className="block text-sm font-medium text-slate-700">
                       Telegram Notifications
                     </label>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-slate-500 mt-1">
                       Get alerts on Telegram
                     </p>
                   </div>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                             telegramChatId: e.target.value,
                           }))
                         }
-                        className="bg-[#0d1717] px-3 py-2 border border-white/10 rounded-lg flex-1 text-sm"
+                        className="bg-[#ffffff] px-3 py-2 border border-slate-200 rounded-lg flex-1 text-sm"
                       />
                       <button
                         onClick={handleTestTelegram}
@@ -339,7 +339,7 @@ export default function SettingsPage() {
                       Need help? Follow our{" "}
                       <Link
                         to="/telegram-setup"
-                        className="text-blue-400 hover:underline"
+                        className="text-blue-600 hover:underline"
                       >
                         setup guide
                       </Link>{" "}
@@ -349,8 +349,8 @@ export default function SettingsPage() {
                       <div
                         className={`text-xs p-2 rounded ${
                           telegramTestResult.success
-                            ? "bg-emerald-900/30 text-emerald-400"
-                            : "bg-red-900/30 text-red-400"
+                            ? "bg-emerald-900/30 text-emerald-600"
+                            : "bg-red-900/30 text-red-600"
                         }`}
                       >
                         {telegramTestResult.success
@@ -363,7 +363,7 @@ export default function SettingsPage() {
               </div>
 
               {/* Save Button */}
-              <div className="flex gap-3 pt-4 border-t border-white/10">
+              <div className="flex gap-3 pt-4 border-t border-slate-200">
                 <button
                   onClick={handleSavePreferences}
                   disabled={saving}
@@ -372,7 +372,7 @@ export default function SettingsPage() {
                   {saving ? "Saving..." : "Save Preferences"}
                 </button>
                 {saveMessage && (
-                  <div className="flex items-center text-sm text-emerald-400">
+                  <div className="flex items-center text-sm text-emerald-600">
                     ✓ {saveMessage}
                   </div>
                 )}

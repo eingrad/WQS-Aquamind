@@ -172,29 +172,29 @@ export default function ReportTable({ refreshKey = 0 }: ReportTableProps = {}) {
   return (
     <>
       {/* Reports Table */}
-      <div className="w-full overflow-x-auto border border-white/5 bg-[#0f1a1a]">
-        <p className="p-4 text-white font-semibold text-lg">Existing Reports</p>
+      <div className="w-full overflow-x-auto border border-slate-200 bg-[#ffffff]">
+        <p className="p-4 text-slate-800 font-semibold text-lg">Existing Reports</p>
 
         {loading ? (
-          <div className="p-8 text-center text-white/50">
+          <div className="p-8 text-center text-slate-500">
             Loading reports...
           </div>
         ) : reports.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center border-t border-white/5">
-            <div className="p-4 rounded-full bg-white/5 mb-4 animate-pulse">
-              <FileBarChart className="w-8 h-8 text-teal-500/50" />
+          <div className="flex flex-col items-center justify-center py-12 text-center border-t border-slate-200">
+            <div className="p-4 rounded-full bg-slate-100 mb-4 animate-pulse">
+              <FileBarChart className="w-8 h-8 text-blue-500/50" />
             </div>
-            <h3 className="text-white font-medium text-lg mb-2">
+            <h3 className="text-slate-800 font-medium text-lg mb-2">
               No Reports Generated
             </h3>
-            <p className="text-white/50 text-sm max-w-sm mx-auto">
+            <p className="text-slate-500 text-sm max-w-sm mx-auto">
               Select your desired parameters in the panel above and click
               "Generate Report" to create your first detailed analysis.
             </p>
           </div>
         ) : (
-          <table className="min-w-full text-sm text-left text-white mt-4">
-            <thead className="border-b border-white/5">
+          <table className="min-w-full text-sm text-left text-slate-800 mt-4">
+            <thead className="border-b border-slate-200">
               <tr>
                 <th className="px-4 py-3">Title</th>
                 <th className="px-4 py-3">Frequency</th>
@@ -205,9 +205,9 @@ export default function ReportTable({ refreshKey = 0 }: ReportTableProps = {}) {
                 <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-slate-200">
               {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-white/5">
+                <tr key={report.id} className="hover:bg-slate-100">
                   <td className="px-4 py-3">{report.title}</td>
                   <td className="px-4 py-3">
                     <span className="capitalize">{report.reportType}</span>
@@ -216,8 +216,8 @@ export default function ReportTable({ refreshKey = 0 }: ReportTableProps = {}) {
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium border ${
                         report.fileFormat === "PDF"
-                          ? "bg-red-900/30 text-red-300 border-red-700/50"
-                          : "bg-green-900/30 text-green-300 border-green-700/50"
+                          ? "bg-red-900/30 text-red-600 border-red-700/50"
+                          : "bg-green-900/30 text-green-600 border-green-700/50"
                       }`}
                     >
                       {report.fileFormat || "PDF"}
@@ -246,7 +246,7 @@ export default function ReportTable({ refreshKey = 0 }: ReportTableProps = {}) {
                       <button
                         onClick={() => handleDownload(report.id)}
                         disabled={downloading === report.id}
-                        className="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1 rounded text-md flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-md flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Download size={16} />
                         {downloading === report.id && (

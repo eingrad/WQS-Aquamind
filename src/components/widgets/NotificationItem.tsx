@@ -54,8 +54,8 @@ const severityConfig = {
     icon: <ClipboardList className="w-5 h-5" />,
   },
   approval_decision: {
-    borderColor: "border-teal-500",
-    bgColor: "bg-teal-500/10",
+    borderColor: "border-blue-500",
+    bgColor: "bg-blue-500/10",
     icon: <CheckCircle2 className="w-5 h-5" />,
   },
 };
@@ -96,9 +96,9 @@ export default function NotificationItem({
       onClick={() => onClick(notification)}
       className={`
         relative p-4 border-l-4 ${borderColor} ${
-          notification.isRead ? "bg-white/5" : `${bgColor} bg-opacity-20`
+          notification.isRead ? "bg-slate-100" : `${bgColor} bg-opacity-20`
         }
-        hover:bg-white/10 transition cursor-pointer group
+        hover:bg-slate-100 transition cursor-pointer group
         ${isLast ? "rounded-b-xl" : ""}
       `}
     >
@@ -112,7 +112,7 @@ export default function NotificationItem({
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div
-          className={`flex-shrink-0 mt-0.5 text-white/70 group-hover:text-white transition`}
+          className={`flex-shrink-0 mt-0.5 text-slate-500 group-hover:text-slate-800 transition`}
         >
           {config.icon}
         </div>
@@ -122,8 +122,8 @@ export default function NotificationItem({
           <div className="flex items-start justify-between gap-2">
             <h4
               className={`text-sm font-medium ${
-                notification.isRead ? "text-white/70" : "text-white"
-              } group-hover:text-white transition`}
+                notification.isRead ? "text-slate-500" : "text-slate-800"
+              } group-hover:text-slate-800 transition`}
             >
               {notification.title}
             </h4>
@@ -131,13 +131,13 @@ export default function NotificationItem({
 
           <p
             className={`text-xs mt-1 ${
-              notification.isRead ? "text-white/50" : "text-white/60"
-            } group-hover:text-white/70 transition`}
+              notification.isRead ? "text-slate-500" : "text-slate-500"
+            } group-hover:text-slate-500 transition`}
           >
             {notification.message}
           </p>
 
-          <p className="text-[11px] text-white/40 mt-2">
+          <p className="text-[11px] text-slate-500 mt-2">
             {getRelativeTime(notification.timestamp)}
           </p>
         </div>

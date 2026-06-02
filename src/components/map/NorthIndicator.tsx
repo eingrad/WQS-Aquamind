@@ -14,7 +14,7 @@ export default function NorthIndicator() {
     // Render Tailwind + Lucide icon into Leaflet control
     const root = ReactDOM.createRoot(container);
     root.render(
-      <div className="w-10 h-10 bg-black/70 rounded-lg flex flex-col items-center justify-center shadow-md border border-white/10 select-none">
+      <div className="w-10 h-10 bg-black/70 rounded-lg flex flex-col items-center justify-center shadow-md border border-slate-200 select-none">
         <ArrowBigUp className="w-5 h-5 text-red-500" />
         <span className="text-xs text-red-500 font-semibold -mt-0.5">N</span>
       </div>

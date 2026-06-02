@@ -29,9 +29,9 @@ const operators = [
 ];
 
 const severities = [
-  { value: "warning", label: "Warning", color: "text-yellow-400" },
-  { value: "critical", label: "Critical", color: "text-orange-400" },
-  { value: "emergency", label: "Emergency", color: "text-red-400" },
+  { value: "warning", label: "Warning", color: "text-yellow-600" },
+  { value: "critical", label: "Critical", color: "text-orange-600" },
+  { value: "emergency", label: "Emergency", color: "text-red-600" },
 ];
 
 export default function ThresholdForm({
@@ -112,18 +112,18 @@ export default function ThresholdForm({
 
       {/* Side Panel */}
       <div
-        className="fixed right-0 top-0 h-full w-full sm:w-[400px] md:w-[440px] lg:w-[480px] xl:w-[500px] bg-[#0f1717] border-l border-white/10 z-50 shadow-2xl
+        className="fixed right-0 top-0 h-full w-full sm:w-[400px] md:w-[440px] lg:w-[480px] xl:w-[500px] bg-[#ffffff] border-l border-slate-200 z-50 shadow-2xl
           transform transition-transform duration-300 ease-out flex flex-col"
       >
         {/* Header - Fixed */}
-        <div className="bg-[#0f1717] border-b border-white/10 p-6 flex-shrink-0">
+        <div className="bg-[#ffffff] border-b border-slate-200 p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">
               {threshold ? "Edit Threshold" : "Create New Threshold"}
             </h3>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition"
+              className="p-2 hover:bg-slate-100 rounded-lg transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -135,7 +135,7 @@ export default function ThresholdForm({
           <div className="space-y-5">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-500/10 border border-red-500/30 text-red-600 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -143,7 +143,7 @@ export default function ThresholdForm({
             {/* Parameter */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Parameter <span className="text-red-400">*</span>
+                Parameter <span className="text-red-600">*</span>
               </label>
               <div className="relative">
                 <select
@@ -151,7 +151,7 @@ export default function ThresholdForm({
                   onChange={(e) =>
                     setFormData({ ...formData, parameter: e.target.value })
                   }
-                  className="w-full px-4 py-3 pr-10 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                  className="w-full px-4 py-3 pr-10 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                   required
                 >
                   {parameters.map((param) => (
@@ -160,14 +160,14 @@ export default function ThresholdForm({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
               </div>
             </div>
 
             {/* Severity */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Severity Level <span className="text-red-400">*</span>
+                Severity Level <span className="text-red-600">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {severities.map((severity) => (
@@ -185,7 +185,7 @@ export default function ThresholdForm({
                     ${
                       formData.thresholdType === severity.value
                         ? `${severity.color} border-current bg-current/10`
-                        : "border-white/10 text-white/60 hover:border-white/20"
+                        : "border-slate-200 text-slate-500 hover:border-slate-200"
                     }
                   `}
                   >
@@ -198,7 +198,7 @@ export default function ThresholdForm({
             {/* Condition (Operator + Value) */}
             <div>
               <label className="block text-sm font-medium mb-2">
-                Threshold Condition <span className="text-red-400">*</span>
+                Threshold Condition <span className="text-red-600">*</span>
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <select
@@ -206,7 +206,7 @@ export default function ThresholdForm({
                   onChange={(e) =>
                     setFormData({ ...formData, operator: e.target.value })
                   }
-                  className="col-span-2 px-4 py-3 pr-10 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                  className="col-span-2 px-4 py-3 pr-10 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                   required
                 >
                   {operators.map((op) => (
@@ -223,11 +223,11 @@ export default function ThresholdForm({
                     setFormData({ ...formData, value: e.target.value })
                   }
                   placeholder="Enter value"
-                  className="col-span-2 px-4 py-3 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                  className="col-span-2 px-4 py-3 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                   required
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 Alert triggers when value {formData.operator}{" "}
                 {formData.value || "___"}
               </p>
@@ -237,7 +237,7 @@ export default function ThresholdForm({
             <div>
               <label className="block text-sm font-medium mb-2">
                 Cooldown Period (minutes){" "}
-                <span className="text-red-400">*</span>
+                <span className="text-red-600">*</span>
               </label>
               <input
                 type="number"
@@ -246,17 +246,17 @@ export default function ThresholdForm({
                 onChange={(e) =>
                   setFormData({ ...formData, cooldownMinutes: e.target.value })
                 }
-                className="w-full px-4 py-3 rounded-lg bg-[#0f1a1a] text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+                className="w-full px-4 py-3 rounded-lg bg-[#ffffff] text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
                 required
               />
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 Minimum 5 minutes, maximum 24 hours (1440 minutes)
               </p>
             </div>
 
             {/* Scope Info */}
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <p className="text-sm text-blue-400">
+              <p className="text-sm text-blue-600">
                 <strong>Scope:</strong> This threshold applies to{" "}
                 <strong>all devices</strong> (global threshold)
               </p>
@@ -265,12 +265,12 @@ export default function ThresholdForm({
         </div>
 
         {/* Footer Buttons - Fixed at Bottom */}
-        <div className="bg-[#0f1717] border-t border-white/10 p-5 flex-shrink-0">
+        <div className="bg-[#ffffff] border-t border-slate-200 p-5 flex-shrink-0">
           <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-white/10 hover:bg-white/20 rounded-lg text-md transition"
+              className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-100 rounded-lg text-md transition"
               disabled={isSubmitting}
             >
               Cancel
@@ -278,7 +278,7 @@ export default function ThresholdForm({
             <button
               type="submit"
               onClick={handleSubmit}
-              className="flex-1 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 rounded-lg transition font-medium text-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition font-medium text-md disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Saving..." : threshold ? "Update" : "Create"}

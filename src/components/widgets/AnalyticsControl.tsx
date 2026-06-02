@@ -52,7 +52,7 @@ const AnalyticsControls = memo(function AnalyticsControls({
   getUnit,
 }: Props) {
   return (
-    <div className="bg-[#0f1717] px-4 sm:px-6 py-4 border-white/5 border-b">
+    <div className="bg-[#ffffff] px-4 sm:px-6 py-4 border-slate-200 border-b">
       <div className="flex flex-col md:flex-row md:items-center gap-3 flex-wrap">
         {/* Device Selector */}
         <div className="relative group">
@@ -60,7 +60,7 @@ const AnalyticsControls = memo(function AnalyticsControls({
             value={device}
             onChange={(e) => onDeviceChange(e.target.value)}
             disabled={devicesLoading}
-            className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none disabled:opacity-50"
+            className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#ffffff] to-[#ffffff] border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none disabled:opacity-50"
           >
             {devicesLoading ? (
               <option>Loading devices...</option>
@@ -69,7 +69,7 @@ const AnalyticsControls = memo(function AnalyticsControls({
                 <option
                   key={d.id}
                   value={d.id}
-                  className="bg-[#1a2a2a] text-white"
+                  className="bg-[#e2e8f0] text-slate-800"
                 >
                   {d.name}
                 </option>
@@ -78,7 +78,7 @@ const AnalyticsControls = memo(function AnalyticsControls({
               <option>No devices found</option>
             )}
           </select>
-          <ChevronIcon className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-teal-300" />
+          <ChevronIcon className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-blue-600" />
         </div>
 
         {/* Date Range */}
@@ -94,19 +94,19 @@ const AnalyticsControls = memo(function AnalyticsControls({
           <select
             value={timeAverage}
             onChange={(e) => onTimeAverageChange(e.target.value as TimeAverage)}
-            className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none"
+            className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#ffffff] to-[#ffffff] border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer appearance-none min-w-[180px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none"
           >
             {TIME_AVERAGES.map((avg) => (
               <option
                 key={avg.value}
                 value={avg.value}
-                className="bg-[#1a2a2a] text-white"
+                className="bg-[#e2e8f0] text-slate-800"
               >
                 {avg.label}
               </option>
             ))}
           </select>
-          <ChevronIcon className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-teal-300" />
+          <ChevronIcon className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-blue-600" />
         </div>
 
         {/* Param Multi-Select */}
@@ -128,13 +128,13 @@ const AnalyticsControls = memo(function AnalyticsControls({
             return (
               <span
                 key={key}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-teal-500/15 text-teal-300 border border-teal-500/20"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/15 text-blue-600 border border-blue-500/20"
               >
                 {param.label}
                 {selectedParams.length > 1 && (
                   <button
                     onClick={() => onToggleParam(key)}
-                    className="ml-0.5 hover:text-teal-100 transition-colors"
+                    className="ml-0.5 hover:text-blue-800 transition-colors"
                   >
                     <svg
                       className="w-3 h-3"
@@ -165,7 +165,7 @@ export default AnalyticsControls;
 function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={`w-4 h-4 text-teal-400 transition-colors ${className}`}
+      className={`w-4 h-4 text-blue-600 transition-colors ${className}`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

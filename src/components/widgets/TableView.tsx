@@ -50,7 +50,7 @@ export default function TableView({ data, device, devices }: TableViewProps) {
           border-radius: 4px;
         }
         .custom-table-scroll::-webkit-scrollbar-thumb {
-          background: #14b8a6;
+          background: #2563eb;
           border-radius: 4px;
         }
         .custom-table-scroll::-webkit-scrollbar-thumb:hover {
@@ -64,55 +64,55 @@ export default function TableView({ data, device, devices }: TableViewProps) {
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <div className="overflow-x-auto overflow-y-auto custom-table-scroll">
           <table className="w-full text-sm">
-            <thead className="bg-[#1a2a2a] sticky top-0 z-10">
+            <thead className="bg-[#e2e8f0] sticky top-0 z-10">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold border-r border-[#1a2a2a] min-w-[180px]">
+                <th className="px-4 py-3 text-left font-semibold border-r border-[#e2e8f0] min-w-[180px]">
                   Time & Date
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[140px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[140px]">
                   Location
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[100px]">
                   <div>pH</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("ph")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("ph")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[100px]">
                   <div>DO</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("do")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("do")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[110px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[110px]">
                   <div>NH₃-N</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("nh3n")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("nh3n")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[100px]">
                   <div>COD</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("cod")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("cod")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[100px]">
                   <div>BOD</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("bod")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("bod")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[100px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[100px]">
                   <div>TSS</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("tss")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("tss")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[120px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[120px]">
                   <div>Temperature</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("temperature")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("temperature")}</div>
                 </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#1a2a2a] min-w-[110px]">
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[110px]">
                   <div>Pressure</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("pressure")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("pressure")}</div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold min-w-[100px]">
                   <div>Depth</div>
-                  <div className="text-xs font-normal text-gray-400">{getUnit("depth")}</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("depth")}</div>
                 </th>
               </tr>
             </thead>
             <tbody>
               {currentData.map((row, idx) => (
-                <tr key={idx} className="border-b border-white/5 hover:bg-white/5">
+                <tr key={idx} className="border-b border-slate-200 hover:bg-slate-100">
                   <td className="px-4 py-3 text-left">{formatDateTime(row.t)}</td>
                   <td className="px-4 py-3 text-center">
                     {devices.find((d) => d.id === device)?.location || "–"}

@@ -109,7 +109,7 @@ export default function WindRoseChart({
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <div className="text-teal-400">Loading...</div>
+        <div className="text-blue-600">Loading...</div>
       </div>
     );
   }

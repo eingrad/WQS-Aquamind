@@ -22,9 +22,9 @@ const parameterLabels: Record<string, string> = {
 };
 
 const severityColors = {
-  warning: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  critical: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  emergency: "bg-red-500/20 text-red-400 border-red-500/30",
+  warning: "bg-yellow-500/20 text-yellow-600 border-yellow-500/30",
+  critical: "bg-orange-500/20 text-orange-600 border-orange-500/30",
+  emergency: "bg-red-500/20 text-red-600 border-red-500/30",
 };
 
 export default function ThresholdManagementPage() {
@@ -83,7 +83,7 @@ export default function ThresholdManagementPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0f1a1a] text-white overflow-hidden">
+    <div className="flex h-screen bg-[#ffffff] text-slate-800 overflow-hidden">
       <Sidebar active="Alert Thresholds" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -98,14 +98,14 @@ export default function ThresholdManagementPage() {
                   setEditingThreshold(null);
                   setShowForm(true);
                 }}
-                className="flex text-sm text-black items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg transition"
+                className="flex text-sm text-black items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition"
               >
                 <Plus size={15} />
                 Add Threshold
               </button>
 
               <div>
-                <p className="text-gray-400 pl-4 text-sm mt-1">
+                <p className="text-slate-500 pl-4 text-sm mt-1">
                   Configure global alert thresholds for monitoring parameters
                 </p>
               </div>
@@ -113,18 +113,18 @@ export default function ThresholdManagementPage() {
 
             {/* Thresholds Grid */}
             {isLoading ? (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-slate-500">
                 Loading thresholds...
               </div>
             ) : thresholds.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 bg-[#121b1b] border border-white/5 rounded-xl text-center">
-                <div className="p-4 rounded-full bg-white/5 mb-4 animate-pulse">
-                  <BellOff className="w-8 h-8 text-teal-500/50" />
+              <div className="flex flex-col items-center justify-center py-12 bg-[#ffffff] border border-slate-200 rounded-xl text-center">
+                <div className="p-4 rounded-full bg-slate-100 mb-4 animate-pulse">
+                  <BellOff className="w-8 h-8 text-blue-500/50" />
                 </div>
-                <h3 className="text-white font-medium text-lg mb-2">
+                <h3 className="text-slate-800 font-medium text-lg mb-2">
                   No Thresholds Configured
                 </h3>
-                <p className="text-white/50 text-sm max-w-sm mx-auto mb-6">
+                <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
                   Set up alert thresholds to get notified when parameter values
                   exceed safe limits.
                 </p>
@@ -134,7 +134,7 @@ export default function ThresholdManagementPage() {
                 {thresholds.map((threshold) => (
                   <div
                     key={threshold.id}
-                    className="bg-[#121b1b] border border-white/5 rounded-xl p-4 hover:border-white/10 transition"
+                    className="bg-[#ffffff] border border-slate-200 rounded-xl p-4 hover:border-slate-200 transition"
                   >
                     {/* Header */}
                     <div className="flex justify-between items-start mb-3">
@@ -143,7 +143,7 @@ export default function ThresholdManagementPage() {
                           {parameterLabels[threshold.parameter] ||
                             threshold.parameter}
                         </h3>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {threshold.device?.name || "All Devices"}
                         </p>
                       </div>
@@ -158,11 +158,11 @@ export default function ThresholdManagementPage() {
                     </div>
 
                     {/* Threshold Value */}
-                    <div className="bg-white/5 rounded-lg p-3 mb-3">
-                      <div className="text-2xl font-bold text-teal-400">
+                    <div className="bg-slate-100 rounded-lg p-3 mb-3">
+                      <div className="text-2xl font-bold text-blue-600">
                         {threshold.operator} {threshold.value}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
+                      <div className="text-xs text-slate-500 mt-1">
                         Cooldown: {threshold.cooldownMinutes} minutes
                       </div>
                     </div>
@@ -175,8 +175,8 @@ export default function ThresholdManagementPage() {
                         }
                         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
                           threshold.enabled
-                            ? "bg-teal-600/20 text-teal-400 hover:bg-teal-600/30"
-                            : "bg-gray-600/20 text-gray-400 hover:bg-gray-600/30"
+                            ? "bg-blue-600/20 text-blue-600 hover:bg-blue-600/30"
+                            : "bg-gray-600/20 text-slate-500 hover:bg-gray-600/30"
                         }`}
                         title={threshold.enabled ? "Disable" : "Enable"}
                       >
@@ -198,7 +198,7 @@ export default function ThresholdManagementPage() {
                           setEditingThreshold(threshold);
                           setShowForm(true);
                         }}
-                        className="p-2 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition"
+                        className="p-2 bg-blue-500/20 text-blue-600 hover:bg-blue-500/30 rounded-lg transition"
                         title="Edit"
                       >
                         <Edit size={16} />
@@ -211,7 +211,7 @@ export default function ThresholdManagementPage() {
                             `${parameterLabels[threshold.parameter] || threshold.parameter} (${threshold.thresholdType})`,
                           )
                         }
-                        className="p-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition"
+                        className="p-2 bg-red-500/20 text-red-600 hover:bg-red-500/30 rounded-lg transition"
                         title="Delete"
                       >
                         <Trash2 size={16} />
@@ -219,7 +219,7 @@ export default function ThresholdManagementPage() {
                     </div>
 
                     {/* Creator Info */}
-                    <div className="text-xs text-gray-500 mt-3 pt-3 border-t border-white/5">
+                    <div className="text-xs text-gray-500 mt-3 pt-3 border-t border-slate-200">
                       Created by {threshold.creator.fullName}
                     </div>
                   </div>

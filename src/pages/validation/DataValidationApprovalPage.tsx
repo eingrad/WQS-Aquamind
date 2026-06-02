@@ -206,7 +206,7 @@ export default function DataValidationApprovalPage() {
   };
 
   return (
-    <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-full overflow-x-hidden">
+    <div className="relative flex flex-col lg:flex-row bg-[#ffffff] min-h-screen text-slate-800 w-full overflow-x-hidden">
       <Sidebar
         active="Data Approval"
         isOpen={sidebarOpen}
@@ -224,7 +224,7 @@ export default function DataValidationApprovalPage() {
         />
 
         {/* Header Controls */}
-        <div className="bg-[#0f1717] px-4 sm:px-6 py-4 border-white/5 border-b">
+        <div className="bg-[#ffffff] px-4 sm:px-6 py-4 border-slate-200 border-b">
           <div className="flex flex-wrap items-center gap-4">
             {/* Filters */}
             <div className="flex items-center gap-3">
@@ -240,7 +240,7 @@ export default function DataValidationApprovalPage() {
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="bg-[#0f1717] px-4 sm:px-6 py-3 border-b border-white/5">
+        <div className="bg-[#ffffff] px-4 sm:px-6 py-3 border-b border-slate-200">
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -249,8 +249,8 @@ export default function DataValidationApprovalPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 statusFilter === "all"
-                  ? "bg-teal-500 text-black"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-blue-500 text-black"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               }`}
             >
               All ({data.length})
@@ -262,8 +262,8 @@ export default function DataValidationApprovalPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 statusFilter === "pending"
-                  ? "bg-teal-500 text-black"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-blue-500 text-black"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               }`}
             >
               Pending ({data.filter((row) => row.status === "pending").length})
@@ -275,8 +275,8 @@ export default function DataValidationApprovalPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 statusFilter === "approved"
-                  ? "bg-teal-500 text-black"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-blue-500 text-black"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               }`}
             >
               Accepted ({data.filter((row) => row.status === "approved").length}
@@ -289,8 +289,8 @@ export default function DataValidationApprovalPage() {
               }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
                 statusFilter === "rejected"
-                  ? "bg-teal-500 text-black"
-                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-blue-500 text-black"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               }`}
             >
               Rejected ({data.filter((row) => row.status === "rejected").length}
@@ -302,14 +302,14 @@ export default function DataValidationApprovalPage() {
         <div className="space-y-6">
           {/* Table or Empty State */}
           {paginatedData.length === 0 ? (
-            <div className="mx-4 mt-6 bg-[#121b1b] border border-white/5 rounded-xl p-16 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-5 animate-pulse">
-                <CircleCheckBig className="w-8 h-8 text-teal-500/50" />
+            <div className="mx-4 mt-6 bg-[#ffffff] border border-slate-200 rounded-xl p-16 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-5 animate-pulse">
+                <CircleCheckBig className="w-8 h-8 text-blue-500/50" />
               </div>
-              <h3 className="text-white font-medium text-lg mb-2">
+              <h3 className="text-slate-800 font-medium text-lg mb-2">
                 No Approval Requests
               </h3>
-              <p className="text-white/50 text-sm max-w-sm mx-auto mb-2">
+              <p className="text-slate-500 text-sm max-w-sm mx-auto mb-2">
                 There are no flag requests to review at the moment. Requests
                 will appear here when QC reviewers flag data for approval.
               </p>

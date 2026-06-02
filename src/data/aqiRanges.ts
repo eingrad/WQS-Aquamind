@@ -47,7 +47,7 @@ export const NWQS_RANGES: Record<string, NWQSRangeData | null> = {
       { category: "Poor (Class IV)",      min: 1,   max: 3,   color: "#f97316", bgColor: "rgba(249,115,22,0.1)"   },
       { category: "Fair (Class III)",     min: 3,   max: 5,   color: "#eab308", bgColor: "rgba(234,179,8,0.1)"    },
       { category: "Good (Class II)",      min: 5,   max: 7,   color: "#22c55e", bgColor: "rgba(34,197,94,0.1)"    },
-      { category: "Excellent (Class I)",  min: 7,   max: null, color: "#14b8a6", bgColor: "rgba(20,184,166,0.1)"  },
+      { category: "Excellent (Class I)",  min: 7,   max: null, color: "#2563eb", bgColor: "rgba(37, 99, 235,0.1)"  },
     ],
   },
 
@@ -55,7 +55,7 @@ export const NWQS_RANGES: Record<string, NWQSRangeData | null> = {
   nh3n: {
     baseUnit: "mg/L",
     ranges: [
-      { category: "Excellent (Class I)",  min: 0,   max: 0.1,  color: "#14b8a6", bgColor: "rgba(20,184,166,0.1)"  },
+      { category: "Excellent (Class I)",  min: 0,   max: 0.1,  color: "#2563eb", bgColor: "rgba(37, 99, 235,0.1)"  },
       { category: "Good (Class II)",      min: 0.1, max: 0.3,  color: "#22c55e", bgColor: "rgba(34,197,94,0.1)"   },
       { category: "Fair (Class III)",     min: 0.3, max: 0.9,  color: "#eab308", bgColor: "rgba(234,179,8,0.1)"   },
       { category: "Poor (Class IV)",      min: 0.9, max: 2.7,  color: "#f97316", bgColor: "rgba(249,115,22,0.1)"  },
@@ -67,7 +67,7 @@ export const NWQS_RANGES: Record<string, NWQSRangeData | null> = {
   cod: {
     baseUnit: "mg/L",
     ranges: [
-      { category: "Excellent (Class I)",  min: 0,   max: 10,   color: "#14b8a6", bgColor: "rgba(20,184,166,0.1)"  },
+      { category: "Excellent (Class I)",  min: 0,   max: 10,   color: "#2563eb", bgColor: "rgba(37, 99, 235,0.1)"  },
       { category: "Good (Class II)",      min: 10,  max: 25,   color: "#22c55e", bgColor: "rgba(34,197,94,0.1)"   },
       { category: "Fair (Class III)",     min: 25,  max: 50,   color: "#eab308", bgColor: "rgba(234,179,8,0.1)"   },
       { category: "Poor (Class IV)",      min: 50,  max: 100,  color: "#f97316", bgColor: "rgba(249,115,22,0.1)"  },
@@ -79,7 +79,7 @@ export const NWQS_RANGES: Record<string, NWQSRangeData | null> = {
   bod: {
     baseUnit: "mg/L",
     ranges: [
-      { category: "Excellent (Class I)",  min: 0,  max: 1,    color: "#14b8a6", bgColor: "rgba(20,184,166,0.1)"  },
+      { category: "Excellent (Class I)",  min: 0,  max: 1,    color: "#2563eb", bgColor: "rgba(37, 99, 235,0.1)"  },
       { category: "Good (Class II)",      min: 1,  max: 3,    color: "#22c55e", bgColor: "rgba(34,197,94,0.1)"   },
       { category: "Fair (Class III)",     min: 3,  max: 6,    color: "#eab308", bgColor: "rgba(234,179,8,0.1)"   },
       { category: "Poor (Class IV)",      min: 6,  max: 12,   color: "#f97316", bgColor: "rgba(249,115,22,0.1)"  },
@@ -91,7 +91,7 @@ export const NWQS_RANGES: Record<string, NWQSRangeData | null> = {
   tss: {
     baseUnit: "mg/L",
     ranges: [
-      { category: "Excellent (Class I)",  min: 0,   max: 25,   color: "#14b8a6", bgColor: "rgba(20,184,166,0.1)"  },
+      { category: "Excellent (Class I)",  min: 0,   max: 25,   color: "#2563eb", bgColor: "rgba(37, 99, 235,0.1)"  },
       { category: "Good (Class II)",      min: 25,  max: 50,   color: "#22c55e", bgColor: "rgba(34,197,94,0.1)"   },
       { category: "Fair (Class III)",     min: 50,  max: 150,  color: "#eab308", bgColor: "rgba(234,179,8,0.1)"   },
       { category: "Poor (Class IV)",      min: 150, max: 300,  color: "#f97316", bgColor: "rgba(249,115,22,0.1)"  },

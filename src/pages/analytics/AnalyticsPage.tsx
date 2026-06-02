@@ -214,11 +214,11 @@ export default function AnalyticsPage() {
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex bg-[#0f1a1a] min-h-screen text-gray-100 overflow-x-hidden min-w-0">
+    <div className="flex bg-[#ffffff] min-h-screen text-slate-700 overflow-x-hidden min-w-0">
       <style>{`
         .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #14b8a6; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0d9488; }
         .custom-scrollbar { scrollbar-width: thin; scrollbar-color: #474747ff #1f2937; }
         /* Prevent Plotly unified hover tooltip from being clipped */
@@ -259,15 +259,15 @@ export default function AnalyticsPage() {
             {chartLoading ? (
               <div className="h-[650px] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="w-8 h-8 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-teal-400 text-sm">
+                  <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-blue-600 text-sm">
                     Loading analytics data...
                   </span>
                 </div>
               </div>
             ) : chartError ? (
               <div className="h-[650px] flex items-center justify-center">
-                <div className="text-red-400">{chartError}</div>
+                <div className="text-red-600">{chartError}</div>
               </div>
             ) : chartData.length === 0 ? (
               <EmptyState

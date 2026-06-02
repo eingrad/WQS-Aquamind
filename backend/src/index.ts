@@ -11,7 +11,6 @@ import maintenanceRoutes from "./routes/maintenance.routes";
 import validationRoutes from "./routes/validation.routes";
 import alertRoutes from "./routes/alert.routes";
 import reportRoutes from "./routes/report.routes";
-import displayRoutes from "./routes/display.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import logger from "./config/logger";
@@ -75,9 +74,6 @@ app.use(API_PREFIX, maintenanceRoutes);
 
 // Mount report routes
 app.use(`${API_PREFIX}/reports`, reportRoutes);
-
-// Mount display routes (custom display builder)
-app.use(`${API_PREFIX}/displays`, displayRoutes);
 
 app.get(API_PREFIX, (req: Request, res: Response) => {
   res.json({

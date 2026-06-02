@@ -12,7 +12,7 @@ export default function ReportsPage() {
   const [refreshKey, setRefreshKey] = useState(0);
 
   return (
-    <div className="relative flex flex-col lg:flex-row bg-[#0f1a1a] min-h-screen text-white w-screen max-w-screen overflow-x-hidden">
+    <div className="relative flex flex-col lg:flex-row bg-[#ffffff] min-h-screen text-slate-800 w-screen max-w-screen overflow-x-hidden">
       <Sidebar active="Report" isOpen={sidebarOpen} onToggle={setSidebarOpen} />
       <div className="flex flex-col flex-1 relative">
         <Topbar
@@ -23,10 +23,10 @@ export default function ReportsPage() {
           }}
           onMenuToggle={() => setSidebarOpen(true)}
         />
-        <div className="p-4 border-white/5 border-b">
+        <div className="p-4 border-slate-200 border-b">
           <button
             onClick={() => setShowPanel(true)}
-            className="px-4 py-2 bg-teal-600 text-black font-medium hover:bg-teal-700 rounded-md text-sm"
+            className="px-4 py-2 bg-blue-600 text-black font-medium hover:bg-blue-700 rounded-md text-sm"
           >
             Add Reports
           </button>

@@ -30,7 +30,7 @@ export default function ParamDropdown({
       <div className="relative">
         <button
           onClick={() => setIsOpen((prev) => !prev)}
-          className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#0d1717] to-[#0d1717] border border-white/10 hover:border-teal-500/40 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all duration-300 cursor-pointer min-w-[220px] hover:shadow-lg hover:shadow-teal-500/10 focus:outline-none text-left"
+          className="px-4 py-2.5 pr-10 rounded-lg text-sm bg-gradient-to-br from-[#ffffff] to-[#ffffff] border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 cursor-pointer min-w-[220px] hover:shadow-lg hover:shadow-blue-500/10 focus:outline-none text-left"
         >
           {label}
         </button>
@@ -39,17 +39,17 @@ export default function ParamDropdown({
         />
 
         {isOpen && (
-          <div className="absolute top-full mt-2 z-50 bg-[#1a2a2a] rounded-lg shadow-2xl border border-white/10 overflow-hidden min-w-[260px]">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+          <div className="absolute top-full mt-2 z-50 bg-[#e2e8f0] rounded-lg shadow-2xl border border-slate-200 overflow-hidden min-w-[260px]">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200">
               <button
                 onClick={onSelectAll}
-                className="text-xs text-teal-400 hover:text-teal-300 transition-colors"
+                className="text-xs text-blue-600 hover:text-blue-600 transition-colors"
               >
                 Select All
               </button>
               <button
                 onClick={onDeselectAll}
-                className="text-xs text-gray-400 hover:text-gray-300 transition-colors"
+                className="text-xs text-slate-500 hover:text-slate-700 transition-colors"
               >
                 Deselect All
               </button>
@@ -59,15 +59,15 @@ export default function ParamDropdown({
               {PARAMETERS.map((param) => (
                 <label
                   key={param.key}
-                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 cursor-pointer transition-colors"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-100 cursor-pointer transition-colors"
                 >
                   <input
                     type="checkbox"
                     checked={selectedParams.includes(param.key)}
                     onChange={() => onToggle(param.key)}
-                    className="w-4 h-4 rounded border-white/20 bg-transparent text-teal-500 focus:ring-teal-500/20 focus:ring-offset-0 cursor-pointer accent-teal-500"
+                    className="w-4 h-4 rounded border-slate-200 bg-transparent text-blue-500 focus:ring-blue-500/20 focus:ring-offset-0 cursor-pointer accent-blue-500"
                   />
-                  <span className="text-sm text-gray-200">{param.label}</span>
+                  <span className="text-sm text-slate-700">{param.label}</span>
                   <span className="text-xs text-gray-500 ml-auto">
                     {getUnit(param.key)}
                   </span>
@@ -75,10 +75,10 @@ export default function ParamDropdown({
               ))}
             </div>
 
-            <div className="px-4 py-2.5 border-t border-white/10">
+            <div className="px-4 py-2.5 border-t border-slate-200">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full bg-teal-600 text-black text-sm font-medium py-2 rounded-lg hover:bg-teal-500 transition-colors"
+                className="w-full bg-blue-600 text-black text-sm font-medium py-2 rounded-lg hover:bg-blue-500 transition-colors"
               >
                 Done
               </button>
@@ -98,7 +98,7 @@ export default function ParamDropdown({
 function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg
-      className={`w-4 h-4 text-teal-400 ${className}`}
+      className={`w-4 h-4 text-blue-600 ${className}`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"

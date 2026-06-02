@@ -48,7 +48,7 @@ function getMaintenanceRanges(data: any[]): Array<[number, number]> {
 }
 
 const PARAM_COLORS = [
-  "#14b8a6",
+  "#2563eb",
   "#a855f7",
   "#f97316",
   "#eab308",
@@ -210,8 +210,8 @@ export default function AnalyticsChart({ data, params }: Props) {
 
   // Build layout with max 2 Y-axes
   const layout: Partial<Plotly.Layout> = {
-    plot_bgcolor: "#0a1515",
-    paper_bgcolor: "#0a1515",
+    plot_bgcolor: "#f1f5f9",
+    paper_bgcolor: "#f1f5f9",
     font: { color: "#e5e7eb", family: "Inter, system-ui, sans-serif" },
     // Reserve extra top margin when the maintenance badge is shown so
     // it doesn't clip against the chart's top edge.

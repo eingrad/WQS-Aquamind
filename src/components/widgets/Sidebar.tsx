@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { useState, useMemo } from "react";
 import { getStorageItem, STORAGE_KEYS } from "../../utils/storage";
+import aquamindLogo from "../../assets/aquamind-logo-short.png";
 import {
   CircleGauge,
   MapPin,
@@ -14,7 +15,6 @@ import {
   History,
   BarChart3,
   BookOpen,
-  Monitor,
   Wrench,
 } from "lucide-react";
 
@@ -71,7 +71,9 @@ const getUserRole = (): UserRole => {
     }
 
     if (roleId || roleName) {
-      console.warn(`[Sidebar] Unrecognized role: roleId="${roleId}", roleName="${roleName}". Falling back to "user".`);
+      console.warn(
+        `[Sidebar] Unrecognized role: roleId="${roleId}", roleName="${roleName}". Falling back to "user".`,
+      );
     }
     return "user";
   } catch {
@@ -103,21 +105,81 @@ export default function Sidebar({
   const menuItems: MenuItem[] = useMemo(
     () => [
       // ── MAIN MENU ──
-      { label: "Overview",         href: "/overview",          icon: <MapPin className="w-5 h-5" />,                    allowedRoles: ALL_ROLES },
-      { label: "Dashboard",        href: "/dashboard",         icon: <CircleGauge className="w-5 h-5" />,               allowedRoles: ALL_ROLES },
-      { label: "Analytics",        href: "/analytics",         icon: <BarChart3 className="w-5 h-5" />,                 allowedRoles: ALL_ROLES },
-      { label: "Report",           href: "/reports",           icon: <ClipboardList className="w-5 h-5" />,             allowedRoles: ALL_ROLES },
-      { label: "Displays",          href: "/displays",          icon: <Monitor className="w-5 h-5" />,                   allowedRoles: ["admin", "qa_qc"] },
-      { label: "Data Validation",  href: "/data-validation",   icon: <Flag className="w-5 h-5" />,                      allowedRoles: ["admin", "qa_qc", "technician"] },
-      { label: "Data Approval",    href: "/data-approval",     icon: <CheckCircle className="w-5 h-5" />,               allowedRoles: ["admin", "qa_qc"] },
-      { label: "Alert Thresholds", href: "/alert-thresholds",  icon: <Bell className="w-5 h-5" />,                      allowedRoles: ALL_ROLES },
-      { label: "Alert History",    href: "/alert-history",     icon: <History className="w-5 h-5" />,                   allowedRoles: ALL_ROLES },
-      { label: "Knowledge Center", href: "/parameters",        icon: <BookOpen className="w-5 h-5" />,                  allowedRoles: ALL_ROLES },
-      { label: "Maintenance",      href: "/maintenance",       icon: <Wrench className="w-5 h-5" />,                    allowedRoles: ["admin", "technician"] },
+      {
+        label: "Overview",
+        href: "/overview",
+        icon: <MapPin className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Dashboard",
+        href: "/dashboard",
+        icon: <CircleGauge className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Analytics",
+        href: "/analytics",
+        icon: <BarChart3 className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Report",
+        href: "/reports",
+        icon: <ClipboardList className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Data Validation",
+        href: "/data-validation",
+        icon: <Flag className="w-5 h-5" />,
+        allowedRoles: ["admin", "qa_qc", "technician"],
+      },
+      {
+        label: "Data Approval",
+        href: "/data-approval",
+        icon: <CheckCircle className="w-5 h-5" />,
+        allowedRoles: ["admin", "qa_qc"],
+      },
+      {
+        label: "Alert Thresholds",
+        href: "/alert-thresholds",
+        icon: <Bell className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Alert History",
+        href: "/alert-history",
+        icon: <History className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Knowledge Center",
+        href: "/parameters",
+        icon: <BookOpen className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
+      {
+        label: "Maintenance",
+        href: "/maintenance",
+        icon: <Wrench className="w-5 h-5" />,
+        allowedRoles: ["admin", "technician"],
+      },
 
       // ── SYSTEM ──
-      { label: "Settings",         href: "/settings",          icon: <Settings className="w-5 h-5" />,                  allowedRoles: ALL_ROLES, sectionTitle: "SYSTEM" },
-      { label: "Help",             href: "#",                  icon: <MessageCircleQuestionMark className="w-5 h-5" />, allowedRoles: ALL_ROLES },
+      {
+        label: "Settings",
+        href: "/settings",
+        icon: <Settings className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+        sectionTitle: "SYSTEM",
+      },
+      {
+        label: "Help",
+        href: "#",
+        icon: <MessageCircleQuestionMark className="w-5 h-5" />,
+        allowedRoles: ALL_ROLES,
+      },
     ],
     [],
   );
@@ -141,8 +203,8 @@ export default function Sidebar({
       href={href}
       className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition ${
         active === label
-          ? "bg-teal-600 text-black"
-          : "hover:bg-white/5 text-gray-200"
+          ? "bg-blue-600 text-black"
+          : "hover:bg-slate-100 text-slate-700"
       }`}
       onClick={() => setIsOpen(false)}
     >
@@ -163,7 +225,7 @@ export default function Sidebar({
 
       {/* Sidebar Drawer */}
       <aside
-        className={`space-y-2 bg-[#121b1b] p-4 border-white/5 border-r text-white
+        className={`space-y-2 bg-[#ffffff] p-4 border-slate-200 border-r text-slate-800
           w-[16rem] max-w-[16rem] min-h-screen z-[1050]
           transform xl:translate-x-0 transition-transform duration-300 ease-in-out
           fixed xl:relative top-0 left-0
@@ -174,34 +236,36 @@ export default function Sidebar({
         <div className="flex justify-end xl:hidden">
           <button
             onClick={() => setIsOpen(false)}
-            className="bg-[#14b8a6] p-2 rounded-full text-white shadow-md"
+            className="bg-[#2563eb] p-2 rounded-full text-white shadow-md"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Logo */}
-        <div className="flex items-center gap-3 px-8 pb-5 pt-2">
+        <div className="flex items-center px-3 pb-5 pt-2">
           <a
             href="/overview"
-            className="block transition-all duration-300 hover:scale-105 active:scale-95 group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            className="block w-full transition-all duration-300 hover:scale-105 active:scale-95 group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             onClick={() => setIsOpen(false)}
           >
-            <span className="font-bold text-teal-400 text-xl tracking-widest transition-all duration-300 group-hover:brightness-110">
-              AquaMind
-            </span>
+            <img
+              src={aquamindLogo}
+              alt="AquaMind"
+              className="w-full h-auto transition-all duration-300 group-hover:brightness-110"
+            />
           </a>
         </div>
 
         {/* Menu Title */}
-        <div className="px-2 pb-2 text-[11px] text-gray-400">MAIN MENU</div>
+        <div className="px-2 pb-2 text-[11px] text-slate-500">MAIN MENU</div>
 
         {/* Navigation Items — filtered by role */}
         <nav className="space-y-2">
           {visibleItems.map((item) => (
             <div key={item.label}>
               {item.sectionTitle && (
-                <div className="px-2 pt-4 pb-2 text-[11px] text-gray-400">
+                <div className="px-2 pt-4 pb-2 text-[11px] text-slate-500">
                   {item.sectionTitle}
                 </div>
               )}

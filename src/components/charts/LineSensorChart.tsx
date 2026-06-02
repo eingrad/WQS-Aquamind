@@ -23,7 +23,7 @@ type Props = {
 
 // Color palette for different parameters
 const PARAM_COLORS = [
-  "#14b8a6", // Teal
+  "#2563eb", // Teal
   "#a855f7", // Purple
   "#f97316", // Orange
   "#eab308", // Yellow

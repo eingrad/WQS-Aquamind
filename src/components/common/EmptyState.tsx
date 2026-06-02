@@ -38,7 +38,7 @@ export default function EmptyState({
               {/* Teal exclamation mark */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div
-                  className={`text-teal-400 font-bold ${
+                  className={`text-blue-600 font-bold ${
                     compact ? "text-3xl mt-2" : "text-5xl mt-3"
                   }`}
                 >
@@ -52,7 +52,7 @@ export default function EmptyState({
 
       {/* Title */}
       <h3
-        className={`font-semibold text-white ${
+        className={`font-semibold text-slate-800 ${
           compact ? "text-base mb-1" : "text-xl mb-2"
         }`}
       >
@@ -60,16 +60,16 @@ export default function EmptyState({
       </h3>
 
       {/* Message */}
-      {message && <p className="text-sm text-gray-400 max-w-xs">{message}</p>}
+      {message && <p className="text-sm text-slate-500 max-w-xs">{message}</p>}
 
       {/* Device status - show last data timestamp if available */}
       {lastDataTimestamp && (
         <div className="mt-2 p-4 bg-orange-900/20 border border-orange-600/30 rounded-lg max-w-md mx-auto">
-          <div className="flex items-center justify-center gap-2 text-orange-400 text-sm mb-2">
+          <div className="flex items-center justify-center gap-2 text-orange-600 text-sm mb-2">
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
             <span className="font-medium">Device Currently Offline</span>
           </div>
-          <p className="text-gray-400 text-xs">
+          <p className="text-slate-500 text-xs">
             Last data received:{" "}
             {new Date(lastDataTimestamp).toLocaleString("en-GB", {
               day: "2-digit",

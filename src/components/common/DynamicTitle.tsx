@@ -15,7 +15,6 @@ const ROUTE_TITLES: Record<string, string> = {
   "/parameters": "Parameters",
   "/settings": "Settings",
   "/telegram-setup": "Telegram Setup",
-  "/displays": "Custom Displays",
 };
 
 const APP_NAME = "MyAQMS";
@@ -28,12 +27,7 @@ export default function DynamicTitle() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    let pageTitle = ROUTE_TITLES[pathname];
-
-    // Handle dynamic display viewer route: /display/:slug
-    if (!pageTitle && pathname.startsWith("/display/")) {
-      pageTitle = "Display";
-    }
+    const pageTitle = ROUTE_TITLES[pathname];
 
     document.title = pageTitle
       ? `${pageTitle} - ${APP_NAME}`

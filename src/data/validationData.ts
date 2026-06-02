@@ -88,15 +88,15 @@ export const validationStatusBgTransparent: Record<ValidationStatus, string> = {
 };
 
 export const validationStatusTextColors: Record<ValidationStatus, string> = {
-  no_data: "text-gray-400",
-  valid: "text-green-400",
+  no_data: "text-slate-500",
+  valid: "text-green-600",
   exceeding_range: "text-[#FFD230]",
-  insufficient_data: "text-orange-400",
-  parameter_relation: "text-purple-400",
-  out_of_range: "text-red-400",
-  maintenance: "text-blue-400",
+  insufficient_data: "text-orange-600",
+  parameter_relation: "text-purple-600",
+  out_of_range: "text-red-600",
+  maintenance: "text-blue-600",
   qc_checks: "text-[#0047AB]",
-  pending_validation: "text-gray-400",
+  pending_validation: "text-slate-500",
 };
 
 export const validationStatusLabels: Record<ValidationStatus, string> = {

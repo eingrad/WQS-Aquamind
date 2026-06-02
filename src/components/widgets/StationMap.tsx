@@ -33,17 +33,17 @@ export default function StationMap({
   status = "active",
 }: StationMapProps) {
   const isActive = status.toLowerCase() === "active";
-  const statusColor = isActive ? "text-green-400" : "text-red-400";
+  const statusColor = isActive ? "text-green-600" : "text-red-600";
   const statusBg = isActive ? "bg-green-400" : "bg-red-400";
 
   return (
     <div className="h-full w-full flex flex-col">
       {/* Station Info Header */}
       <div className="flex items-center gap-2 mb-3 px-2">
-        <MapPin className="w-5 h-5 text-teal-400" />
+        <MapPin className="w-5 h-5 text-blue-600" />
         <div>
-          <div className="text-sm font-medium text-gray-200">{stationName}</div>
-          <div className="text-xs text-gray-400">
+          <div className="text-sm font-medium text-slate-700">{stationName}</div>
+          <div className="text-xs text-slate-500">
             {location}, Malaysia ({formatCoordinate(latitude)}°N,{" "}
             {formatCoordinate(longitude)}°E)
           </div>
@@ -84,12 +84,12 @@ export default function StationMap({
 
       {/* Location Details */}
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-        <div className="bg-gray-800/50 rounded p-2">
-          <div className="text-gray-400">Region</div>
-          <div className="text-gray-200 font-medium">{location}, Malaysia</div>
+        <div className="bg-slate-100 rounded p-2">
+          <div className="text-slate-500">Region</div>
+          <div className="text-slate-700 font-medium">{location}, Malaysia</div>
         </div>
-        <div className="bg-gray-800/50 rounded p-2">
-          <div className="text-gray-400">Status</div>
+        <div className="bg-slate-100 rounded p-2">
+          <div className="text-slate-500">Status</div>
           <div className={`font-medium flex items-center gap-1 ${statusColor}`}>
             <span
               className={`w-2 h-2 rounded-full ${statusBg} ${

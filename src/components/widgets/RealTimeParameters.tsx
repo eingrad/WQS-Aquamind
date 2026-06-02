@@ -42,8 +42,8 @@ function freshnessColor(at: string | undefined, now: number): string {
   const ageMs = now - Date.parse(at);
   if (isNaN(ageMs)) return "text-gray-500";
   if (ageMs < 30_000) return "text-gray-500";
-  if (ageMs < 120_000) return "text-yellow-400";
-  return "text-red-400";
+  if (ageMs < 120_000) return "text-yellow-600";
+  return "text-red-600";
 }
 
 export default function RealTimeParameters({
@@ -112,7 +112,7 @@ export default function RealTimeParameters({
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-teal-400">Loading...</div>
+        <div className="text-blue-600">Loading...</div>
       </div>
     );
   }
@@ -138,7 +138,7 @@ export default function RealTimeParameters({
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #14b8a6;
+          background: #2563eb;
           border-radius: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -178,7 +178,7 @@ export default function RealTimeParameters({
                 {/* Parameter label and value */}
                 <div className="flex justify-between items-center text-sm">
                   <span className="flex items-baseline gap-2">
-                    <span className="text-gray-300 font-medium">
+                    <span className="text-slate-700 font-medium">
                       {param.label}
                     </span>
                     {ago && entry && (
@@ -187,16 +187,16 @@ export default function RealTimeParameters({
                       </span>
                     )}
                   </span>
-                  <span className="text-white font-mono">
+                  <span className="text-slate-800 font-mono">
                     {entry ? formattedValue : "–"}{" "}
-                    <span className="text-gray-400 text-xs">{displayUnit}</span>
+                    <span className="text-slate-500 text-xs">{displayUnit}</span>
                   </span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 transition-all duration-1000"
+                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-1000"
                     style={{ width: `${percentage}%` }}
                   />
                 </div>

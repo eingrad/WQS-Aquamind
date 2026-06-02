@@ -52,13 +52,13 @@ export default function ApprovalActionSidebar({
       <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
 
       {/* Sidebar */}
-      <div className="fixed right-0 top-0 bottom-0 w-96 bg-[#0d1616] border-l border-white/10 z-50 flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 w-96 bg-[#ffffff] border-l border-slate-200 z-50 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
-          <h2 className="text-xl font-semibold text-white">Approval Action</h2>
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <h2 className="text-xl font-semibold text-slate-800">Approval Action</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition"
+            className="text-slate-500 hover:text-slate-800 transition"
           >
             <X className="w-6 h-6" />
           </button>
@@ -68,9 +68,9 @@ export default function ApprovalActionSidebar({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Action Type Badge */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-400">Action:</span>
+            <span className="text-sm text-slate-500">Action:</span>
             <span
-              className={`${approvalTypeColor} px-3 py-1 rounded text-xs font-medium text-white`}
+              className={`${approvalTypeColor} px-3 py-1 rounded text-xs font-medium text-slate-800`}
             >
               {approvalTypeLabel}
             </span>
@@ -78,7 +78,7 @@ export default function ApprovalActionSidebar({
 
           {/* Validation Details */}
           <div className="space-y-4">
-            <h3 className="text-sm font-medium text-gray-400 uppercase">
+            <h3 className="text-sm font-medium text-slate-500 uppercase">
               {selectedRow.approvalType === "flag"
                 ? "Flag Details"
                 : "Validation Details"}
@@ -88,19 +88,19 @@ export default function ApprovalActionSidebar({
               {selectedRow.dataCapturedAt && (
                 <div>
                   <span className="text-sm text-gray-500">Data Captured</span>
-                  <p className="text-white">{selectedRow.dataCapturedAt}</p>
+                  <p className="text-slate-800">{selectedRow.dataCapturedAt}</p>
                 </div>
               )}
 
               <div>
                 <span className="text-sm text-gray-500">Flagged At</span>
-                <p className="text-white">{selectedRow.time}</p>
+                <p className="text-slate-800">{selectedRow.time}</p>
               </div>
 
               {selectedRow.approvalType === "flag" && (
                 <div>
                   <span className="text-sm text-gray-500">Flag Type</span>
-                  <p className="text-white">
+                  <p className="text-slate-800">
                     {validationStatusLabels[selectedRow.flagType]}
                   </p>
                 </div>
@@ -108,7 +108,7 @@ export default function ApprovalActionSidebar({
 
               <div>
                 <span className="text-sm text-gray-500">Parameter</span>
-                <p className="text-white">{selectedRow.parameter}</p>
+                <p className="text-slate-800">{selectedRow.parameter}</p>
               </div>
 
               <div>
@@ -117,7 +117,7 @@ export default function ApprovalActionSidebar({
                     ? "New Value"
                     : "Value"}
                 </span>
-                <p className="text-white">
+                <p className="text-slate-800">
                   {formatPollutantValue(
                     selectedRow.value,
                     selectedRow.parameterKey,
@@ -142,7 +142,7 @@ export default function ApprovalActionSidebar({
                       <span className="text-sm text-gray-500">
                         Validation Type
                       </span>
-                      <p className="text-white">{selectedRow.validationType}</p>
+                      <p className="text-slate-800">{selectedRow.validationType}</p>
                     </div>
                   )}
                   {selectedRow.validationMode && (
@@ -150,7 +150,7 @@ export default function ApprovalActionSidebar({
                       <span className="text-sm text-gray-500">
                         Validation Mode
                       </span>
-                      <p className="text-white">{selectedRow.validationMode}</p>
+                      <p className="text-slate-800">{selectedRow.validationMode}</p>
                     </div>
                   )}
                 </>
@@ -158,31 +158,31 @@ export default function ApprovalActionSidebar({
 
               <div>
                 <span className="text-sm text-gray-500">User Remarks</span>
-                <p className="text-white">{selectedRow.remarks}</p>
+                <p className="text-slate-800">{selectedRow.remarks}</p>
               </div>
 
               <div>
                 <span className="text-sm text-gray-500">Requested By</span>
-                <p className="text-white">{selectedRow.requestedBy}</p>
+                <p className="text-slate-800">{selectedRow.requestedBy}</p>
               </div>
             </div>
           </div>
 
           {/* Admin Remarks */}
           <div className="space-y-2 mt-2">
-            <label className="text-sm font-medium text-gray-400 mt-2">
+            <label className="text-sm font-medium text-slate-500 mt-2">
               Admin Remarks
-              <span className="text-red-400 ml-1">*</span>
+              <span className="text-red-600 ml-1">*</span>
             </label>
             <textarea
               value={adminRemarks}
               onChange={(e) => setAdminRemarks(e.target.value)}
               rows={4}
-              className="w-full bg-[#1a2828] text-sm border border-white/10 rounded-lg mt-2 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500 resize-none"
+              className="w-full bg-[#e2e8f0] text-sm border border-slate-200 rounded-lg mt-2 px-4 py-3 text-slate-800 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
               placeholder="Add your remarks here..."
             />
             {adminRemarks.length > 0 && adminRemarks.length < 10 && (
-              <p className="text-xs text-red-400">
+              <p className="text-xs text-red-600">
                 {10 - adminRemarks.length} more characters required for
                 rejection
               </p>
@@ -191,10 +191,10 @@ export default function ApprovalActionSidebar({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-6 border-t border-white/10 flex gap-3">
+        <div className="p-6 border-t border-slate-200 flex gap-3">
           <button
             onClick={handleApprove}
-            className="flex-1 bg-teal-500 text-sm hover:bg-teal-600 text-black font-medium py-3 rounded-lg transition"
+            className="flex-1 bg-blue-500 text-sm hover:bg-blue-600 text-black font-medium py-3 rounded-lg transition"
           >
             Approve
           </button>
@@ -203,7 +203,7 @@ export default function ApprovalActionSidebar({
             disabled={adminRemarks.length < 10}
             className={`flex-1 text-sm font-medium py-3 rounded-lg transition ${
               adminRemarks.length < 10
-                ? "bg-red-600/50 text-white/50 cursor-not-allowed"
+                ? "bg-red-600/50 text-slate-500 cursor-not-allowed"
                 : "bg-red-600 hover:bg-red-700 text-white"
             }`}
           >

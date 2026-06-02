@@ -90,7 +90,7 @@ export default function DateRangePicker({
         className="relative cursor-pointer"
       >
         <div
-          className={`px-4 py-2.5 pr-10 rounded-lg text-sm border border-white/10 hover:border-teal-500/40 focus:border-teal-500 transition-all duration-300 hover:shadow-lg hover:shadow-teal-500/10 bg-transparent ${
+          className={`px-4 py-2.5 pr-10 rounded-lg text-sm border border-slate-200 hover:border-blue-500/40 focus:border-blue-500 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 bg-transparent ${
             fullWidth
               ? "w-full"
               : startDate && endDate
@@ -98,28 +98,28 @@ export default function DateRangePicker({
               : "w-[180px]"
           }`}
         >
-          <span className={startDate && endDate ? "text-white" : "text-white"}>
+          <span className={startDate && endDate ? "text-slate-800" : "text-slate-800"}>
             {getDisplayText()}
           </span>
         </div>
         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-          <Calendar className="w-4 h-4 text-teal-400" />
+          <Calendar className="w-4 h-4 text-blue-600" />
         </div>
       </div>
 
       {/* Dropdown calendar */}
       {isOpen && (
-        <div className="absolute top-full mt-2 z-50 bg-[#1a2a2a] rounded-lg shadow-2xl border border-white/10 overflow-hidden">
+        <div className="absolute top-full mt-2 z-50 bg-[#e2e8f0] rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
           <style>{`
             .rdrCalendarWrapper {
-              background: #1a2a2a;
+              background: #e2e8f0;
               color: white;
             }
             .rdrDateDisplayWrapper {
-              background: #0f1717;
+              background: #ffffff;
             }
             .rdrMonthAndYearWrapper {
-              background: #0f1717;
+              background: #ffffff;
               padding-top: 10px;
             }
             .rdrMonthPicker select,
@@ -140,7 +140,7 @@ export default function DateRangePicker({
               color: white;
             }
             .rdrDayToday .rdrDayNumber span:after {
-              background: #14b8a6;
+              background: #2563eb;
             }
             .rdrDateDisplay {
               margin: 0;
@@ -151,7 +151,7 @@ export default function DateRangePicker({
               color: white;
             }
             .rdrDateDisplayItemActive {
-              border-color: #14b8a6;
+              border-color: #2563eb;
             }
             .rdrMonthAndYearPickers select {
               color: white;
@@ -160,20 +160,20 @@ export default function DateRangePicker({
               background: #c0c0c0ff;
             }
             .rdrNextPrevButton:hover {
-              background: #14b8a6
+              background: #2563eb
             }
             .rdrInRange {
-              background: rgba(20, 184, 166, 0.2) !important;
+              background: rgba(37, 99, 235, 0.2) !important;
             }
             .rdrStartEdge,
             .rdrEndEdge {
-              background: #14b8a6 !important;
+              background: #2563eb !important;
             }
             .rdrDayStartPreview,
             .rdrDayInPreview,
             .rdrDayEndPreview {
-              background: rgba(20, 184, 166, 0.1) !important;
-              border-color: rgba(20, 184, 166, 0.3) !important;
+              background: rgba(37, 99, 235, 0.1) !important;
+              border-color: rgba(37, 99, 235, 0.3) !important;
             }
           `}</style>
           <DateRange
@@ -182,7 +182,7 @@ export default function DateRangePicker({
             moveRangeOnFirstSelection={false}
             months={1}
             direction="horizontal"
-            rangeColors={["#14b8a6"]}
+            rangeColors={["#2563eb"]}
             dateDisplayFormat="dd/MM/yyyy"
           />
         </div>

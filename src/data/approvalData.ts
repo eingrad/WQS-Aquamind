@@ -29,6 +29,6 @@ export const approvalTypeLabels: Record<ApprovalType, string> = {
 };
 
 export const approvalTypeColors: Record<ApprovalType, string> = {
-  flag: "bg-teal-600",
-  value_change: "bg-teal-600",
+  flag: "bg-blue-600",
+  value_change: "bg-blue-600",
 };

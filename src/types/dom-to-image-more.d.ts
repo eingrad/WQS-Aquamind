@@ -17,7 +17,7 @@ declare module "dom-to-image-more" {
   export default { toPng, toJpeg, toBlob, toSvg };
 
   const chartDataUrl = await domtoimage.toPng(container, {
-    bgcolor: "#0a1515",
+    bgcolor: "#f1f5f9",
     scale: 2,
     width: container.offsetWidth,
     height: container.offsetHeight,

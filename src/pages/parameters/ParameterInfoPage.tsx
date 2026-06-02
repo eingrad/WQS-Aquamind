@@ -195,8 +195,8 @@ const PARAMETER_INFO: ParameterInfo[] = [
 const CATEGORIES = ["Water Quality", "Physical"] as const;
 
 const CATEGORY_COLORS: Record<string, string> = {
-  "Water Quality": "bg-teal-500/10 text-teal-400 border-teal-500/20",
-  Physical: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  "Water Quality": "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  Physical: "bg-blue-500/10 text-blue-600 border-blue-500/20",
 };
 
 /* ── Section config for expanded detail ────────────────────────────────────── */
@@ -209,27 +209,27 @@ const DETAIL_SECTIONS: {
   {
     field: "source",
     label: "SOURCE OF CONTAMINATION",
-    icon: <Factory className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />,
+    icon: <Factory className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "atmosphericBehaviour",
     label: "BEHAVIOUR IN WATER",
-    icon: <Droplets className="w-4 h-4 text-cyan-400 flex-shrink-0 mt-0.5" />,
+    icon: <Droplets className="w-4 h-4 text-cyan-600 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "meteorologicalInteraction",
     label: "INFLUENCING FACTORS",
-    icon: <Cloud className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />,
+    icon: <Cloud className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "relatedPollutants",
     label: "RELATED PARAMETERS",
-    icon: <Link2 className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />,
+    icon: <Link2 className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />,
   },
   {
     field: "environmentalSignificance",
     label: "REGULATORY SIGNIFICANCE",
-    icon: <Leaf className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />,
+    icon: <Leaf className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />,
   },
 ];
 
@@ -254,7 +254,7 @@ export default function ParameterInfoPage() {
   const getParam = (key: string) => parameters.find((p) => p.key === key);
 
   return (
-    <div className="flex bg-[#050b0b] min-h-screen text-gray-100 overflow-x-hidden min-w-0 font-sans selection:bg-teal-500/30">
+    <div className="flex bg-[#f1f5f9] min-h-screen text-slate-700 overflow-x-hidden min-w-0 font-sans selection:bg-blue-500/30">
       <Sidebar
         active="Knowledge Center"
         isOpen={sidebarOpen}
@@ -263,7 +263,7 @@ export default function ParameterInfoPage() {
 
       <div className="flex flex-col flex-1 min-w-0 relative">
         {/* Ambient glows */}
-        <div className="fixed top-0 left-[20%] w-[40rem] h-[40rem] bg-teal-900/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="fixed top-0 left-[20%] w-[40rem] h-[40rem] bg-blue-900/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="fixed bottom-0 right-[10%] w-[30rem] h-[30rem] bg-blue-900/10 rounded-full blur-[100px] pointer-events-none" />
 
         <Topbar
@@ -273,18 +273,18 @@ export default function ParameterInfoPage() {
 
         <div className="flex-1 p-4 sm:p-8 space-y-8 min-w-0 relative z-10 max-w-[1600px] 2xl:max-w-[1800px] mx-auto w-full">
           {/* Hero Section */}
-          <div className="flex flex-col gap-4 bg-white/[0.02] border border-white/5 p-6 sm:p-8 rounded-3xl backdrop-blur-sm relative overflow-hidden group">
+          <div className="flex flex-col gap-4 bg-white/[0.02] border border-slate-200 p-6 sm:p-8 rounded-3xl backdrop-blur-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700 pointer-events-none">
               <Info className="w-64 h-64" />
             </div>
             <div className="relative z-10">
-              <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-white mb-3">
+              <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-slate-800 mb-3">
                 Parameter{" "}
-                <span className="font-semibold text-teal-400">
+                <span className="font-semibold text-blue-600">
                   Reference Guide
                 </span>
               </h1>
-              <p className="text-gray-400 text-base sm:text-lg max-w-3xl leading-relaxed">
+              <p className="text-slate-500 text-base sm:text-lg max-w-3xl leading-relaxed">
                 Comprehensive specifications for all water quality and physical
                 parameters monitored at the continuous water quality monitoring
                 station (Malaysia NWQS Class II).
@@ -293,38 +293,38 @@ export default function ParameterInfoPage() {
           </div>
 
           {/* Controls: Search + Category Filters */}
-          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-[#0b1212]/80 backdrop-blur-md p-2 rounded-[1.5rem] border border-white/5 sticky top-4 z-40 shadow-2xl">
+          <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between bg-[#f1f5f9]/80 backdrop-blur-md p-2 rounded-[1.5rem] border border-slate-200 sticky top-4 z-40 shadow-2xl">
             <div className="relative flex-1 min-w-[280px]">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-teal-500/70" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-500/70" />
               <input
                 type="text"
                 placeholder="Search parameters or descriptions..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 sm:py-3.5 bg-transparent border-none rounded-xl text-sm sm:text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:ring-0 transition-all font-medium"
+                className="w-full pl-12 pr-4 py-3 sm:py-3.5 bg-transparent border-none rounded-xl text-sm sm:text-base text-slate-700 placeholder:text-gray-500 focus:outline-none focus:ring-0 transition-all font-medium"
               />
               <div
-                className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-teal-500/0 via-teal-500/30 to-teal-500/0 scale-x-0 transition-transform duration-500 origin-left block"
+                className="absolute bottom-0 left-4 right-4 h-[1px] bg-gradient-to-r from-blue-500/0 via-blue-500/30 to-blue-500/0 scale-x-0 transition-transform duration-500 origin-left block"
                 style={{ transform: search ? "scaleX(1)" : "scaleX(0)" }}
               />
             </div>
 
-            <div className="w-[1px] h-8 bg-white/10 hidden lg:block mx-2" />
+            <div className="w-[1px] h-8 bg-slate-100 hidden lg:block mx-2" />
 
             <div className="flex gap-2 flex-wrap items-center px-2 pb-2 lg:pb-0">
               <button
                 onClick={() => setActiveCategory(null)}
                 className={`relative px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 overflow-hidden ${
                   !activeCategory
-                    ? "text-white shadow-[0_0_20px_rgba(20,184,166,0.3)]"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                    ? "text-slate-800 shadow-[0_0_20px_rgba(37, 99, 235,0.3)]"
+                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 {!activeCategory && (
-                  <div className="absolute inset-0 bg-teal-500/20 backdrop-blur-sm" />
+                  <div className="absolute inset-0 bg-blue-500/20 backdrop-blur-sm" />
                 )}
                 {!activeCategory && (
-                  <div className="absolute inset-0 border border-teal-400/50 rounded-xl" />
+                  <div className="absolute inset-0 border border-blue-400/50 rounded-xl" />
                 )}
                 <span className="relative z-10">All Parameters</span>
               </button>
@@ -332,11 +332,11 @@ export default function ParameterInfoPage() {
                 const isActive = activeCategory === cat;
                 const isWq = cat === "Water Quality";
                 const activeColorClass = isWq
-                  ? "text-teal-100 shadow-[0_0_20px_rgba(20,184,166,0.2)]"
-                  : "text-blue-100 shadow-[0_0_20px_rgba(96,165,250,0.2)]";
-                const activeBg = isWq ? "bg-teal-500/20" : "bg-blue-300/20";
+                  ? "text-blue-700 shadow-[0_0_20px_rgba(37,99,235,0.2)]"
+                  : "text-blue-700 shadow-[0_0_20px_rgba(96,165,250,0.2)]";
+                const activeBg = isWq ? "bg-blue-500/20" : "bg-blue-300/20";
                 const activeBorder = isWq
-                  ? "border-teal-400/50"
+                  ? "border-blue-400/50"
                   : "border-blue-300/50";
 
                 return (
@@ -346,7 +346,7 @@ export default function ParameterInfoPage() {
                     className={`relative px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 overflow-hidden ${
                       isActive
                         ? activeColorClass
-                        : "text-gray-400 hover:text-gray-200 hover:bg-white/5"
+                        : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     {isActive && (
@@ -376,14 +376,14 @@ export default function ParameterInfoPage() {
               return (
                 <div
                   key={info.key}
-                  className={`group relative bg-[#0b1212]/40 backdrop-blur-sm border rounded-3xl overflow-hidden transition-all duration-500 hover:bg-[#0b1212]/80 ${
+                  className={`group relative bg-[#f1f5f9]/40 backdrop-blur-sm border rounded-3xl overflow-hidden transition-all duration-500 hover:bg-[#f1f5f9]/80 ${
                     isExpanded ? "2xl:col-span-2" : "2xl:col-span-1"
                   } ${
                     isExpanded
                       ? isWq
-                        ? "border-teal-500/30 shadow-[0_0_40px_rgba(20,184,166,0.06)]"
+                        ? "border-blue-500/30 shadow-[0_0_40px_rgba(37, 99, 235,0.06)]"
                         : "border-blue-400/30 shadow-[0_0_40px_rgba(96,165,250,0.06)]"
-                      : "border-white/5 hover:border-white/10"
+                      : "border-slate-200 hover:border-slate-200"
                   }`}
                   style={{
                     animationFillMode: "both",
@@ -394,7 +394,7 @@ export default function ParameterInfoPage() {
                   <div
                     className={`absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
                       isWq
-                        ? "bg-gradient-to-r from-teal-500/0 via-teal-500/50 to-teal-500/0"
+                        ? "bg-gradient-to-r from-blue-500/0 via-blue-500/50 to-blue-500/0"
                         : "bg-gradient-to-r from-blue-400/0 via-blue-400/50 to-blue-400/0"
                     }`}
                   />
@@ -408,11 +408,11 @@ export default function ParameterInfoPage() {
                       className={`flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 border ${
                         isWq
                           ? isExpanded
-                            ? "bg-teal-500/10 text-teal-400 border-teal-500/20 shadow-[inset_0_0_20px_rgba(20,184,166,0.2)]"
-                            : "bg-teal-500/5 border-teal-500/10 text-teal-400/70 group-hover:bg-teal-500/10 group-hover:border-teal-500/20 group-hover:text-teal-400 group-hover:shadow-[inset_0_0_20px_rgba(20,184,166,0.1)]"
+                            ? "bg-blue-500/10 text-blue-600 border-blue-500/20 shadow-[inset_0_0_20px_rgba(37, 99, 235,0.2)]"
+                            : "bg-blue-500/5 border-blue-500/10 text-blue-600 group-hover:bg-blue-500/10 group-hover:border-blue-500/20 group-hover:text-blue-600 group-hover:shadow-[inset_0_0_20px_rgba(37, 99, 235,0.1)]"
                           : isExpanded
-                            ? "bg-blue-400/10 text-blue-400 border-blue-400/20 shadow-[inset_0_0_20px_rgba(96,165,250,0.2)]"
-                            : "bg-blue-400/5 border-blue-400/10 text-blue-400/70 group-hover:bg-blue-400/10 group-hover:border-blue-400/20 group-hover:text-blue-400 group-hover:shadow-[inset_0_0_20px_rgba(96,165,250,0.1)]"
+                            ? "bg-blue-400/10 text-blue-600 border-blue-400/20 shadow-[inset_0_0_20px_rgba(96,165,250,0.2)]"
+                            : "bg-blue-400/5 border-blue-400/10 text-blue-600 group-hover:bg-blue-400/10 group-hover:border-blue-400/20 group-hover:text-blue-600 group-hover:shadow-[inset_0_0_20px_rgba(96,165,250,0.1)]"
                       }`}
                     >
                       <div className="transform scale-110">{info.icon}</div>
@@ -423,7 +423,7 @@ export default function ParameterInfoPage() {
                         <h3 className="text-[14px] sm:text-[15px] font-bold tracking-tight text-gray-50 flex items-center gap-3">
                           {param?.label ?? info.key.toUpperCase()}
                           {param?.unit && (
-                            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] font-mono font-medium text-gray-400">
+                            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-mono font-medium text-slate-500">
                               {param.unit}
                             </span>
                           )}
@@ -436,7 +436,7 @@ export default function ParameterInfoPage() {
                         </span>
                       </div>
                       <p
-                        className={`text-[14px] sm:text-[15px] text-gray-400/90 leading-relaxed font-normal max-w-4xl ${isExpanded ? "" : "line-clamp-1"}`}
+                        className={`text-[14px] sm:text-[15px] text-slate-500 leading-relaxed font-normal max-w-4xl ${isExpanded ? "" : "line-clamp-1"}`}
                       >
                         {info.description}
                       </p>
@@ -446,9 +446,9 @@ export default function ParameterInfoPage() {
                       className={`absolute top-6 right-6 sm:relative sm:top-0 sm:right-0 flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 ${
                         isExpanded
                           ? isWq
-                            ? "bg-teal-500/10 border-teal-500/30 text-teal-400 rotate-180"
-                            : "bg-blue-500/10 border-blue-500/30 text-blue-400 rotate-180"
-                          : "bg-transparent border-white/5 text-gray-500 group-hover:bg-white/5 group-hover:text-gray-300"
+                            ? "bg-blue-500/10 border-blue-500/30 text-blue-600 rotate-180"
+                            : "bg-blue-500/10 border-blue-500/30 text-blue-600 rotate-180"
+                          : "bg-transparent border-slate-200 text-gray-500 group-hover:bg-slate-100 group-hover:text-slate-700"
                       }`}
                     >
                       <ChevronDown className="w-5 h-5 transition-colors" />
@@ -462,21 +462,21 @@ export default function ParameterInfoPage() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="p-6 sm:p-8 pt-0 border-t border-white/5 bg-black/10">
+                      <div className="p-6 sm:p-8 pt-0 border-t border-slate-200 bg-black/10">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                           {DETAIL_SECTIONS.map(({ field, label, icon }) => (
                             <div
                               key={field}
-                              className="group/section flex gap-5 p-6 rounded-2xl bg-[#0b1212]/60 border border-white/[0.03] hover:border-white/10 hover:bg-[#0b1212]/90 hover:shadow-lg transition-all duration-300"
+                              className="group/section flex gap-5 p-6 rounded-2xl bg-[#f1f5f9]/60 border border-slate-200/[0.03] hover:border-slate-200 hover:bg-[#f1f5f9]/90 hover:shadow-lg transition-all duration-300"
                             >
-                              <div className="h-max p-3 rounded-xl bg-white/[0.03] text-gray-400 border border-white/[0.05] group-hover/section:scale-110 group-hover/section:bg-white/[0.08] transition-all duration-300">
+                              <div className="h-max p-3 rounded-xl bg-white/[0.03] text-slate-500 border border-slate-200/[0.05] group-hover/section:scale-110 group-hover/section:bg-white/[0.08] transition-all duration-300">
                                 {icon}
                               </div>
                               <div>
                                 <h4 className="text-[14px] font-bold tracking-[0.2em] text-gray-500 mb-2 uppercase">
                                   {label}
                                 </h4>
-                                <p className="text-[14px] text-gray-300 leading-relaxed font-light">
+                                <p className="text-[14px] text-slate-700 leading-relaxed font-light">
                                   {info[field]}
                                 </p>
                               </div>
@@ -491,11 +491,11 @@ export default function ParameterInfoPage() {
             })}
 
             {filtered.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-white/[0.02] border border-white/5 rounded-3xl backdrop-blur-sm">
-                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+              <div className="flex flex-col items-center justify-center py-24 px-4 text-center bg-white/[0.02] border border-slate-200 rounded-3xl backdrop-blur-sm">
+                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6">
                   <Search className="w-10 h-10 text-gray-500/50" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-200 mb-2">
+                <h3 className="text-xl font-semibold text-slate-700 mb-2">
                   No parameters found
                 </h3>
                 <p className="text-base text-gray-500 max-w-sm">
@@ -507,7 +507,7 @@ export default function ParameterInfoPage() {
                     setSearch("");
                     setActiveCategory(null);
                   }}
-                  className="mt-8 px-6 py-2.5 bg-teal-500/10 text-teal-400 border border-teal-500/20 hover:bg-teal-500/20 hover:border-teal-500/40 rounded-xl transition-all shadow-[0_0_15px_rgba(20,184,166,0.15)] text-sm font-semibold tracking-wide"
+                  className="mt-8 px-6 py-2.5 bg-blue-500/10 text-blue-600 border border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/40 rounded-xl transition-all shadow-[0_0_15px_rgba(37, 99, 235,0.15)] text-sm font-semibold tracking-wide"
                 >
                   Clear Filters
                 </button>

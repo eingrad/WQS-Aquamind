@@ -7,12 +7,16 @@
     "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji";
 
-  --color-brand: #16b5a3; /* AquaMind teal */
+  --color-brand: #2563eb; /* AquaMind teal */
   --radius-xl: 1rem;
 }
 
 @layer base {
   html {
     @apply font-sans antialiased tabular-nums;
+  }
+  /* Light theme base: light page background with dark default text */
+  body {
+    @apply bg-slate-100 text-slate-800;
   }
 }

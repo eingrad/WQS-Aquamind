@@ -16,14 +16,14 @@ export interface Notification {
 
 // Notification type labels and colors
 export const notificationTypeColors: Record<NotificationType, string> = {
-  approval: "border-teal-500",
+  approval: "border-blue-500",
   validation: "border-blue-500",
   flag: "border-amber-500",
   system: "border-gray-500",
 };
 
 export const notificationTypeBgColors: Record<NotificationType, string> = {
-  approval: "bg-teal-500/10",
+  approval: "bg-blue-500/10",
   validation: "bg-blue-500/10",
   flag: "bg-amber-500/10",
   system: "bg-gray-500/10",
