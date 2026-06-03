@@ -12,7 +12,6 @@ export interface SensorReading {
   bodValue: string | null;
   tssValue: string | null;
   tempValue: string | null;
-  pressureValue: string | null;
   depthValue: string | null;
   dataQuality: string;
   device?: {
@@ -35,7 +34,6 @@ export interface TimeSeriesBucket {
   bod_avg?: number;
   tss_avg?: number;
   temperature_avg?: number;
-  pressure_avg?: number;
   depth_avg?: number;
   count: number;
 }
@@ -62,7 +60,7 @@ export const getTimeSeriesData = async (params: {
   startDate: string;
   endDate: string;
   interval?: "raw" | "1m" | "30m" | "1h" | "8h" | "8h_ma" | "24h" | "24h_ma";
-  parameters?: string; // comma-separated: so2,no2,temperature
+  parameters?: string; // comma-separated: ph,do,temperature
 }) => {
   const response = await api.get("/sensors/readings/time-series", { params });
   return response.data.data;
@@ -83,7 +81,6 @@ export const getHourlyAverages = async (params: {
     | "bod"
     | "tss"
     | "temperature"
-    | "pressure"
     | "depth";
 }) => {
   const response = await api.get("/sensors/readings/hourly-avg", { params });

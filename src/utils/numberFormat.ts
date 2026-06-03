@@ -32,7 +32,6 @@ const PARAMETER_DECIMALS: Record<string, number> = {
   bod:         1, // mg/L
   tss:         1, // mg/L
   temperature: 1, // °C
-  pressure:    1, // kPa
   depth:       2, // m
 };
 

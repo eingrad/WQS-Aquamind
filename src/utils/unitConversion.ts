@@ -5,7 +5,6 @@
  *   pH          → dimensionless
  *   DO, NH3-N, COD, BOD, TSS → mg/L
  *   Temperature → °C
- *   Pressure    → kPa
  *   Depth       → m
  */
 
@@ -19,7 +18,6 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
   bod:         ["mg/L"],
   tss:         ["mg/L"],
   temperature: ["°C", "°F"],
-  pressure:    ["kPa", "hPa", "psi"],
   depth:       ["m", "ft"],
 };
 
@@ -33,7 +31,6 @@ export const BASE_UNITS: Record<string, string> = {
   bod:         "mg/L",
   tss:         "mg/L",
   temperature: "°C",
-  pressure:    "kPa",
   depth:       "m",
 };
 
@@ -52,13 +49,6 @@ export const convertUnit = (
   if (parameter === "temperature") {
     if (baseUnit === "°C" && targetUnit === "°F") return value * 9 / 5 + 32;
     if (baseUnit === "°F" && targetUnit === "°C") return (value - 32) * 5 / 9;
-  }
-
-  if (parameter === "pressure") {
-    if (baseUnit === "kPa" && targetUnit === "hPa") return value * 10;
-    if (baseUnit === "kPa" && targetUnit === "psi") return value * 0.14504;
-    if (baseUnit === "hPa" && targetUnit === "kPa") return value / 10;
-    if (baseUnit === "psi" && targetUnit === "kPa") return value / 0.14504;
   }
 
   if (parameter === "depth") {

@@ -4,7 +4,7 @@
  * Quality Standards for Malaysia (DOE NWQS).
  *
  * Ranges are stored in the parameter's base unit (mg/L, pH units).
- * Temperature, Pressure and Depth have no NWQS class boundaries and
+ * Temperature and Depth have no NWQS class boundaries and
  * return null — ExposureLimitsDisplay renders nothing for them.
  */
 
@@ -101,7 +101,6 @@ export const NWQS_RANGES: Record<string, NWQSRangeData | null> = {
 
   // Physical parameters — no NWQS class breakpoints
   temperature: null,
-  pressure:    null,
   depth:       null,
 };
 

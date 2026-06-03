@@ -181,7 +181,6 @@ export default function DashboardPage() {
           tss: item.tss_avg ?? null,
           wqi: item.wqi_avg ?? null,
           temperature: item.temperature_avg ?? null,
-          pressure: item.pressure_avg ?? null,
           depth: item.depth_avg ?? null,
         }));
 

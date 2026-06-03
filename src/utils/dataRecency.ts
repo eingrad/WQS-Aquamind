@@ -29,7 +29,6 @@ export const hasRecentData = (
       "bod",
       "tss",
       "temperature",
-      "pressure",
       "depth",
     ];
     return sensorKeys.some((key) => {

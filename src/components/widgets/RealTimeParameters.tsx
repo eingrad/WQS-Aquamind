@@ -87,7 +87,6 @@ export default function RealTimeParameters({
             set("bod", latest.bodValue);
             set("tss", latest.tssValue);
             set("temperature", latest.tempValue);
-            set("pressure", latest.pressureValue);
             set("depth", latest.depthValue);
             setLiveData(mapped);
           }
@@ -166,10 +165,7 @@ export default function RealTimeParameters({
 
             // Calculate bar width based on parameter range
             let maxValue = 100;
-            if (param.key === "solar") maxValue = 1000;
             if (param.key === "temperature") maxValue = 50;
-            if (param.key === "pressure") maxValue = 1050;
-            if (param.key === "windDirection") maxValue = 360;
 
             const percentage = Math.min((rawValue / maxValue) * 100, 100);
 
