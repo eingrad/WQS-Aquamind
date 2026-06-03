@@ -179,6 +179,7 @@ export default function DashboardPage() {
           cod: item.cod_avg ?? null,
           bod: item.bod_avg ?? null,
           tss: item.tss_avg ?? null,
+          wqi: item.wqi_avg ?? null,
           temperature: item.temperature_avg ?? null,
           pressure: item.pressure_avg ?? null,
           depth: item.depth_avg ?? null,

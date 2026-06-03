@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import DeviceImage from "../../assets/pengerang.jpg";
+import DeviceImage from "../../assets/aquamind-logo.png";
 import { getDeviceById } from "../../services/device.service";
 import { getTimeSeriesData } from "../../services/telemetry.service";
 import { useUnits } from "../../context/UnitContext";
+import { PARAMETERS } from "../../data/constants";
 
 // Convert decimal degrees to DMS format
 function toDMS(decimal: number, isLat: boolean): string {
@@ -62,8 +63,8 @@ export default function DeviceInfoPanel({
         setDeviceDetails(details);
 
         const now = new Date();
-        const paramList =
-          "so2,h2s,no2,benzene,toluene,ethylbenzene,xylenes,temperature,humidity,windSpeed,windDirection,solar,pressure,rain";
+        // Water quality parameters (keys match constants.ts / backend <key>_avg fields)
+        const paramList = PARAMETERS.map((p) => p.key).join(",");
 
         // Strategy 1: Try fetching last 3 days with 1m interval (high res, fast for short range)
         const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
@@ -139,8 +140,8 @@ export default function DeviceInfoPanel({
 
         <img
           src={DeviceImage}
-          alt="Device Preview"
-          className="w-75 h-65 rounded-xl mb-4"
+          alt="AquaMind"
+          className="w-75 h-65 object-contain rounded-xl mb-4"
         />
 
         {loading ? (
@@ -202,149 +203,18 @@ export default function DeviceInfoPanel({
               )}
               {latestReading ? (
                 <div className="text-sm space-y-5">
-                  <div className="flex justify-between">
-                    <span>SO₂</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.so2_avg, "so2"),
-                        getUnit("so2"),
-                        "so2",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>H₂S</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.h2s_avg, "h2s"),
-                        getUnit("h2s"),
-                        "h2s",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>NO₂</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.no2_avg, "no2"),
-                        getUnit("no2"),
-                        "no2",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Benzene</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.benzene_avg, "benzene"),
-                        getUnit("benzene"),
-                        "benzene",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Toluene</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.toluene_avg, "toluene"),
-                        getUnit("toluene"),
-                        "toluene",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Ethylbenzene</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.ethylbenzene_avg, "ethylbenzene"),
-                        getUnit("ethylbenzene"),
-                        "ethylbenzene",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Xylenes</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.xylenes_avg, "xylenes"),
-                        getUnit("xylenes"),
-                        "xylenes",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Wind Speed</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.windspeed_avg, "windSpeed"),
-                        getUnit("windSpeed"),
-                        "windSpeed",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Wind Direction</span>
-                    <span>
-                      {formatValue(
-                        convert(
-                          latestReading.winddirection_avg,
-                          "windDirection",
-                        ),
-                        getUnit("windDirection"),
-                        "windDirection",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Rain</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.rain_avg, "rain"),
-                        getUnit("rain"),
-                        "rain",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Pressure</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.pressure_avg, "pressure"),
-                        getUnit("pressure"),
-                        "pressure",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Humidity</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.humidity_avg, "humidity"),
-                        getUnit("humidity"),
-                        "humidity",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Temperature</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.temperature_avg, "temperature"),
-                        getUnit("temperature"),
-                        "temperature",
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Solar Radiation</span>
-                    <span>
-                      {formatValue(
-                        convert(latestReading.solar_avg, "solar"),
-                        getUnit("solar"),
-                        "solar",
-                      )}
-                    </span>
-                  </div>
+                  {PARAMETERS.map((p) => (
+                    <div key={p.key} className="flex justify-between">
+                      <span>{p.label}</span>
+                      <span>
+                        {formatValue(
+                          convert(latestReading[`${p.key}_avg`], p.key),
+                          getUnit(p.key),
+                          p.key,
+                        )}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">

@@ -270,7 +270,6 @@ export default function DataValidationPage() {
         "bod",
         "tss",
         "temperature",
-        "pressure",
         "depth",
       ];
       parameters.forEach((param) => {

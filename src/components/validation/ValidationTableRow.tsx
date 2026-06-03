@@ -95,17 +95,6 @@ export default function ValidationTableRow({
       />
       <StatusCell
         rowId={row.id}
-        parameter="pressure"
-        value={row.pressure}
-        status={row.pressureStatus}
-        validatedByHuman={row.pressureValidatedByHuman}
-        flaggedByHuman={row.pressureFlaggedByHuman}
-        pendingAdminApproval={row.pressurePendingAdminApproval}
-        selectedCells={selectedCells}
-        onCellClick={onCellClick}
-      />
-      <StatusCell
-        rowId={row.id}
         parameter="depth"
         value={row.depth}
         status={row.depthStatus}

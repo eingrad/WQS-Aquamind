@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Production secrets (keep .env.prod.example committed, never .env.prod)
+.env.prod
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

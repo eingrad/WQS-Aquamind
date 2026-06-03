@@ -11,6 +11,7 @@
 
 // Supported unit options per parameter
 export const UNIT_OPTIONS: Record<string, string[]> = {
+  wqi:         [""],
   ph:          ["pH"],
   do:          ["mg/L"],
   nh3n:        ["mg/L"],
@@ -24,6 +25,7 @@ export const UNIT_OPTIONS: Record<string, string[]> = {
 
 // Default base units from backend
 export const BASE_UNITS: Record<string, string> = {
+  wqi:         "",
   ph:          "pH",
   do:          "mg/L",
   nh3n:        "mg/L",

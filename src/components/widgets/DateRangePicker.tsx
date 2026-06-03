@@ -109,14 +109,14 @@ export default function DateRangePicker({
 
       {/* Dropdown calendar */}
       {isOpen && (
-        <div className="absolute top-full mt-2 z-50 bg-[#e2e8f0] rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="absolute top-full mt-2 z-50 bg-white rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
           <style>{`
             .rdrCalendarWrapper {
-              background: #e2e8f0;
-              color: white;
+              background: #ffffff;
+              color: #1e293b;
             }
             .rdrDateDisplayWrapper {
-              background: #ffffff;
+              background: #f8fafc;
             }
             .rdrMonthAndYearWrapper {
               background: #ffffff;
@@ -124,20 +124,26 @@ export default function DateRangePicker({
             }
             .rdrMonthPicker select,
             .rdrYearPicker select {
-              background: #2a3a3a;
-              color: white;
-              border: 1px solid rgba(255, 255, 255, 0.1);
+              background: #f1f5f9;
+              color: #1e293b;
+              border: 1px solid #e2e8f0;
+            }
+            .rdrWeekDay {
+              color: #64748b;
+            }
+            .rdrMonthName {
+              color: #475569;
             }
             .rdrDayNumber span {
-              color: white;
+              color: #334155;
             }
             .rdrDayPassive .rdrDayNumber span {
-              color: #666;
+              color: #cbd5e1;
             }
             .rdrDay:not(.rdrDayPassive) .rdrInRange ~ .rdrDayNumber span,
             .rdrDay:not(.rdrDayPassive) .rdrStartEdge ~ .rdrDayNumber span,
             .rdrDay:not(.rdrDayPassive) .rdrEndEdge ~ .rdrDayNumber span {
-              color: white;
+              color: #ffffff;
             }
             .rdrDayToday .rdrDayNumber span:after {
               background: #2563eb;
@@ -146,21 +152,24 @@ export default function DateRangePicker({
               margin: 0;
             }
             .rdrDateDisplayItem {
-              background: #2a3a3a;
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              color: white;
+              background: #ffffff;
+              border: 1px solid #e2e8f0;
+              box-shadow: none;
+            }
+            .rdrDateDisplayItem input {
+              color: #1e293b;
             }
             .rdrDateDisplayItemActive {
               border-color: #2563eb;
             }
             .rdrMonthAndYearPickers select {
-              color: white;
+              color: #1e293b;
             }
             .rdrNextPrevButton {
-              background: #c0c0c0ff;
+              background: #f1f5f9;
             }
             .rdrNextPrevButton:hover {
-              background: #2563eb
+              background: #e2e8f0;
             }
             .rdrInRange {
               background: rgba(37, 99, 235, 0.2) !important;

@@ -1,0 +1,7 @@
+# Force LF for files that run inside Linux containers, regardless of the OS
+# the repo is committed from. Prevents CRLF from breaking the entrypoint script.
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+*.conf      text eol=lf
+Caddyfile   text eol=lf
+docker-entrypoint.sh text eol=lf

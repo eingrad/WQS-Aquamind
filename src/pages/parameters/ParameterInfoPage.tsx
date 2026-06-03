@@ -5,7 +5,6 @@ import { useParametersWithUnits } from "../../data/constants";
 import {
   Thermometer,
   Droplets,
-  Gauge,
   FlaskConical,
   Search,
   ChevronDown,
@@ -155,23 +154,6 @@ const PARAMETER_INFO: ParameterInfo[] = [
       "Temperature amplifies the impact of all water quality stressors: warmer water holds less DO, increases free ammonia toxicity from NH₃-N, accelerates BOD decomposition, and enhances algal bloom development driving eutrophication.",
     environmentalSignificance:
       "Not a standalone NWQS parameter but critically influences all others. Essential for interpreting DO, NH₃-N toxicity, and BOD data. Monitoring detects thermal pollution from industrial cooling water discharge and supports prediction of seasonal water quality trends.",
-  },
-  {
-    key: "pressure",
-    description:
-      "Water pressure at the sensor depth, measured in kPa. In open-channel and river monitoring, it reflects the hydrostatic pressure from the overlying water column and serves as the basis for continuous water level measurement.",
-    category: "Physical",
-    icon: <Gauge className={ICON_CLASS} />,
-    source:
-      "Hydrostatic pressure from the water column above the sensor, increasing linearly with depth (approximately 9.81 kPa per metre). Water level is affected by flow regime, tidal influence, dam operations, and rainfall response.",
-    atmosphericBehaviour:
-      "Pressure changes directly reflect water level fluctuations, which indicate flow regime, catchment response to rainfall, and potential flood conditions. Steady pressure indicates stable flow; rapid increases signal storm events or upstream releases.",
-    meteorologicalInteraction:
-      "Heavy rainfall events cause rapid water level and pressure rises as catchment runoff reaches the monitoring point. Extended dry periods reduce water level and pressure readings. Tidal forcing creates predictable pressure oscillations at estuarine stations.",
-    relatedPollutants:
-      "Water level changes alter pollutant dilution, TSS resuspension, and downstream transport rates. High-flow events cause pressure spikes accompanied by elevated TSS and reduced contact time for treatment processes. Low pressure (low level) concentrates pollutants.",
-    environmentalSignificance:
-      "Pressure data supports hydrological assessment, real-time flood early warning, and calibration of depth-dependent sensors. Essential for mass loading calculations that convert concentration data into pollutant loads for regulatory reporting and catchment management.",
   },
   {
     key: "depth",
@@ -420,7 +402,7 @@ export default function ParameterInfoPage() {
 
                     <div className="flex-1 min-w-0 pt-1 sm:pt-0">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-2">
-                        <h3 className="text-[14px] sm:text-[15px] font-bold tracking-tight text-gray-50 flex items-center gap-3">
+                        <h3 className="text-[14px] sm:text-[15px] font-bold tracking-tight text-slate-800 flex items-center gap-3">
                           {param?.label ?? info.key.toUpperCase()}
                           {param?.unit && (
                             <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-mono font-medium text-slate-500">

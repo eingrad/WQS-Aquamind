@@ -24,6 +24,7 @@ export const formatSensorValue = (
  */
 const PARAMETER_DECIMALS: Record<string, number> = {
   // Water quality (Malaysia NWQS)
+  wqi:         1, // Water Quality Index (dimensionless)
   ph:          2, // pH units
   do:          2, // mg/L
   nh3n:        3, // mg/L (small values need more precision)

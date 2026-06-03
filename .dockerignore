@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+backend
+.git
+.env
+.env.*
+*.local
+*.log
+logs
+.vscode
+.idea
+caddy_data
+caddy_config
+docker-compose*.yml
+.dockerignore

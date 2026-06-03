@@ -113,7 +113,7 @@ export default function NotificationDropdown({
           width: 10px;
         }
         .notification-scroll::-webkit-scrollbar-track {
-          background: #1f2937;
+          background: #f1f5f9;
           border-radius: 4px;
         }
         .notification-scroll::-webkit-scrollbar-thumb {
@@ -121,11 +121,11 @@ export default function NotificationDropdown({
           border-radius: 4px;
         }
         .notification-scroll::-webkit-scrollbar-thumb:hover {
-          background: #0d9488;
+          background: #1d4ed8;
         }
         .notification-scroll {
           scrollbar-width: thin;
-          scrollbar-color: #2563eb #1f2937;
+          scrollbar-color: #2563eb #f1f5f9;
         }
       `}</style>
 
@@ -169,7 +169,7 @@ export default function NotificationDropdown({
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 p-3 border-b border-gray-700 overflow-x-auto overflow-y-hidden notification-scroll flex-shrink-0 min-w-0">
+        <div className="flex gap-2 p-3 border-b border-slate-200 overflow-x-auto overflow-y-hidden notification-scroll flex-shrink-0 min-w-0">
           {filters.map((filter) => (
             <button
               key={filter.value}

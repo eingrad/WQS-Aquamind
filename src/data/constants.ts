@@ -7,6 +7,7 @@ export const DEVICES = [{ id: "PRG01", name: "Pengerang" }];
 
 // Water quality measurement parameters (Malaysia NWQS)
 export const PARAMETERS = [
+  { key: "wqi", label: "WQI", unit: "" }, // Water Quality Index (dimensionless, 0–100)
   { key: "ph", label: "pH", unit: "pH" },
   { key: "do", label: "Dissolved Oxygen", unit: "mg/L" },
   { key: "nh3n", label: "NH₃-N", unit: "mg/L" },
@@ -14,7 +15,6 @@ export const PARAMETERS = [
   { key: "bod", label: "BOD", unit: "mg/L" },
   { key: "tss", label: "TSS", unit: "mg/L" },
   { key: "temperature", label: "Temperature", unit: "°C" },
-  { key: "pressure", label: "Pressure", unit: "kPa" },
   { key: "depth", label: "Depth", unit: "m" },
 ];
 

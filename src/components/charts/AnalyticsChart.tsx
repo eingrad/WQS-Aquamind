@@ -134,7 +134,7 @@ export default function AnalyticsChart({ data, params }: Props) {
       type: "scatter",
       mode: "lines",
       name: param.toUpperCase(),
-      line: { color, width: 2, dash: "dot" as const },
+      line: { color, width: 2.5, dash: "solid" as const },
       yaxis: yAxisKey,
       hovertemplate: `<b><br>${param.toUpperCase()}<br></b>Value: %{y:.4g} ${unit}<extra></extra>`,
       connectgaps: false,
@@ -212,7 +212,7 @@ export default function AnalyticsChart({ data, params }: Props) {
   const layout: Partial<Plotly.Layout> = {
     plot_bgcolor: "#f1f5f9",
     paper_bgcolor: "#f1f5f9",
-    font: { color: "#e5e7eb", family: "Inter, system-ui, sans-serif" },
+    font: { color: "#334155", family: "Inter, system-ui, sans-serif" },
     // Reserve extra top margin when the maintenance badge is shown so
     // it doesn't clip against the chart's top edge.
     margin: {
@@ -226,28 +226,28 @@ export default function AnalyticsChart({ data, params }: Props) {
       y: -0.15,
       x: 0.5,
       xanchor: "center" as const,
-      font: { size: 12, color: "#e5e7eb" },
+      font: { size: 12, color: "#334155" },
       bgcolor: "transparent",
     },
     hovermode: "x unified" as const,
     xaxis: {
       type: "date" as const,
-      linecolor: "#ffffff",
-      tickfont: { color: "#cbd5e1", size: 12 },
-      tickcolor: "#ffffff",
+      linecolor: "#cbd5e1",
+      tickfont: { color: "#475569", size: 12 },
+      tickcolor: "#cbd5e1",
       showspikes: true,
-      spikecolor: "#f7f7f7ff",
+      spikecolor: "#64748b",
       spikethickness: 1,
       spikedash: "solid",
     },
     yaxis: {
       title: {
         text: leftLabel,
-        font: { size: 11, color: "#94a3b8" },
+        font: { size: 11, color: "#475569" },
       },
-      gridcolor: "rgba(255,255,255,0.08)",
+      gridcolor: "rgba(15,23,42,0.08)",
       zeroline: false,
-      tickfont: { color: "#cbd5e1", size: 12 },
+      tickfont: { color: "#475569", size: 12 },
     },
     shapes: maintenanceShapes,
     annotations: maintenanceLegend,
@@ -259,13 +259,13 @@ export default function AnalyticsChart({ data, params }: Props) {
     (layout as any).yaxis2 = {
       title: {
         text: rightLabel,
-        font: { size: 11, color: "#94a3b8" },
+        font: { size: 11, color: "#475569" },
       },
       overlaying: "y",
       side: "right",
       showgrid: false,
       zeroline: false,
-      tickfont: { color: "#cbd5e1", size: 12 },
+      tickfont: { color: "#475569", size: 12 },
     };
   }
 

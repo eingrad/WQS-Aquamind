@@ -32,10 +32,41 @@ const greenIcon = new L.Icon({
 function ResizeFixer() {
   const map = useMap();
   useEffect(() => {
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 300);
+    // Fix the initial size once the flex layout has settled.
+    const raf = requestAnimationFrame(() => map.invalidateSize());
+
+    // Keep Leaflet's cached viewport size in sync with the actual container.
+    // Without this, a stale size makes Leaflet load tiles for only part of
+    // the view, so zooming/panning shows gray "not loaded" tiles. This covers
+    // window resizes and the DeviceInfoPanel opening/closing (which shrinks
+    // the map's width).
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(map.getContainer());
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+    };
   }, [map]);
+  return null;
+}
+
+// MapContainer's center/zoom props are only applied on mount. The map mounts
+// before devices load, so this recenters the camera once the real device
+// coordinates arrive (and whenever they change).
+function InitialViewSetter({
+  lat,
+  lng,
+  zoom,
+}: {
+  lat: number;
+  lng: number;
+  zoom: number;
+}) {
+  const map = useMap();
+  useEffect(() => {
+    map.setView([lat, lng], zoom);
+  }, [lat, lng, zoom, map]);
   return null;
 }
 
@@ -114,6 +145,11 @@ export default function OverviewPage() {
               className="w-full h-full"
             >
               <ResizeFixer />
+              <InitialViewSetter
+                lat={initialView.lat}
+                lng={initialView.lng}
+                zoom={initialView.zoom}
+              />
               <NorthIndicator />
 
               {mapType === "osm" ? (

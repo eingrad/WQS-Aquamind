@@ -1,0 +1,129 @@
+# Production stack for AquaMind Water Quality System.
+# Office-server deployment: published via Cloudflare Tunnel (no port forwarding,
+# no public IP, no inbound firewall rules). MQTT uses HiveMQ Cloud, which both
+# the remote sensors and this backend connect to OUTBOUND.
+#
+# Run from the WQS-Aquamind/ directory:
+#   docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+name: aquamind-wqs-prod
+
+services:
+  # ── PostgreSQL + TimescaleDB ────────────────────────────────
+  database:
+    image: timescale/timescaledb:latest-pg15
+    container_name: aquamind-prod-db
+    environment:
+      POSTGRES_USER: aquamind
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: aquamind_db
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    networks: [aquamind-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aquamind"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ───────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: aquamind-prod-redis
+    volumes:
+      - prod_redis_data:/data
+    networks: [aquamind-net]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ── Backend API (Express + Prisma + Puppeteer) ──────────────
+  # Subscribes OUTBOUND to HiveMQ Cloud for live sensor data.
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: aquamind-backend:latest
+    container_name: aquamind-prod-backend
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      API_PREFIX: /api
+      DATABASE_URL: postgresql://aquamind:${DB_PASSWORD}@database:5432/aquamind_db
+      REDIS_URL: redis://redis:6379
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_TTL: 3600
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRY: 7d
+      JWT_REFRESH_EXPIRES_IN: 7d
+      JWT_ISSUER: aquamind-api
+      JWT_AUDIENCE: aquamind-client
+      SENSOR_TIMEZONE_OFFSET: 8
+      CORS_ORIGIN: https://${DOMAIN}
+      LOG_LEVEL: info
+      # HiveMQ Cloud (mqtts://...) — sensors + backend both connect outbound
+      MQTT_BROKER_URL: ${MQTT_BROKER_URL}
+      MQTT_USERNAME: ${MQTT_USERNAME}
+      MQTT_PASSWORD: ${MQTT_PASSWORD}
+      MQTT_TOPIC: ${MQTT_TOPIC:-aquamind/+}
+      INTERNAL_API_SECRET: ${INTERNAL_API_SECRET}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-notifications@aquamind.local}
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+    volumes:
+      - prod_uploads:/app/uploads
+      - prod_reports:/app/reports/generated
+    networks: [aquamind-net]
+    restart: unless-stopped
+
+  # ── Frontend (static React build served by Nginx) ───────────
+  # Nginx serves the SPA and reverse-proxies /api + /health to the backend,
+  # so cloudflared only needs to point at this one service.
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: /api
+        VITE_REFRESH_INTERVAL: ${VITE_REFRESH_INTERVAL:-60000}
+    image: aquamind-frontend:latest
+    container_name: aquamind-prod-frontend
+    depends_on: [backend]
+    networks: [aquamind-net]
+    restart: unless-stopped
+
+  # ── Cloudflare Tunnel ───────────────────────────────────────
+  # Outbound-only connection to Cloudflare; publishes https://${DOMAIN}.
+  # Configure the public hostname (${DOMAIN} -> http://frontend:80) in the
+  # Cloudflare Zero Trust dashboard, then paste the tunnel token in .env.prod.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: aquamind-prod-cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on: [frontend]
+    networks: [aquamind-net]
+    restart: unless-stopped
+
+volumes:
+  prod_postgres_data:
+  prod_redis_data:
+  prod_uploads:
+  prod_reports:
+
+networks:
+  aquamind-net:
+    driver: bridge

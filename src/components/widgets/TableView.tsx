@@ -12,6 +12,7 @@ interface DataRow {
   cod: number;
   bod: number;
   tss: number;
+  wqi: number;
   temperature: number;
   pressure: number;
   depth: number;
@@ -96,13 +97,13 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                   <div>TSS</div>
                   <div className="text-xs font-normal text-slate-500">{getUnit("tss")}</div>
                 </th>
+                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[100px]">
+                  <div>WQI</div>
+                  <div className="text-xs font-normal text-slate-500">{getUnit("wqi")}</div>
+                </th>
                 <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[120px]">
                   <div>Temperature</div>
                   <div className="text-xs font-normal text-slate-500">{getUnit("temperature")}</div>
-                </th>
-                <th className="px-4 py-3 text-center font-semibold border-r border-[#e2e8f0] min-w-[110px]">
-                  <div>Pressure</div>
-                  <div className="text-xs font-normal text-slate-500">{getUnit("pressure")}</div>
                 </th>
                 <th className="px-4 py-3 text-center font-semibold min-w-[100px]">
                   <div>Depth</div>
@@ -136,10 +137,10 @@ export default function TableView({ data, device, devices }: TableViewProps) {
                     {formatPollutantValue(convert(row.tss, "tss") ?? row.tss, "tss")}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {formatPollutantValue(convert(row.temperature, "temperature") ?? row.temperature, "temperature")}
+                    {formatPollutantValue(convert(row.wqi, "wqi") ?? row.wqi, "wqi")}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    {formatPollutantValue(convert(row.pressure, "pressure") ?? row.pressure, "pressure")}
+                    {formatPollutantValue(convert(row.temperature, "temperature") ?? row.temperature, "temperature")}
                   </td>
                   <td className="px-4 py-3 text-center">
                     {formatPollutantValue(convert(row.depth, "depth") ?? row.depth, "depth")}

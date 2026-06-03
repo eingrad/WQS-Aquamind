@@ -12,7 +12,6 @@ import { ChevronDown } from "lucide-react";
 // Parameters that have configurable units (water quality params with >1 unit option)
 const UNIT_SETTINGS = [
   { key: "temperature", label: "Temperature" },
-  { key: "pressure",    label: "Water Pressure" },
   { key: "depth",       label: "Water Depth" },
 ];
 
@@ -171,7 +170,7 @@ export default function SettingsPage() {
                   setUnitSaveMessage("Units reset to defaults");
                   setTimeout(() => setUnitSaveMessage(""), 2000);
                 }}
-                className="px-4 py-2 bg-gray-600 hover:bg-slate-200 rounded-lg text-sm transition-colors"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-sm transition-colors"
               >
                 Reset to Defaults
               </button>
@@ -212,8 +211,8 @@ export default function SettingsPage() {
                   }
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     notificationPrefs.notifyInApp
-                      ? "bg-emerald-600"
-                      : "bg-gray-600"
+                      ? "bg-blue-600"
+                      : "bg-slate-300"
                   }`}
                 >
                   <span
@@ -247,8 +246,8 @@ export default function SettingsPage() {
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notificationPrefs.notifyEmail
-                        ? "bg-emerald-600"
-                        : "bg-gray-600"
+                        ? "bg-blue-600"
+                        : "bg-slate-300"
                     }`}
                   >
                     <span
@@ -297,8 +296,8 @@ export default function SettingsPage() {
                     }
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       notificationPrefs.notifyTelegram
-                        ? "bg-emerald-600"
-                        : "bg-gray-600"
+                        ? "bg-blue-600"
+                        : "bg-slate-300"
                     }`}
                   >
                     <span
@@ -330,7 +329,7 @@ export default function SettingsPage() {
                         disabled={
                           !notificationPrefs.telegramChatId || testingTelegram
                         }
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-sm transition-colors"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-300 disabled:cursor-not-allowed rounded-lg text-sm transition-colors"
                       >
                         {testingTelegram ? "Testing..." : "Test"}
                       </button>
@@ -367,7 +366,7 @@ export default function SettingsPage() {
                 <button
                   onClick={handleSavePreferences}
                   disabled={saving}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg text-sm transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-300 disabled:cursor-not-allowed rounded-lg text-sm transition-colors"
                 >
                   {saving ? "Saving..." : "Save Preferences"}
                 </button>

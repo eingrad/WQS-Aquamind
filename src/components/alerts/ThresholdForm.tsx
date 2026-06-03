@@ -16,7 +16,6 @@ const parameters = [
   { value: "bod",         label: "BOD" },
   { value: "tss",         label: "TSS" },
   { value: "temperature", label: "Temperature" },
-  { value: "pressure",    label: "Pressure" },
   { value: "depth",       label: "Depth" },
 ];
 
@@ -106,13 +105,13 @@ export default function ThresholdForm({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+        className="fixed inset-0 bg-black/50 z-[1060] transition-opacity"
         onClick={onClose}
       />
 
       {/* Side Panel */}
       <div
-        className="fixed right-0 top-0 h-full w-full sm:w-[400px] md:w-[440px] lg:w-[480px] xl:w-[500px] bg-[#ffffff] border-l border-slate-200 z-50 shadow-2xl
+        className="fixed right-0 top-0 h-full w-full sm:w-[400px] md:w-[440px] lg:w-[480px] xl:w-[500px] bg-[#ffffff] border-l border-slate-200 z-[1070] shadow-2xl
           transform transition-transform duration-300 ease-out flex flex-col"
       >
         {/* Header - Fixed */}

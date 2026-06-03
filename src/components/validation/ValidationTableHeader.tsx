@@ -11,7 +11,6 @@ export default function ValidationTableHeader() {
     { label: "BOD",         key: "bod" },
     { label: "TSS",         key: "tss" },
     { label: "Temperature", key: "temperature" },
-    { label: "Pressure",    key: "pressure" },
     { label: "Depth",       key: "depth" },
   ];
 
