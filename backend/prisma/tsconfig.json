@@ -1,0 +1,14 @@
+{
+  // Editor/type-checking config for the standalone Prisma scripts (seed*.ts).
+  // They live outside the main build's "src/**" include, so the editor doesn't
+  // give them Node types — that's why globals like `process`/`require` show as
+  // errors. This inherits the backend settings (incl. "types": ["node"]) and
+  // scopes them here. `ts-node` (which runs the scripts) and `tsc` (the build)
+  // ignore this file — it only helps the editor.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true
+  },
+  "include": ["**/*.ts"]
+}

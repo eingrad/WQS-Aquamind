@@ -17,7 +17,6 @@ const parameterLabels: Record<string, string> = {
   ws: "Wind Speed",
   wd: "Wind Direction",
   solar: "Solar Radiation",
-  pressure: "Pressure",
   rain: "Rain",
 };
 

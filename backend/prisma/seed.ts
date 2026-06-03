@@ -1,4 +1,5 @@
 import prisma from "../src/config/database";
+import bcrypt from "bcryptjs";
 
 async function main() {
   console.log("🌱 Seeding database...");
@@ -42,25 +43,29 @@ async function main() {
   // Seed devices
   console.log("\n📡 Creating devices...");
 
+  // mqttIdentifier must match the topic the device publishes to
+  // (aquamind/<mqttIdentifier>) and the broker login, so live data attaches.
+  const deviceData = {
+    mqttIdentifier: "UNIMAP01",
+    name: "Water Quality Station 1",
+    location: "Arau, Perlis",
+    latitude: 6.5964,
+    longitude: 100.32989,
+    status: "active",
+  };
+
   const device = await prisma.device.upsert({
-    where: { deviceCode: "WQS-STATION-01" },
-    update: {},
-    create: {
-      deviceCode: "WQS-STATION-01",
-      name: "AquaMind Water Quality Monitoring Station 1",
-      location: "River Station, Johor",
-      latitude: 1.3668593813920302,
-      longitude: 104.10786207528017,
-      status: "active",
-    },
+    where: { deviceCode: "WQMS - UNIMAP01" },
+    update: deviceData, // self-heal an existing record (e.g. set mqttIdentifier)
+    create: { deviceCode: "WQMS - UNIMAP01", ...deviceData },
   });
 
   console.log(`✅ Device created: ${device.name}`);
   console.log(`   Device Code: ${device.deviceCode}`);
+  console.log(`   MQTT Identifier: ${device.mqttIdentifier}`);
   console.log(`   Location: ${device.location}`);
 
   // Create super admin user
-  const bcrypt = require("bcryptjs");
   const hashedPassword = await bcrypt.hash("Test@1234", 10);
 
   const superAdmin = await prisma.user.upsert({

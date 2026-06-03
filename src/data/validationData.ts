@@ -48,11 +48,6 @@ export interface ValidationDataRow {
   temperatureValidatedByHuman?: boolean;
   temperatureFlaggedByHuman?: boolean;
   temperaturePendingAdminApproval?: boolean;
-  pressure: number | null;
-  pressureStatus: ValidationStatus;
-  pressureValidatedByHuman?: boolean;
-  pressureFlaggedByHuman?: boolean;
-  pressurePendingAdminApproval?: boolean;
   depth: number | null;
   depthStatus: ValidationStatus;
   depthValidatedByHuman?: boolean;

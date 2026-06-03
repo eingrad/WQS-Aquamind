@@ -110,11 +110,6 @@ export default function SettingsPage() {
       if (option === "°C") return "Celsius (°C)";
       if (option === "°F") return "Fahrenheit (°F)";
     }
-    if (param === "pressure") {
-      if (option === "kPa") return "Kilopascal (kPa)";
-      if (option === "hPa") return "Hectopascal (hPa)";
-      if (option === "psi") return "Pounds per sq inch (psi)";
-    }
     if (param === "depth") {
       if (option === "m") return "Meters (m)";
       if (option === "ft") return "Feet (ft)";

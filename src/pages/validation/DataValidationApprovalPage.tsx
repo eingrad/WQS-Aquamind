@@ -22,7 +22,6 @@ const parameterDisplayNames: Record<string, string> = {
   bod: "BOD",
   tss: "TSS",
   temperature: "Temperature",
-  pressure: "Pressure",
   depth: "Depth",
 };
 

@@ -220,13 +220,6 @@ export default function DataValidationPage() {
             "no_data") as ValidationStatus,
           temperaturePendingAdminApproval:
             !!record.parameters.temperature?.pendingApproval?.isPending,
-          pressure: record.parameters.pressure?.value ?? null,
-          pressureStatus: (record.parameters.pressure?.humanValidation
-            ?.status ||
-            record.parameters.pressure?.autoFlag ||
-            "no_data") as ValidationStatus,
-          pressurePendingAdminApproval:
-            !!record.parameters.pressure?.pendingApproval?.isPending,
           depth: record.parameters.depth?.value ?? null,
           depthStatus: (record.parameters.depth?.humanValidation?.status ||
             record.parameters.depth?.autoFlag ||

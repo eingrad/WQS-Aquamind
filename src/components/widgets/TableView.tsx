@@ -14,7 +14,6 @@ interface DataRow {
   tss: number;
   wqi: number;
   temperature: number;
-  pressure: number;
   depth: number;
 }
 
