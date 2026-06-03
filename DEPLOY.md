@@ -1,17 +1,16 @@
-# AquaMind — Production Deployment (office server + Cloudflare Tunnel + HiveMQ)
+# AquaMind — Production Deployment (office server + Cloudflare Tunnel)
 
-Runs the whole app on your office machine and publishes it to the internet with
-a **Cloudflare Tunnel** — **no port forwarding, no public IP, no inbound firewall
-rules.** Remote field sensors publish to **HiveMQ Cloud**, and the backend
-subscribes to it outbound. Everything is outbound-only, which is why this works
-behind an office network you don't control.
+Runs the whole stack — including a self-hosted MQTT broker — on your office
+machine and publishes it through a **Cloudflare Tunnel**: **no port forwarding,
+no public IP, no inbound firewall rules.** The Raspberry Pi publishes sensor
+data over **MQTT-over-WebSocket (wss)** through the same tunnel.
 
 ```
-Web:   browser ─▶ Cloudflare (https://wqmscloud.com) ──tunnel──▶ cloudflared
-                                                                     │
-                                                  frontend (nginx) ◀─┘ ─┬─ /api ─▶ backend ─▶ db / redis
-                                                                        └─ /*   ─▶ React app
-MQTT:  remote sensors ──mqtts──▶ HiveMQ Cloud ◀──outbound subscribe── backend
+Web:   browser ─▶ Cloudflare (https://wqmscloud.com) ──tunnel──▶ cloudflared ─▶ nginx ─┬─ /api ─▶ backend ─▶ db/redis
+                                                                                        └─ /*   ─▶ React app
+MQTT:  Raspberry Pi ──wss://mqtt.wqmscloud.com──▶ Cloudflare ──tunnel──▶ cloudflared ─▶ Mosquitto (ws :9001)
+                                                  (TLS here)                                  ▲
+                                                                  backend subscribes via mqtt:1883 (internal)
 ```
 
 ## Containers
@@ -19,11 +18,12 @@ MQTT:  remote sensors ──mqtts──▶ HiveMQ Cloud ◀──outbound subscr
 |-------------|-------------------------------------------|-----------|
 | cloudflared | Outbound tunnel to Cloudflare             | none (outbound) |
 | frontend    | Nginx: serves the app + proxies `/api`    | none |
-| backend     | API, Prisma, Puppeteer; HiveMQ subscriber | none |
+| backend     | API, Prisma, Puppeteer; MQTT subscriber   | none |
+| mqtt        | Mosquitto broker (native :1883 + ws :9001)| none |
 | database    | PostgreSQL + TimescaleDB                  | none |
 | redis       | cache                                     | none |
 
-**Nothing is published on the host.** No `ufw`/security-group/router changes.
+**Nothing is published on the host.** No `ufw`/router/security-group changes.
 
 ---
 
@@ -37,8 +37,8 @@ git branch -M main
 git remote add origin git@github.com:<you>/aquamind.git
 git push -u origin main
 ```
-> ⚠️ This repo is in OneDrive — before committing, set `src/assets/` to "Always
-> keep on this device" so images aren't committed as cloud placeholders.
+> ⚠️ This repo is in OneDrive — set `src/assets/` to "Always keep on this
+> device" before committing, or images commit as empty cloud placeholders.
 
 ## 2. On the office server: install Docker + git
 ```bash
@@ -47,48 +47,49 @@ sudo usermod -aG docker $USER     # then log out & back in
 docker --version && docker compose version
 ```
 
-## 3. HiveMQ Cloud (the MQTT broker)
-1. Sign up at **https://www.hivemq.com/cloud/** and create a **free Serverless cluster**.
-2. From **Overview**, note the **host** (e.g. `abc123.s1.eu.hivemq.cloud`) and port **8883**.
-3. Under **Access Management → Credentials**, create logins:
-   - one for the backend (e.g. `aquamind-backend` / strong password) — goes in `.env.prod`.
-   - one (or more) for your field sensors (e.g. `sensor1`).
-4. Point your field sensors at: `mqtts://<host>:8883`, their username/password,
-   publishing to topic `aquamind/<device-mqtt-identifier>`.
+## 3. Cloudflare Tunnel — create it and add TWO public hostnames
+1. Cloudflare → **Zero Trust → Networks → Tunnels → Create a tunnel** → type **Cloudflared**.
+2. Name it (e.g. `aquamind`) and **copy the token** (the long `eyJ...` string after `--token`). → goes in `.env.prod`.
+3. Add **Public Hostname #1** (the web app):
+   - Subdomain: *(blank)*  Domain: **wqmscloud.com**  Type: **HTTP**  URL: **frontend:80**
+4. Add **Public Hostname #2** (MQTT over WebSocket):
+   - Subdomain: **mqtt**  Domain: **wqmscloud.com**  Type: **HTTP**  URL: **mqtt:9001**
+5. Both auto-create their (proxied) DNS records — you don't add A records manually.
 
-## 4. Cloudflare Tunnel (publishes the web app)
-1. Cloudflare dashboard → **Zero Trust → Networks → Tunnels → Create a tunnel** → type **Cloudflared**.
-2. Name it (e.g. `aquamind`) and **copy the token** (the long string after `--token`). This goes in `.env.prod`.
-3. Add a **Public Hostname**:
-   - Subdomain: *(blank)*  Domain: **wqmscloud.com**
-   - Type: **HTTP**   URL: **frontend:80**
-   - (This auto-creates the proxied DNS record — you do **not** add an A record manually.)
-4. Make sure SSL/TLS mode for the domain is **Full** (Cloudflare provides the public HTTPS cert).
-
-## 5. Clone the code & configure secrets
+## 4. Clone the code & configure secrets
 ```bash
 git clone git@github.com:<you>/aquamind.git
 cd aquamind                        # the repo root (was WQS-Aquamind/)
 cp .env.prod.example .env.prod
-nano .env.prod                     # fill in everything below
+nano .env.prod
 ```
 Fill in: `DOMAIN`, `CLOUDFLARE_TUNNEL_TOKEN`, `DB_PASSWORD`, `JWT_SECRET`,
-`JWT_REFRESH_SECRET`, `INTERNAL_API_SECRET`, and the HiveMQ `MQTT_*` values.
+`JWT_REFRESH_SECRET`, `INTERNAL_API_SECRET`. (Leave the `MQTT_*` values as-is —
+the backend talks to the broker internally.)
 ```bash
 openssl rand -hex 48   # JWT_SECRET (run again for JWT_REFRESH_SECRET)
 openssl rand -hex 32   # INTERNAL_API_SECRET
 ```
 
+## 5. Create the device login for the Pi (before first start)
+The Pi authenticates to the broker with a username/password. Create it (repeat
+without `-c` to add more devices):
+```bash
+docker run --rm -v "$PWD/mqtt:/cfg" eclipse-mosquitto:2 \
+  mosquitto_passwd -c -b /cfg/passwd pi-device 'a-strong-device-password'
+```
+This writes `mqtt/passwd` (git-ignored). The broker won't start without it.
+
 ## 6. Build & start
 ```bash
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 ```
-First run builds the images and applies DB migrations automatically. Check:
+First run builds images and runs DB migrations automatically. Check:
 ```bash
 docker compose -f docker-compose.prod.yml ps
-docker compose -f docker-compose.prod.yml logs -f backend cloudflared
+docker compose -f docker-compose.prod.yml logs -f backend cloudflared mqtt
 ```
-In `cloudflared` logs you should see the tunnel register; in `backend` logs,
+In `cloudflared` logs look for `Registered tunnel connection`; in `backend`,
 `✅ MQTT connected to broker`.
 
 ## 7. Seed the first admin user (one time)
@@ -98,6 +99,22 @@ docker compose -f docker-compose.prod.yml exec backend npx ts-node prisma/seed.t
 
 Visit **https://wqmscloud.com** — done.
 
+## 8. Point the Raspberry Pi at the broker
+The Pi connects over WebSocket-Secure through the tunnel (port 443, outbound —
+no ports to open on the Pi's network either). Example with Python `paho-mqtt`:
+```python
+import paho.mqtt.client as mqtt
+
+c = mqtt.Client(transport="websockets")
+c.ws_set_options(path="/mqtt")
+c.tls_set()                                   # validates Cloudflare's public cert
+c.username_pw_set("pi-device", "a-strong-device-password")
+c.connect("mqtt.wqmscloud.com", 443)
+c.publish("aquamind/<device-mqtt-identifier>", '{"ph":7.2,"do":6.5}')
+```
+The `<device-mqtt-identifier>` must match the device's `mqtt_identifier` in the
+app so readings are attributed to the right station.
+
 ---
 
 ## Updating after a code change
@@ -105,7 +122,6 @@ Visit **https://wqmscloud.com** — done.
 git pull
 docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
 ```
-(Migrations run automatically on backend startup.)
 
 ## Backups
 ```bash
@@ -116,8 +132,7 @@ docker compose -f docker-compose.prod.yml exec database \
 ## Notes
 - **Building needs ~2 GB RAM** (the frontend bundle is large). Add swap on a small box.
 - **The office machine must stay powered on with internet** for the site and
-  data ingestion to work. If it sleeps/reboots, Docker's `restart: unless-stopped`
-  brings the stack back up automatically once it's running again.
-- **No HiveMQ?** You can instead run the broker on a small cloud VPS and point
-  `MQTT_BROKER_URL` at it — but HiveMQ Cloud's free tier is the least effort here.
+  data ingestion. `restart: unless-stopped` brings the stack back after reboots.
+- **If the Pi can't connect over `wss`**, try WebSocket path `/` instead of
+  `/mqtt`, and confirm Public Hostname #2 points at `mqtt:9001` (HTTP).
 - **Build on the server** (same CPU arch) so the Prisma engine binary matches.

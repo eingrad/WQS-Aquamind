@@ -14,6 +14,8 @@ dist-ssr
 
 # Production secrets (keep .env.prod.example committed, never .env.prod)
 .env.prod
+# MQTT broker password file (generated on the server)
+mqtt/passwd
 
 # Editor directories and files
 .vscode/*

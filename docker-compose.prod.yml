@@ -40,8 +40,23 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── MQTT broker (Mosquitto) ─────────────────────────────────
+  # Self-hosted. The Raspberry Pi publishes over WebSocket via the Cloudflare
+  # Tunnel (wss://mqtt.${DOMAIN} -> ws listener :9001); the backend subscribes
+  # internally over native MQTT (:1883). No host ports are published — Cloudflare
+  # terminates the wss TLS at its edge, so the broker needs no certificate.
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: aquamind-prod-mqtt
+    volumes:
+      - ./mqtt:/mosquitto/config # mosquitto.conf + passwd
+      - prod_mqtt_data:/mosquitto/data
+      - prod_mqtt_logs:/mosquitto/log
+    networks: [aquamind-net]
+    restart: unless-stopped
+
   # ── Backend API (Express + Prisma + Puppeteer) ──────────────
-  # Subscribes OUTBOUND to HiveMQ Cloud for live sensor data.
+  # Subscribes to the in-network broker for live sensor data.
   backend:
     build:
       context: ./backend
@@ -72,10 +87,10 @@ services:
       SENSOR_TIMEZONE_OFFSET: 8
       CORS_ORIGIN: https://${DOMAIN}
       LOG_LEVEL: info
-      # HiveMQ Cloud (mqtts://...) — sensors + backend both connect outbound
-      MQTT_BROKER_URL: ${MQTT_BROKER_URL}
-      MQTT_USERNAME: ${MQTT_USERNAME}
-      MQTT_PASSWORD: ${MQTT_PASSWORD}
+      # In-network broker — native MQTT, anonymous, internal only
+      MQTT_BROKER_URL: mqtt://mqtt:1883
+      MQTT_USERNAME: ""
+      MQTT_PASSWORD: ""
       MQTT_TOPIC: ${MQTT_TOPIC:-aquamind/+}
       INTERNAL_API_SECRET: ${INTERNAL_API_SECRET}
       SMTP_HOST: ${SMTP_HOST:-}
@@ -107,20 +122,23 @@ services:
     restart: unless-stopped
 
   # ── Cloudflare Tunnel ───────────────────────────────────────
-  # Outbound-only connection to Cloudflare; publishes https://${DOMAIN}.
-  # Configure the public hostname (${DOMAIN} -> http://frontend:80) in the
-  # Cloudflare Zero Trust dashboard, then paste the tunnel token in .env.prod.
+  # Outbound-only connection to Cloudflare. Configure TWO public hostnames in
+  # the Cloudflare Zero Trust dashboard, then paste the token in .env.prod:
+  #   ${DOMAIN}        -> http://frontend:80   (the web app)
+  #   mqtt.${DOMAIN}   -> http://mqtt:9001      (MQTT over WebSocket for the Pi)
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: aquamind-prod-cloudflared
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on: [frontend]
+    depends_on: [frontend, mqtt]
     networks: [aquamind-net]
     restart: unless-stopped
 
 volumes:
   prod_postgres_data:
   prod_redis_data:
+  prod_mqtt_data:
+  prod_mqtt_logs:
   prod_uploads:
   prod_reports:
 
