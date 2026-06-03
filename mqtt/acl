@@ -1,0 +1,11 @@
+# Mosquitto ACL for the external WebSocket listener (devices via the tunnel).
+#
+# `%u` is the connecting device's username. Each device may publish ONLY to a
+# topic whose first segment equals its own username, so a compromised device
+# cannot spoof another station's readings.
+#
+# Convention: name each device's MQTT login the SAME as its device identifier
+# (the segment after "aquamind/"). e.g. login "UNIMAP01" -> may publish to
+# aquamind/UNIMAP01 (and any subtopic under it). Subscribing is not granted.
+pattern write aquamind/%u
+pattern write aquamind/%u/#

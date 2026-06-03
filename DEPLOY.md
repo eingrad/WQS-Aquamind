@@ -72,13 +72,15 @@ openssl rand -hex 32   # INTERNAL_API_SECRET
 ```
 
 ## 5. Create the device login for the Pi (before first start)
-The Pi authenticates to the broker with a username/password. Create it (repeat
-without `-c` to add more devices):
+The Pi authenticates with a username/password. **Name the login exactly the
+device's MQTT identifier** — the ACL ([mqtt/acl](mqtt/acl)) restricts each login
+to publishing only to `aquamind/<its-username>`. So for a device id `UNIMAP01`:
 ```bash
 docker run --rm -v "$PWD/mqtt:/cfg" eclipse-mosquitto:2 \
-  mosquitto_passwd -c -b /cfg/passwd pi-device 'a-strong-device-password'
+  mosquitto_passwd -c -b /cfg/passwd UNIMAP01 'a-strong-device-password'
 ```
-This writes `mqtt/passwd` (git-ignored). The broker won't start without it.
+Repeat **without** `-c` to add more devices (one login per device id). This
+writes `mqtt/passwd` (git-ignored). The broker won't start without it.
 
 ## 6. Build & start
 ```bash
@@ -108,12 +110,13 @@ import paho.mqtt.client as mqtt
 c = mqtt.Client(transport="websockets")
 c.ws_set_options(path="/mqtt")
 c.tls_set()                                   # validates Cloudflare's public cert
-c.username_pw_set("pi-device", "a-strong-device-password")
+c.username_pw_set("UNIMAP01", "a-strong-device-password")
 c.connect("mqtt.wqmscloud.com", 443)
-c.publish("aquamind/<device-mqtt-identifier>", '{"ph":7.2,"do":6.5}')
+c.publish("aquamind/UNIMAP01", '{"ph":7.2,"do":6.5}')
 ```
-The `<device-mqtt-identifier>` must match the device's `mqtt_identifier` in the
-app so readings are attributed to the right station.
+The username, the topic segment, and the device's `mqtt_identifier` in the app
+must **all be the same value** (`UNIMAP01` here) — that's what the ACL enforces
+and what attributes readings to the right station.
 
 ---
 
