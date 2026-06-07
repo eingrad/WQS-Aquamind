@@ -49,6 +49,9 @@ COPY prisma ./prisma
 COPY reports ./reports
 COPY docker-entrypoint.sh ./
 
+# Regenerate Prisma client for this runtime's exact OpenSSL version
+RUN npx prisma generate
+
 # Normalise line endings (in case the repo was checked out on Windows) + make executable
 RUN sed -i 's/\r$//' docker-entrypoint.sh && chmod +x docker-entrypoint.sh
 
