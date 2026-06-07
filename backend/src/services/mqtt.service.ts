@@ -43,15 +43,14 @@ const SENSOR_DATA_TOPIC = process.env.MQTT_TOPIC || "congrego/+";
  */
 const CHANNEL_MAP: Record<number, string> = {
   // Water quality sensors
-  1: "ph",          // pH (dimensionless)
-  2: "do",          // Dissolved Oxygen (mg/L)
-  3: "nh3n",        // Ammonia-Nitrogen NH₃-N (mg/L)
-  4: "cod",         // Chemical Oxygen Demand (mg/L)
-  5: "bod",         // Biochemical Oxygen Demand (mg/L)
-  6: "tss",         // Total Suspended Solids (mg/L)
+  1: "ph", // pH (dimensionless)
+  2: "do", // Dissolved Oxygen (mg/L)
+  3: "nh3n", // Ammonia-Nitrogen NH₃-N (mg/L)
+  4: "cod", // Chemical Oxygen Demand (mg/L)
+  5: "bod", // Biochemical Oxygen Demand (mg/L)
+  6: "tss", // Total Suspended Solids (mg/L)
   7: "temperature", // Water Temperature (°C)
-  8: "pressure",    // Pressure (kPa)
-  9: "depth",       // Water Depth (m)
+  8: "depth", // Water Depth (m)
 };
 
 // ─── Device Identifier Cache ────────────────────────────────────────────────
@@ -329,10 +328,14 @@ const handleSensorMessage = async (
       );
 
       if (alertResults.length > 0) {
-        logger.info(`🚨 ${alertResults.length} alert(s) triggered for ${deviceId}`);
+        logger.info(
+          `🚨 ${alertResults.length} alert(s) triggered for ${deviceId}`,
+        );
         for (const result of alertResults) {
           if (result.alertHistory) {
-            await notificationService.sendMultiChannelNotification(result.alertHistory);
+            await notificationService.sendMultiChannelNotification(
+              result.alertHistory,
+            );
           }
         }
       }
