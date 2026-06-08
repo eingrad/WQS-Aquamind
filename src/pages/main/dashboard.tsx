@@ -8,6 +8,7 @@ import LineSensorChart from "../../components/charts/LineSensorChart.tsx";
 import DateRangePicker from "../../components/widgets/DateRangePicker.tsx";
 import RealTimeParameters from "../../components/widgets/RealTimeParameters.tsx";
 import StationMap from "../../components/widgets/StationMap.tsx";
+import WqiGauge from "../../components/widgets/WqiGauge.tsx";
 
 // Services
 import { getDevices } from "../../services/device.service";
@@ -397,6 +398,13 @@ export default function DashboardPage() {
         >
           {view === "graph" ? (
             <div className="gap-5 grid grid-cols-1 xl:grid-cols-2">
+              {/* Water Quality Index — hero widget */}
+              <div className="xl:col-span-2">
+                <Card title="Water Quality Index (DOE Malaysia)">
+                  <WqiGauge deviceId={device} />
+                </Card>
+              </div>
+
               {/* Real-Time Parameters */}
               <div className="xl:col-span-1">
                 <Card title="Real-Time Parameters">

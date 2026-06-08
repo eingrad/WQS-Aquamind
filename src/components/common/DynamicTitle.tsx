@@ -17,7 +17,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/telegram-setup": "Telegram Setup",
 };
 
-const APP_NAME = "MyAQMS";
+const APP_NAME = "AquaMind";
 
 /**
  * Listens to route changes and updates the browser tab title.

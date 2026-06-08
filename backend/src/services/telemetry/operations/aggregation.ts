@@ -9,6 +9,7 @@ import {
 } from "../aggregation/query-builder";
 import { isMovingAverage } from "../aggregation/interval-mapping";
 import { validateParameterValues } from "../validation/parameter-validator";
+import { computeWQI, classifyWQI } from "../wqi";
 import redis from "../../redis.service";
 
 interface TimeSeriesOptions {
@@ -217,8 +218,27 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
         : regulatoryFlags[param] ?? "valid";
     });
 
+    // Derive the DOE WQI for this bucket from its averaged parameter values.
+    // Requires all six WQI inputs (+ temperature for DO % saturation); if any
+    // is absent for this bucket, wqi_avg is null and downstream renders blank.
+    const num = (v: any): number | null =>
+      v === null || v === undefined ? null : Number(v);
+    const wqiAvg = computeWQI({
+      ph: num(row.ph_avg),
+      do: num(row.do_avg),
+      bod: num(row.bod_avg),
+      cod: num(row.cod_avg),
+      nh3n: num(row.nh3n_avg),
+      tss: num(row.tss_avg),
+      temperature: num(row.temperature_avg),
+    });
+    const wqiClass = classifyWQI(wqiAvg);
+
     return {
       ...row,
+      wqi_avg: wqiAvg,
+      wqi_class: wqiClass?.class ?? null,
+      wqi_status: wqiClass?.status ?? null,
       validation_flags,
       has_validation_issues: anyParamInMaintenance || hasRegulatoryIssues,
       relation_violations: relationViolations,
