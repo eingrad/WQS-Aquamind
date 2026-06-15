@@ -13,7 +13,7 @@ export interface ReportOptions {
   /**
    * Optional per-parameter unit preferences supplied by the caller (the
    * dashboard sends the user's selected units so the report matches what
-   * they see on screen). Example: { temperature: "°F", pressure: "hPa" }
+   * they see on screen). Example: { temperature: "°F", depth: "ft" }
    */
   units?: Record<string, string>;
 }
@@ -67,7 +67,6 @@ const DEFAULT_PARAMETERS = [
   { key: "bod",         label: "BOD",          unit: "mg/L" },
   { key: "tss",         label: "TSS",          unit: "mg/L" },
   { key: "temperature", label: "Temperature",  unit: "°C"   },
-  { key: "pressure",    label: "Pressure",     unit: "kPa"  },
   { key: "depth",       label: "Depth",        unit: "m"    },
 ];
 
@@ -388,7 +387,6 @@ const calculateAvailability = (
     bod:         "bod_avg",
     tss:         "tss_avg",
     temperature: "temperature_avg",
-    pressure:    "pressure_avg",
     depth:       "depth_avg",
   };
 
@@ -507,7 +505,6 @@ const calculateDataCounts = (
     bod:         "bod_avg",
     tss:         "tss_avg",
     temperature: "temperature_avg",
-    pressure:    "pressure_avg",
     depth:       "depth_avg",
   };
 

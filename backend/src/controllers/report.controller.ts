@@ -149,7 +149,6 @@ export const exportPDF = async (req: Request, res: Response) => {
         bod: unitFor("bod"),
         tss: unitFor("tss"),
         temperature: unitFor("temperature"),
-        pressure: unitFor("pressure"),
         depth: unitFor("depth"),
       },
       availability: reportData.summary.availability || {}, // Pass availability data

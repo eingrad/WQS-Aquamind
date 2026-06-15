@@ -150,7 +150,7 @@ export default function RealTimeParameters({
       `}</style>
       <div className="h-full overflow-y-auto pr-2 custom-scrollbar">
         <div className="space-y-2">
-          {PARAMETERS.map((param) => {
+          {PARAMETERS.filter((param) => param.key !== "wqi").map((param) => {
             const entry = liveData[param.key];
             const rawValue = entry?.value ?? 0;
             const at = entry?.at;
