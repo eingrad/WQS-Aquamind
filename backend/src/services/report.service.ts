@@ -36,6 +36,10 @@ export interface ReportData {
     avgPh: number | null;
     avgDo: number | null;
     avgNh3n: number | null;
+    avgCod: number | null;
+    avgBod: number | null;
+    avgTss: number | null;
+    avgDepth: number | null;
     availability: {
       [parameter: string]: number;
     };
@@ -584,6 +588,10 @@ const calculateSummary = (
     avgPh: null,
     avgDo: null,
     avgNh3n: null,
+    avgCod: null,
+    avgBod: null,
+    avgTss: null,
+    avgDepth: null,
     availability,
     incompletePeriods,
     maintenanceExcluded: maintenanceBuckets,
@@ -610,14 +618,22 @@ const calculateSummary = (
     if (temps.length > 0) summary.maxTemp = Math.max(...temps);
   }
 
-  if (parameters.includes("ph"))   summary.avgPh   = avgOf("ph_avg");
-  if (parameters.includes("do"))   summary.avgDo   = avgOf("do_avg");
-  if (parameters.includes("nh3n")) summary.avgNh3n = avgOf("nh3n_avg");
+  if (parameters.includes("ph"))    summary.avgPh    = avgOf("ph_avg");
+  if (parameters.includes("do"))    summary.avgDo    = avgOf("do_avg");
+  if (parameters.includes("nh3n"))  summary.avgNh3n  = avgOf("nh3n_avg");
+  if (parameters.includes("cod"))   summary.avgCod   = avgOf("cod_avg");
+  if (parameters.includes("bod"))   summary.avgBod   = avgOf("bod_avg");
+  if (parameters.includes("tss"))   summary.avgTss   = avgOf("tss_avg");
+  if (parameters.includes("depth")) summary.avgDepth = avgOf("depth_avg");
 
   summary.maxTemp  = conv(summary.maxTemp, "temperature");
   summary.avgPh    = conv(summary.avgPh,   "ph");
   summary.avgDo    = conv(summary.avgDo,   "do");
   summary.avgNh3n  = conv(summary.avgNh3n, "nh3n");
+  summary.avgCod   = conv(summary.avgCod,  "cod");
+  summary.avgBod   = conv(summary.avgBod,  "bod");
+  summary.avgTss   = conv(summary.avgTss,  "tss");
+  summary.avgDepth = conv(summary.avgDepth, "depth");
 
   return summary;
 };

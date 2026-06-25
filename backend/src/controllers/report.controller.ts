@@ -119,6 +119,10 @@ export const exportPDF = async (req: Request, res: Response) => {
       avgPh: reportData.summary.avgPh?.toFixed(2) || "N/A",
       avgDo: reportData.summary.avgDo?.toFixed(3) || "N/A",
       avgNh3n: reportData.summary.avgNh3n?.toFixed(4) || "N/A",
+      avgCod: reportData.summary.avgCod?.toFixed(2) || "N/A",
+      avgBod: reportData.summary.avgBod?.toFixed(2) || "N/A",
+      avgTss: reportData.summary.avgTss?.toFixed(2) || "N/A",
+      avgDepth: reportData.summary.avgDepth?.toFixed(3) || "N/A",
       maintenanceExcluded: reportData.summary.maintenanceExcluded || 0,
       // Per-parameter Data Counts table rows, in the same order as the
       // report's parameter list.

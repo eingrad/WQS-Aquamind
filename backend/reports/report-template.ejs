@@ -108,7 +108,7 @@
   </head>
   <body>
     <div class="header">
-      <div class="title">Environmental Monitoring Report</div>
+      <div class="title">Water Quality Monitoring Report</div>
       <div class="subtitle">
         Generated for <strong><%= deviceId %></strong> | Period: <%= dateRange
         %>
@@ -222,21 +222,19 @@
     <div class="section">
       <div class="section-title">Summary</div>
       <div class="summary">
+        <p><strong>pH Average:</strong> <%= summary.avgPh %> <%= summary.units.ph %></p>
+        <p><strong>Dissolved Oxygen Average:</strong> <%= summary.avgDo %> <%= summary.units.do %></p>
+        <p><strong>NH₃-N Average:</strong> <%= summary.avgNh3n %> <%= summary.units.nh3n %></p>
+        <p><strong>COD Average:</strong> <%= summary.avgCod %> <%= summary.units.cod %></p>
+        <p><strong>BOD Average:</strong> <%= summary.avgBod %> <%= summary.units.bod %></p>
+        <p><strong>TSS Average:</strong> <%= summary.avgTss %> <%= summary.units.tss %></p>
         <p><strong>Max Temperature:</strong> <%= summary.maxTemp %> <%= summary.units.temperature %></p>
-        <p><strong>Min Wind Speed:</strong> <%= summary.minWind %> <%= summary.units.windSpeed %></p>
-        <p><strong>SO₂ Average:</strong> <%= summary.avgSO2 %> <%= summary.units.so2 %></p>
-        <p><strong>H₂S Average:</strong> <%= summary.avgH2S %> <%= summary.units.h2s %></p>
-        <p><strong>NO₂ Average:</strong> <%= summary.avgNO2 %> <%= summary.units.no2 %></p>
-        <p><strong>Benzene Average:</strong> <%= summary.avgBenzene %> <%= summary.units.benzene %></p>
-        <p><strong>Toluene Average:</strong> <%= summary.avgToluene %> <%= summary.units.toluene %></p>
-        <p><strong>Ethylbenzene Average:</strong> <%= summary.avgEthylbenzene %> <%= summary.units.ethylbenzene %></p>
-        <p><strong>Xylene Average:</strong> <%= summary.avgXylenes %> <%= summary.units.xylenes %></p>
-        <p><strong>Solar Radiation Average:</strong> <%= summary.avgSolar %> <%= summary.units.solar %></p>
+        <p><strong>Depth Average:</strong> <%= summary.avgDepth %> <%= summary.units.depth %></p>
       </div>
     </div>
 
     <div class="footer">
-      This report was generated automatically by the PETRONAS Air Quality Monitoring System
+      This report was generated automatically by the AquaMind Water Quality Monitoring System
       Dashboard.
     </div>
   </body>
