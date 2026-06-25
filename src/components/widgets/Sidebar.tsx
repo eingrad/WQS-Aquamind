@@ -16,6 +16,7 @@ import {
   BarChart3,
   BookOpen,
   Wrench,
+  SlidersHorizontal,
 } from "lucide-react";
 
 /** All known role IDs — matches backend seed.ts */
@@ -163,6 +164,12 @@ export default function Sidebar({
         label: "Maintenance",
         href: "/maintenance",
         icon: <Wrench className="w-5 h-5" />,
+        allowedRoles: ["admin", "technician"],
+      },
+      {
+        label: "Calibration",
+        href: "/calibration",
+        icon: <SlidersHorizontal className="w-5 h-5" />,
         allowedRoles: ["admin", "technician"],
       },
 

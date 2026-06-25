@@ -4,6 +4,7 @@ import redis from "./redis.service";
 import prisma from "../config/database";
 import logger from "../config/logger";
 import { createReading } from "./telemetry/operations/crud";
+import { applyCalibration } from "./calibration.service";
 import * as alertEvaluation from "./alert-evaluation.service";
 import * as notificationService from "./notification.service";
 import { isDeviceInMaintenance } from "./maintenance.service";
@@ -286,12 +287,20 @@ const handleSensorMessage = async (
 
   // ── Step 2: Translate channelIds to parameter names ───────────────
 
-  const readings = translatePayload(message);
+  const rawReadings = translatePayload(message);
 
-  if (!readings) {
+  if (!rawReadings) {
     logger.warn(`⚠️ MQTT: No known channels in message from ${topic}`);
     return;
   }
+
+  // ── Step 2b: Apply per-device sensor calibration ──────────────────
+  // operation + value (multiply/divide/add/subtract). Done HERE, before
+  // storage/alerts/WQI/realtime cache, so every consumer sees the corrected
+  // value. The raw readings are kept and stored alongside for audit only when
+  // a calibration actually changed something.
+  const { values: readings, applied: calibrationApplied } =
+    await applyCalibration(deviceId, rawReadings);
 
   // ── Step 3: Parse timestamp ───────────────────────────────────────
   // The analyzer sends ISO 8601 with high precision: "2026-04-26T13:20:00.0000000Z"
@@ -303,7 +312,13 @@ const handleSensorMessage = async (
   // Sensor sends 1-minute averaged readings — no buffering needed.
 
   try {
-    await createReading({ deviceId, observedAt: utcTimestamp, readings });
+    await createReading({
+      deviceId,
+      observedAt: utcTimestamp,
+      readings,
+      // Only persist the raw copy when calibration actually altered a value.
+      rawReadings: calibrationApplied ? rawReadings : undefined,
+    });
     logger.debug(
       `💾 MQTT: Saved reading from ${deviceId} at ${timestamp} (${Object.keys(readings).join(", ")})`,
     );

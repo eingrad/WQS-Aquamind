@@ -13,13 +13,14 @@ interface ReadingInput {
   observedAt: Date;
   readings: Record<string, number>;
   dataCounts?: Record<string, number>; // Optional: reading count per parameter (for quality check)
+  rawReadings?: Record<string, number>; // Optional: pre-calibration values (stored for audit)
 }
 
 /**
  * Create a single telemetry reading
  */
 export const createReading = async (input: ReadingInput) => {
-  const { deviceId, observedAt, readings, dataCounts } = input;
+  const { deviceId, observedAt, readings, dataCounts, rawReadings } = input;
 
   // Check if device is in maintenance during this timestamp
   const inMaintenance = await isDeviceInMaintenance(deviceId, {
@@ -95,6 +96,11 @@ export const createReading = async (input: ReadingInput) => {
         readings.depth !== undefined ? new Prisma.Decimal(readings.depth) : null,
       dataQuality: validation.hasIssues ? "flagged" : "valid",
       processingFlags: validation.flags as Prisma.InputJsonValue,
+      // Pre-calibration values, kept for audit. Only stored when the reading
+      // was actually corrected (rawReadings differs from readings upstream).
+      rawValues: rawReadings
+        ? (rawReadings as Prisma.InputJsonValue)
+        : undefined,
     },
   });
 

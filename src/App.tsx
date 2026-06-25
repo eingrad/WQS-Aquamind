@@ -18,6 +18,7 @@ import AlertHistoryPage from "./pages/alerts/AlertHistoryPage";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ParameterInfoPage from "./pages/parameters/ParameterInfoPage";
 import MaintenancePage from "./pages/maintenance/MaintenancePage";
+import CalibrationPage from "./pages/calibration/CalibrationPage";
 
 /** Known role IDs — mirrors backend seed.ts */
 type UserRole = "admin" | "qa_qc" | "technician" | "user";
@@ -105,6 +106,7 @@ export default function App() {
             <Route path="/settings" element={<PrivateRoute element={<SettingsPage />} />} />
             <Route path="/telegram-setup" element={<PrivateRoute element={<TelegramSetupGuide />} />} />
             <Route path="/maintenance" element={<RoleRoute element={<MaintenancePage />} allowedRoles={["admin", "technician"]} />} />
+            <Route path="/calibration" element={<RoleRoute element={<CalibrationPage />} allowedRoles={["admin", "technician"]} />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>

@@ -11,6 +11,7 @@ import maintenanceRoutes from "./routes/maintenance.routes";
 import validationRoutes from "./routes/validation.routes";
 import alertRoutes from "./routes/alert.routes";
 import reportRoutes from "./routes/report.routes";
+import calibrationRoutes from "./routes/calibration.routes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import logger from "./config/logger";
@@ -74,6 +75,9 @@ app.use(API_PREFIX, maintenanceRoutes);
 
 // Mount report routes
 app.use(`${API_PREFIX}/reports`, reportRoutes);
+
+// Mount calibration routes (sensor offset/slope correction)
+app.use(`${API_PREFIX}/calibration`, calibrationRoutes);
 
 app.get(API_PREFIX, (req: Request, res: Response) => {
   res.json({

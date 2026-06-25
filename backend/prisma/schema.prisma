@@ -41,6 +41,7 @@ model User {
   acknowledgedAlerts       AlertHistory[] @relation("AlertAcknowledger")
   notificationPreference   UserNotificationPreference?
   customDisplays           CustomDisplay[]
+  calibrations             SensorCalibration[] @relation("CalibrationUpdater")
 
   @@index([isActive], name: "idx_users_active")
   @@map("users")
@@ -100,6 +101,7 @@ model Device {
   alertThresholds     AlertThreshold[]
   alertHistory        AlertHistory[]
   customDisplays      CustomDisplay[]
+  calibrations        SensorCalibration[]
 
   @@map("devices")
 }
@@ -126,6 +128,7 @@ model TelemetryProcessed {
   // Metadata
   dataQuality     String   @default("pending") @map("data_quality") @db.VarChar(20)
   processingFlags Json?    @map("processing_flags") @db.JsonB
+  rawValues       Json?    @map("raw_values") @db.JsonB // pre-calibration readings (audit)
   
   createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
@@ -451,4 +454,28 @@ model CustomDisplay {
   @@index([slug], name: "idx_display_slug")
   @@index([createdBy], name: "idx_display_creator")
   @@map("custom_displays")
+}
+
+// ============================================================================
+// 18. SENSOR_CALIBRATION TABLE
+// ============================================================================
+// Per-device, per-parameter linear calibration: corrected = raw * slope + offset.
+// Applied at MQTT ingestion before storage/alerts/WQI/live-cache. Defaults
+// (slope 1, offset 0) are a no-op, so uncalibrated parameters pass through.
+model SensorCalibration {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  deviceId  String   @map("device_id") @db.Uuid
+  parameter String   @db.VarChar(20) // ph, do, nh3n, cod, bod, tss, temperature, depth
+  operation String   @default("none") @db.VarChar(10) // none | multiply | divide | add | subtract
+  value     Decimal  @default(0) @db.Decimal(12, 6)
+  updatedBy String?  @map("updated_by") @db.Uuid
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Relations
+  device  Device @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+  updater User?  @relation("CalibrationUpdater", fields: [updatedBy], references: [id])
+
+  @@unique([deviceId, parameter], name: "uq_calibration_device_param")
+  @@index([deviceId], name: "idx_calibration_device")
+  @@map("sensor_calibration")
 }
