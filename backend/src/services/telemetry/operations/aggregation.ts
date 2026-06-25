@@ -111,6 +111,17 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
   // --- Database query (cache miss or Redis unavailable) ---
   const parameterList = parameters.split(",").map((p) => p.trim());
 
+  // WQI is a DERIVED value, not a DB column — it's computed per bucket from the
+  // six input parameters (+ temperature for DO % saturation). So whenever "wqi"
+  // is requested (even on its own, e.g. the chart), make sure the SQL also
+  // aggregates those inputs; otherwise their *_avg columns are absent and the
+  // WQI comes back null. "wqi" itself is dropped by the column builder (it has
+  // no PARAMETER_DB_MAP entry), so we just append the dependencies here.
+  const WQI_DEPENDENCIES = ["ph", "do", "bod", "cod", "nh3n", "tss", "temperature"];
+  const queryParamList = parameterList.includes("wqi")
+    ? Array.from(new Set([...parameterList, ...WQI_DEPENDENCIES]))
+    : parameterList;
+
   // Moving-average intervals (e.g. "8h_ma", "24h_ma") need the windowed
   // query and the underlying base bucket size as the Postgres interval
   // (Postgres can't parse "8h_ma" as an interval literal).
@@ -123,14 +134,14 @@ export const getTimeSeriesData = async (options: TimeSeriesOptions) => {
         startDate,
         endDate,
         interval: baseInterval,
-        paramList: parameterList,
+        paramList: queryParamList,
       })
     : buildRegularAggregationQuery({
         deviceId,
         startDate,
         endDate,
         interval,
-        paramList: parameterList,
+        paramList: queryParamList,
       });
 
   // Execute raw SQL query with parameterized binding
