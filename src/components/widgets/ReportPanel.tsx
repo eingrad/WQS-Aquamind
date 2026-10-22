@@ -11,6 +11,11 @@ interface Device {
   location: string;
 }
 
+const INTERVAL_OPTIONS = [
+  { label: "1 Minute", value: "1m" },
+  { label: "1 Hour", value: "1h" },
+];
+
 export default function ReportPanel({
   onClose,
   onReportGenerated,
@@ -23,6 +28,7 @@ export default function ReportPanel({
   const [devices, setDevices] = useState<Device[]>([]);
   const [selectedDevice, setSelectedDevice] = useState("");
   const [frequency, setFrequency] = useState<string>("");
+  const [dataInterval, setDataInterval] = useState<string>("1h");
   const [exportType, setExportType] = useState<string>("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -78,6 +84,10 @@ export default function ReportPanel({
       setError("Please select a report frequency");
       return;
     }
+    if (!dataInterval) {
+      setError("Please select a data interval");
+      return;
+    }
     if (!startDate || !endDate) {
       setError("Please select a date range");
       return;
@@ -96,6 +106,7 @@ export default function ReportPanel({
         startDate,
         endDate,
         frequency: frequency.toLowerCase(),
+        interval: dataInterval,
         // Send the user's per-parameter unit preferences so the report
         // matches what they see on the dashboard.
         units,
@@ -105,7 +116,7 @@ export default function ReportPanel({
       await downloadFile(
         `/reports/export/${ext}`,
         requestBody,
-        `report_${selectedDevice}_${frequency}_${startDate}_to_${endDate}.${ext}`,
+        `report_${selectedDevice}_${frequency}_${dataInterval}_${startDate}_to_${endDate}.${ext}`,
       );
 
       // Success - notify parent so the report list can refresh, then close.
@@ -172,6 +183,33 @@ export default function ReportPanel({
                     className="w-4 h-4 accent-blue-500"
                   />
                   <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Data Interval Checkboxes */}
+        <div className="pt-4 border-t border-slate-200 mt-auto">
+          <div>
+            <label className="block mb-4 text-slate-800">
+              Data Interval<span className="text-red-500"> *</span>
+            </label>
+            <div className="flex gap-18">
+              {INTERVAL_OPTIONS.map((item) => (
+                <label
+                  key={item.value}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={dataInterval === item.value}
+                    onChange={() =>
+                      setDataInterval(dataInterval === item.value ? "" : item.value)
+                    }
+                    className="w-4 h-4 accent-blue-500"
+                  />
+                  <span>{item.label}</span>
                 </label>
               ))}
             </div>

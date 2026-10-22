@@ -4,11 +4,32 @@ import { getDeviceById } from "./device.service";
 import { convertToDisplayUnit, BASE_UNITS } from "../utils/unit-conversion";
 import { expectedReadingsForInterval } from "./telemetry/aggregation/parameter-cadence";
 
+/** Row granularities a caller can pick for the report's Sensor Data table. */
+export const REPORT_INTERVALS = ["1m", "1h"] as const;
+export type ReportInterval = (typeof REPORT_INTERVALS)[number];
+
+const INTERVAL_LABELS: Record<string, string> = {
+  "1m": "1 Minute",
+  "1h": "1 Hour",
+  "1d": "1 Day",
+};
+
+const INTERVAL_SECONDS: Record<string, number> = {
+  "1m": 60,
+  "1h": 3600,
+  "1d": 86400,
+};
+
 export interface ReportOptions {
   deviceId: string;
   startDate: Date;
   endDate: Date;
   frequency: "daily" | "weekly" | "monthly";
+  /**
+   * Bucket size for the Sensor Data rows. When omitted, falls back to the
+   * frequency default (1h for daily/monthly, 1d for weekly).
+   */
+  interval?: ReportInterval;
   parameters?: string[];
   /**
    * Optional per-parameter unit preferences supplied by the caller (the
@@ -25,6 +46,9 @@ export interface ReportData {
   dateRange: string;
   generatedOn: string;
   frequency: string;
+  /** Resolved bucket size ("1m" | "1h" | "1d") and its display label. */
+  interval: string;
+  intervalLabel: string;
   parameters: Array<{
     key: string;
     label: string;
@@ -95,7 +119,7 @@ const fillBucketGaps = (
   rows: any[],
   startDate: Date,
   endDate: Date,
-  interval: "1h" | "1d",
+  interval: "1m" | "1h" | "1d",
 ): any[] => {
   const byKey = new Map<string, any>();
   for (const row of rows) {
@@ -106,11 +130,11 @@ const fillBucketGaps = (
 
   const filled: any[] = [];
 
-  if (interval === "1h") {
-    // SQL emits each hourly bucket as `time_bucket('1 hour', observed_at)`
-    // — i.e. the UTC hour floor of the observation. Iterate every UTC hour
-    // from the floor-of-startDate to endDate.
-    const stepMs = 60 * 60 * 1000;
+  if (interval !== "1d") {
+    // SQL emits each minute/hour bucket as `time_bucket(interval, observed_at)`
+    // — i.e. the UTC floor of the observation. Iterate every step from the
+    // floor-of-startDate to endDate.
+    const stepMs = INTERVAL_SECONDS[interval] * 1000;
     const startMs = Math.floor(startDate.getTime() / stepMs) * stepMs;
     const endMs = endDate.getTime();
     for (let t = startMs; t < endMs; t += stepMs) {
@@ -173,14 +197,11 @@ export const generateReportData = async (
     device = deviceByCode;
   }
 
-  // Determine interval based on frequency.
-  // Daily and monthly use 1-hour buckets so the report renders one row per
-  // hour (daily = 24 rows, monthly = 24 × N days). Weekly stays on 1-day
-  // buckets to keep the row count manageable for a 7-day window.
-  let interval = "1h";
-  if (frequency === "weekly") {
-    interval = "1d";
-  }
+  // Use the caller's chosen interval (1m / 1h). Without one, fall back to
+  // the frequency default: daily and monthly use 1-hour buckets (daily = 24
+  // rows, monthly = 24 × N days); weekly uses 1-day buckets.
+  const interval: "1m" | "1h" | "1d" =
+    options.interval ?? (frequency === "weekly" ? "1d" : "1h");
 
   // Get parameters to include
   const parameters = options.parameters || DEFAULT_PARAMETERS.map((p) => p.key);
@@ -201,7 +222,7 @@ export const generateReportData = async (
     rawTelemetry,
     startDate,
     endDate,
-    interval as "1h" | "1d",
+    interval,
   );
 
   console.log(
@@ -297,6 +318,7 @@ export const generateReportData = async (
     startDate,
     endDate,
     frequency,
+    interval,
     maintenanceBucketCount,
     units,
     maintenanceByParam,
@@ -342,6 +364,8 @@ export const generateReportData = async (
     dateRange: `${startDate.toLocaleDateString("en-MY")} - ${endDate.toLocaleDateString("en-MY")}`,
     generatedOn: new Date().toLocaleString("en-MY"),
     frequency,
+    interval,
+    intervalLabel: INTERVAL_LABELS[interval],
     parameters: parameterMetadata,
     data: formattedData,
     summary,
@@ -357,6 +381,7 @@ const calculateAvailability = (
   startDate: Date,
   endDate: Date,
   frequency: string,
+  interval: string,
   _maintenanceBuckets: number = 0,
   maintenanceByParam: Record<string, number> = {},
 ): {
@@ -370,17 +395,21 @@ const calculateAvailability = (
     [parameter: string]: Array<{ date: string; percentage: number }>;
   } = {};
 
+  // Aggregation interval in seconds.
+  const intervalSeconds = INTERVAL_SECONDS[interval] ?? 3600;
+  const bucketsPerHour = 3600 / intervalSeconds;
+
   // Expected number of buckets in the report period.
   let baseExpectedPoints = 0;
   const daysDiff = Math.ceil(
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
   );
-  if (frequency === "daily") {
-    baseExpectedPoints = 24;
-  } else if (frequency === "monthly") {
-    baseExpectedPoints = daysDiff * 24;
-  } else if (frequency === "weekly") {
+  if (interval === "1d") {
     baseExpectedPoints = daysDiff;
+  } else if (frequency === "daily") {
+    baseExpectedPoints = 24 * bucketsPerHour;
+  } else {
+    baseExpectedPoints = daysDiff * 24 * bucketsPerHour;
   }
 
   const parameterMapping: { [key: string]: string } = {
@@ -393,9 +422,6 @@ const calculateAvailability = (
     temperature: "temperature_avg",
     depth:       "depth_avg",
   };
-
-  // Aggregation interval per frequency in seconds.
-  const intervalSeconds = frequency === "weekly" ? 86400 : 3600;
 
   console.log(
     `\n🔍 Calculating availability for ${parameters.length} parameters`,
@@ -448,7 +474,7 @@ const calculateAvailability = (
             hour: "2-digit",
             minute: "2-digit",
           });
-        } else if (frequency === "monthly") {
+        } else if (interval !== "1d") {
           dateStr = date.toLocaleString("en-MY", {
             month: "short",
             day: "2-digit",
@@ -562,6 +588,7 @@ const calculateSummary = (
   startDate: Date,
   endDate: Date,
   frequency: string,
+  interval: string,
   maintenanceBuckets: number = 0,
   units?: Record<string, string>,
   maintenanceByParam: Record<string, number> = {},
@@ -579,6 +606,7 @@ const calculateSummary = (
     startDate,
     endDate,
     frequency,
+    interval,
     maintenanceBuckets,
     maintenanceByParam,
   ) || { availability: {}, incompletePeriods: {} };
@@ -695,6 +723,7 @@ export const generateCSV = (reportData: ReportData): string => {
   const csvLines = [
     `Report for ${escapeCsv(reportData.deviceName)}`,
     `Period: ${escapeCsv(reportData.dateRange)}`,
+    `Interval: ${escapeCsv(reportData.intervalLabel)}`,
     `Generated: ${escapeCsv(reportData.generatedOn)}`,
     "",
     headers.join(","),
@@ -718,6 +747,7 @@ export const generateTXT = (reportData: ReportData): string => {
     `  Location              : ${reportData.location}`,
     `  Period                : ${reportData.dateRange}`,
     `  Frequency             : ${reportData.frequency}`,
+    `  Interval              : ${reportData.intervalLabel}`,
     `  Generated On          : ${reportData.generatedOn}`,
     `  Maintenance Excluded  : ${reportData.summary.maintenanceExcluded} bucket(s)`,
     divider,

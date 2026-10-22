@@ -3,6 +3,7 @@ import {
   generateReportData,
   generateCSV,
   generateTXT,
+  REPORT_INTERVALS,
 } from "../services/report.service";
 import ejs from "ejs";
 import puppeteer, { Browser } from "puppeteer";
@@ -12,12 +13,25 @@ import logger from "../config/logger";
 import prisma from "../config/database";
 import { parseReportDateRange } from "../utils/timezone";
 
+/** True when the optional `interval` body field is absent or a supported value. */
+const isValidInterval = (interval: unknown): boolean =>
+  interval === undefined ||
+  (REPORT_INTERVALS as readonly unknown[]).includes(interval);
+
+const INVALID_INTERVAL_ERROR = {
+  error: `Invalid interval. Must be one of: ${REPORT_INTERVALS.join(", ")}`,
+};
+
+/** Parameters left out of the PDF export (still present in CSV/TXT). */
+const PDF_EXCLUDED_PARAMETERS = ["temperature"];
+
 /**
  * Generate report data
  */
 export const generateReport = async (req: Request, res: Response) => {
   try {
-    const { deviceId, startDate, endDate, frequency, units } = req.body;
+    const { deviceId, startDate, endDate, frequency, interval, units } =
+      req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -25,6 +39,10 @@ export const generateReport = async (req: Request, res: Response) => {
         error:
           "Missing required fields: deviceId, startDate, endDate, frequency",
       });
+    }
+
+    if (!isValidInterval(interval)) {
+      return res.status(400).json(INVALID_INTERVAL_ERROR);
     }
 
     // Parse and convert dates to UTC (handles Malaysia timezone)
@@ -49,6 +67,7 @@ export const generateReport = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      interval,
       units,
     });
 
@@ -69,7 +88,8 @@ export const exportPDF = async (req: Request, res: Response) => {
   let browser: Browser | null = null;
 
   try {
-    const { deviceId, startDate, endDate, frequency, units } = req.body;
+    const { deviceId, startDate, endDate, frequency, interval, units } =
+      req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -77,6 +97,10 @@ export const exportPDF = async (req: Request, res: Response) => {
         error:
           "Missing required fields: deviceId, startDate, endDate, frequency",
       });
+    }
+
+    if (!isValidInterval(interval)) {
+      return res.status(400).json(INVALID_INTERVAL_ERROR);
     }
 
     // Parse and convert dates to UTC (handles Malaysia timezone)
@@ -105,8 +129,13 @@ export const exportPDF = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      interval,
       units,
     });
+
+    const pdfParameters = reportData.parameters.filter(
+      (p) => !PDF_EXCLUDED_PARAMETERS.includes(p.key),
+    );
 
     // Build a unit lookup from the resolved parameter metadata so the
     // summary block matches the dashboard's selected units.
@@ -115,7 +144,6 @@ export const exportPDF = async (req: Request, res: Response) => {
 
     // Format summary for template
     const formattedSummary = {
-      maxTemp: reportData.summary.maxTemp?.toFixed(2) || "N/A",
       avgPh: reportData.summary.avgPh?.toFixed(2) || "N/A",
       avgDo: reportData.summary.avgDo?.toFixed(3) || "N/A",
       avgNh3n: reportData.summary.avgNh3n?.toFixed(4) || "N/A",
@@ -126,7 +154,7 @@ export const exportPDF = async (req: Request, res: Response) => {
       maintenanceExcluded: reportData.summary.maintenanceExcluded || 0,
       // Per-parameter Data Counts table rows, in the same order as the
       // report's parameter list.
-      dataCountsRows: reportData.parameters.map((p, idx) => {
+      dataCountsRows: pdfParameters.map((p, idx) => {
         const c = reportData.summary.dataCounts?.[p.key] || {
           total: 0,
           available: 0,
@@ -152,7 +180,6 @@ export const exportPDF = async (req: Request, res: Response) => {
         cod: unitFor("cod"),
         bod: unitFor("bod"),
         tss: unitFor("tss"),
-        temperature: unitFor("temperature"),
         depth: unitFor("depth"),
       },
       availability: reportData.summary.availability || {}, // Pass availability data
@@ -169,7 +196,8 @@ export const exportPDF = async (req: Request, res: Response) => {
       dateRange: reportData.dateRange,
       generatedOn: reportData.generatedOn,
       location: reportData.location,
-      parameters: reportData.parameters,
+      intervalLabel: reportData.intervalLabel,
+      parameters: pdfParameters,
       data: reportData.data,
       summary: formattedSummary,
     });
@@ -200,7 +228,7 @@ export const exportPDF = async (req: Request, res: Response) => {
 
     // Save report to database
     const { parameters } = req.body; // Extract parameters from request
-    const filename = `report_${reportData.deviceId}_${frequency}_${start.toISOString().split("T")[0]}_to_${end.toISOString().split("T")[0]}.pdf`;
+    const filename = `report_${reportData.deviceId}_${frequency}_${reportData.interval}_${start.toISOString().split("T")[0]}_to_${end.toISOString().split("T")[0]}.pdf`;
     const reportsDir = path.join(__dirname, "../../reports/generated");
 
     // Create directory if it doesn't exist
@@ -240,7 +268,7 @@ export const exportPDF = async (req: Request, res: Response) => {
         const reportRecord = await prisma.report.create({
           data: {
             reportType: frequency,
-            title: `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} AQMS Report`,
+            title: `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} AQMS Report (${reportData.intervalLabel})`,
             description: `Air quality monitoring report for ${start.toISOString().split("T")[0]} to ${end.toISOString().split("T")[0]}`,
             timeFrom: start,
             timeTo: end,
@@ -288,7 +316,8 @@ export const exportPDF = async (req: Request, res: Response) => {
  */
 export const exportCSV = async (req: Request, res: Response) => {
   try {
-    const { deviceId, startDate, endDate, frequency, units } = req.body;
+    const { deviceId, startDate, endDate, frequency, interval, units } =
+      req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -296,6 +325,10 @@ export const exportCSV = async (req: Request, res: Response) => {
         error:
           "Missing required fields: deviceId, startDate, endDate, frequency",
       });
+    }
+
+    if (!isValidInterval(interval)) {
+      return res.status(400).json(INVALID_INTERVAL_ERROR);
     }
 
     // Parse and convert dates to UTC (handles Malaysia timezone)
@@ -318,6 +351,7 @@ export const exportCSV = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      interval,
       units,
     });
 
@@ -326,7 +360,7 @@ export const exportCSV = async (req: Request, res: Response) => {
 
     // Save report to database
     const { parameters } = req.body; // Extract parameters from request
-    const filename = `report_${reportData.deviceId}_${frequency}_${start.toISOString().split("T")[0]}_to_${end.toISOString().split("T")[0]}.csv`;
+    const filename = `report_${reportData.deviceId}_${frequency}_${reportData.interval}_${start.toISOString().split("T")[0]}_to_${end.toISOString().split("T")[0]}.csv`;
     const reportsDir = path.join(__dirname, "../../reports/generated");
 
     // Create directory if it doesn't exist
@@ -366,7 +400,7 @@ export const exportCSV = async (req: Request, res: Response) => {
         const reportRecord = await prisma.report.create({
           data: {
             reportType: frequency,
-            title: `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} Report`,
+            title: `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} Report (${reportData.intervalLabel})`,
             description: `Air quality monitoring report for ${start.toISOString().split("T")[0]} to ${end.toISOString().split("T")[0]}`,
             timeFrom: start,
             timeTo: end,
@@ -408,7 +442,8 @@ export const exportCSV = async (req: Request, res: Response) => {
  */
 export const exportTXT = async (req: Request, res: Response) => {
   try {
-    const { deviceId, startDate, endDate, frequency, units } = req.body;
+    const { deviceId, startDate, endDate, frequency, interval, units } =
+      req.body;
 
     // Validate required fields
     if (!deviceId || !startDate || !endDate || !frequency) {
@@ -416,6 +451,10 @@ export const exportTXT = async (req: Request, res: Response) => {
         error:
           "Missing required fields: deviceId, startDate, endDate, frequency",
       });
+    }
+
+    if (!isValidInterval(interval)) {
+      return res.status(400).json(INVALID_INTERVAL_ERROR);
     }
 
     // Parse and convert dates to UTC (handles Malaysia timezone)
@@ -433,6 +472,7 @@ export const exportTXT = async (req: Request, res: Response) => {
       startDate: start,
       endDate: end,
       frequency,
+      interval,
       units,
     });
 
@@ -441,7 +481,7 @@ export const exportTXT = async (req: Request, res: Response) => {
 
     // Save report to database
     const { parameters } = req.body;
-    const filename = `report_${reportData.deviceId}_${frequency}_${start.toISOString().split("T")[0]}_to_${end.toISOString().split("T")[0]}.txt`;
+    const filename = `report_${reportData.deviceId}_${frequency}_${reportData.interval}_${start.toISOString().split("T")[0]}_to_${end.toISOString().split("T")[0]}.txt`;
     const reportsDir = path.join(__dirname, "../../reports/generated");
 
     if (!fs.existsSync(reportsDir)) {
@@ -469,7 +509,7 @@ export const exportTXT = async (req: Request, res: Response) => {
         await prisma.report.create({
           data: {
             reportType: frequency,
-            title: `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} Report`,
+            title: `${frequency.charAt(0).toUpperCase() + frequency.slice(1)} Report (${reportData.intervalLabel})`,
             description: `Air quality monitoring report for ${start.toISOString().split("T")[0]} to ${end.toISOString().split("T")[0]}`,
             timeFrom: start,
             timeTo: end,

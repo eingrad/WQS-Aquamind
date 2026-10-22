@@ -119,6 +119,7 @@
       <div class="section-title">Report Metadata</div>
       <p><strong>Generated On:</strong> <%= generatedOn %></p>
       <p><strong>Location:</strong> <%= location %></p>
+      <p><strong>Interval:</strong> <%= intervalLabel %></p>
       <% if (summary.maintenanceExcluded > 0) { %>
       <p><strong>Maintenance Excluded:</strong> <%= summary.maintenanceExcluded %> bucket(s)</p>
       <% } %>
@@ -228,7 +229,6 @@
         <p><strong>COD Average:</strong> <%= summary.avgCod %> <%= summary.units.cod %></p>
         <p><strong>BOD Average:</strong> <%= summary.avgBod %> <%= summary.units.bod %></p>
         <p><strong>TSS Average:</strong> <%= summary.avgTss %> <%= summary.units.tss %></p>
-        <p><strong>Max Temperature:</strong> <%= summary.maxTemp %> <%= summary.units.temperature %></p>
         <p><strong>Depth Average:</strong> <%= summary.avgDepth %> <%= summary.units.depth %></p>
       </div>
     </div>
