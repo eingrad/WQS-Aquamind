@@ -28,8 +28,8 @@ const greenIcon = new L.Icon({
 export default function StationMap({
   stationName = "AquaMind Water Quality Monitoring Station",
   location = "Pengerang",
-  latitude = 1.366694,
-  longitude = 104.108306,
+  latitude = 3.004547195618763,
+  longitude = 101.70881563208111,
   status = "active",
 }: StationMapProps) {
   const isActive = status.toLowerCase() === "active";
@@ -62,7 +62,7 @@ export default function StationMap({
           attributionControl={false}
           key={`${latitude}-${longitude}`} // Force re-render when coords change
         >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
           {/* Teal circle around station */}
           <Circle
